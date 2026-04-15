@@ -4,150 +4,185 @@ const path = require("path");
 
 module.exports.config = {
     name: "help",
-    version: "2.0.0",
+    version: "4.0.1",
     hasPermssion: 0,
-    credits: "SHAHADAT SAHU",
-    description: "Shows all commands with details",
+    credits: "MR JUWEL",
+    description: "Help system (prefix required)",
     commandCategory: "system",
-    usages: "[command name/page number]",
-    cooldowns: 5,
-    envConfig: {
-        autoUnsend: true,
-        delayUnsend: 20
-    }
+    usages: "[name/page/category]",
+    cooldowns: 5
 };
 
-module.exports.languages = {
-    "en": {
-        "moduleInfo": `╭━━━━━━━━━━━━━━━━╮
-┃ ✨ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃 𝐈𝐍𝐅𝐎 ✨
-┣━━━━━━━━━━━┫
-┃ 🔖 Name: %1
-┃ 📄 Usage: %2
-┃ 📜 Description: %3
-┃ 🔑 Permission: %4
-┃ 👨‍💻 Credit: %5
-┃ 📂 Category: %6
-┃ ⏳ Cooldown: %7s
-┣━━━━━━━━━━━━━━━━┫
-┃ ⚙ Prefix: %8
-┃ 🤖 Bot Name: %9
-┃ 👑 Owner: ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐌⃞𝆠፝֟𝐑᭄ღ倫 𝐉⃞𝐔⃞𝐖⃞𝐄⃞𝐋༢࿐
-╰━━━━━━━━━━━━━━━━╯`,
-        "helpList": "[ There are %1 commands. Use: \"%2help commandName\" to view more. ]",
-        "user": "User",
-        "adminGroup": "Admin Group",
-        "adminBot": "Admin Bot"
-    }
-};
-
-// 🔹 এখানে আপনার ফটো Imgur লিংক করে বসাবেন ✅
+// 🖼️ images
 const helpImages = [
-    "https://i.imgur.com/FFQB2YW.jpeg",
-  ];
+    "https://i.imgur.com/koljbGQ.jpeg",
+ 
+];
 
+// 📊 usage file
+const usageDataPath = __dirname + "/cache/helpUsage.json";
+if (!fs.existsSync(usageDataPath)) fs.writeFileSync(usageDataPath, JSON.stringify({}));
 
+function saveUsage(cmd) {
+    let data = JSON.parse(fs.readFileSync(usageDataPath));
+    data[cmd] = (data[cmd] || 0) + 1;
+    fs.writeFileSync(usageDataPath, JSON.stringify(data, null, 2));
+}
+
+// 🖼️ image download
 function downloadImages(callback) {
-    const randomUrl = helpImages[Math.floor(Math.random() * helpImages.length)];
-    const filePath = path.join(__dirname, "cache", "help_random.jpg");
+    const url = helpImages[Math.floor(Math.random() * helpImages.length)];
+    const filePath = path.join(__dirname, "cache", "help.jpg");
 
-    request(randomUrl)
+    request(url)
+        .on("error", () => callback([]))
         .pipe(fs.createWriteStream(filePath))
         .on("close", () => callback([filePath]));
 }
 
-module.exports.handleEvent = function ({ api, event, getText }) {
-    const { commands } = global.client;
-    const { threadID, messageID, body } = event;
+// 🔎 suggestion
+function getSuggest(input, list) {
+    input = input.toLowerCase();
+    return list.find(x => x.toLowerCase().includes(input));
+}
 
-    if (!body || typeof body === "undefined" || body.indexOf("help") != 0) return;  
-    const splitBody = body.slice(body.indexOf("help")).trim().split(/\s+/);  
-    if (splitBody.length < 2 || !commands.has(splitBody[1].toLowerCase())) return;  
-
-    const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};  
-    const command = commands.get(splitBody[1].toLowerCase());  
-    const prefix = threadSetting.PREFIX || global.config.PREFIX;  
-
-    const detail = getText("moduleInfo",  
-        command.config.name,  
-        command.config.usages || "Not Provided",  
-        command.config.description || "Not Provided",  
-        command.config.hasPermssion,  
-        command.config.credits || "Unknown",  
-        command.config.commandCategory || "Unknown",  
-        command.config.cooldowns || 0,  
-        prefix,  
-        global.config.BOTNAME || "𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭"  
-    );  
-
-    downloadImages(files => {  
-        const attachments = files.map(f => fs.createReadStream(f));  
-        api.sendMessage({ body: detail, attachment: attachments }, threadID, () => {  
-            files.forEach(f => fs.unlinkSync(f));  
-        }, messageID);  
-    });
-};
-
-module.exports.run = function ({ api, event, args, getText }) {
-    const { commands } = global.client;
+module.exports.run = function ({ api, event, args }) {
     const { threadID, messageID } = event;
+    const { commands } = global.client;
 
-    const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};  
-    const prefix = threadSetting.PREFIX || global.config.PREFIX;  
+    const prefix = global.config.PREFIX || "";
 
-    if (args[0] && commands.has(args[0].toLowerCase())) {  
-        const command = commands.get(args[0].toLowerCase());  
+    const allCommands = Array.from(commands.keys());
 
-        const detailText = getText("moduleInfo",  
-            command.config.name,  
-            command.config.usages || "Not Provided",  
-            command.config.description || "Not Provided",  
-            command.config.hasPermssion,  
-            command.config.credits || "Unknown",  
-            command.config.commandCategory || "Unknown",  
-            command.config.cooldowns || 0,  
-            prefix,  
-            global.config.BOTNAME || "𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭"  
-        );  
+    // 🔍 SEARCH
+    if (args[0] === "-s") {
+        const keyword = args.slice(1).join(" ").toLowerCase();
 
-        downloadImages(files => {  
-            const attachments = files.map(f => fs.createReadStream(f));  
-            api.sendMessage({ body: detailText, attachment: attachments }, threadID, () => {  
-                files.forEach(f => fs.unlinkSync(f));  
-            }, messageID);  
-        });  
-        return;  
-    }  
+        const result = allCommands.filter(cmd =>
+            cmd.toLowerCase().includes(keyword)
+        );
 
-    const arrayInfo = Array.from(commands.keys())
-        .filter(cmdName => cmdName && cmdName.trim() !== "")
-        .sort();  
+        return api.sendMessage(
+`╔════════════════════╗
+🔍 SEARCH RESULT
+╚════════════════════╝
 
-    const page = Math.max(parseInt(args[0]) || 1, 1);  
-    const numberOfOnePage = 20;  
-    const totalPages = Math.ceil(arrayInfo.length / numberOfOnePage);  
-    const start = numberOfOnePage * (page - 1);  
-    const helpView = arrayInfo.slice(start, start + numberOfOnePage);  
+🔎 Query: ${keyword}
 
-    let msg = helpView.map(cmdName => `┃ ✪ ${cmdName}`).join("\n");
+${result.length ? result.join("\n") : "❌ No command found"}
 
-    const text = `╭━━━━━━━━━━━━━━━━╮
-┃ 📜 𝐂𝐎𝐌𝐌𝐀𝐍𝐃 𝐋𝐈𝐒𝐓 📜
-┣━━━━━━━━━━━━━━━┫
-┃ 📄 Page: ${page}/${totalPages}
-┃ 🧮 Total: ${arrayInfo.length}
-┣━━━━━━━━━━━━━━━━┫
-${msg}
-┣━━━━━━━━━━━━━━━━┫
-┃ ⚙ Prefix: ${prefix}
-┃ 🤖 Bot Name: ${global.config.BOTNAME || "⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐"}
-┃ 👑 Owner: ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐌⃞𝆠፝֟𝐑᭄ღ倫 𝐉⃞𝐔⃞𝐖⃞𝐄⃞𝐋༢࿐
-╰━━━━━━━━━━━━━━━━╯`;
+━━━━━━━━━━━━━━`,
+            threadID,
+            messageID
+        );
+    }
 
-    downloadImages(files => {  
-        const attachments = files.map(f => fs.createReadStream(f));  
-        api.sendMessage({ body: text, attachment: attachments }, threadID, () => {  
-            files.forEach(f => fs.unlinkSync(f));  
-        }, messageID);  
-    });  
+    // 📂 CATEGORY
+    if (args[0] && isNaN(args[0])) {
+        const category = args[0].toLowerCase();
+        const filtered = [];
+
+        for (let [name, cmd] of commands) {
+            if ((cmd.config.commandCategory || "").toLowerCase() === category) {
+                filtered.push(name);
+            }
+        }
+
+        if (filtered.length > 0) {
+            return api.sendMessage(
+`╔════════════════════╗
+📂 CATEGORY: ${category.toUpperCase()}
+╚════════════════════╝
+
+${filtered.join("\n")}
+
+━━━━━━━━━━━━━━`,
+                threadID,
+                messageID
+            );
+        }
+    }
+
+    // 📌 COMMAND INFO
+    if (args[0] && commands.has(args[0])) {
+        const cmd = commands.get(args[0]);
+        saveUsage(cmd.config.name);
+
+        let usageData = JSON.parse(fs.readFileSync(usageDataPath));
+        let used = usageData[cmd.config.name] || 0;
+
+        const msg =
+`╔════════════════════╗
+✨ COMMAND INFO
+╚════════════════════╝
+
+📌 Name: ${cmd.config.name}
+📄 Usage: ${cmd.config.usages || "N/A"}
+📜 Description: ${cmd.config.description}
+📂 Category: ${cmd.config.commandCategory}
+📊 Used: ${used} times
+
+⚙ Prefix Required: YES (${prefix}help)
+━━━━━━━━━━━━━━`;
+
+        return downloadImages(files => {
+            api.sendMessage({
+                body: msg,
+                attachment: files.map(f => fs.createReadStream(f))
+            }, threadID, () => files.forEach(f => fs.unlinkSync(f)), messageID);
+        });
+    }
+
+    // ❌ SUGGESTION
+    if (args[0] && !commands.has(args[0])) {
+        const suggest = getSuggest(args[0], allCommands);
+
+        if (suggest) {
+            return api.sendMessage(
+`❌ Command not found
+
+👉 Did you mean: ${suggest}?`,
+                threadID,
+                messageID
+            );
+        }
+    }
+
+    // 📄 PAGINATION
+    const page = Math.max(1, parseInt(args[0]) || 1);
+    const perPage = 15;
+    const totalPages = Math.ceil(allCommands.length / perPage);
+
+    const list = allCommands.slice((page - 1) * perPage, page * perPage);
+
+    let msg =
+`╔════════════════════╗
+📜 HELP MENU
+╚════════════════════╝
+
+📄 Page: ${page}/${totalPages}
+🧮 Total Commands: ${allCommands.length}
+
+━━━━━━━━━━━━━━
+`;
+
+    msg += list.map(cmd => `✦ ${cmd}`).join("\n");
+
+    msg += `
+
+━━━━━━━━━━━━━━
+🤖 Bot: ${global.config.BOTNAME || "BOT"}
+👑 Owner: MR JUWEL
+⚙ Prefix Required: YES (${prefix}help)
+
+▶ Next: ${prefix}help ${page + 1}
+◀ Prev: ${prefix}help ${page - 1}
+━━━━━━━━━━━━━━`;
+
+    downloadImages(files => {
+        api.sendMessage({
+            body: msg,
+            attachment: files.map(f => fs.createReadStream(f))
+        }, threadID, () => files.forEach(f => fs.unlinkSync(f)), messageID);
+    });
 };
