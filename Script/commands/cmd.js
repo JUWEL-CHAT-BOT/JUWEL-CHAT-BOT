@@ -1,143 +1,194 @@
+const fs = require("fs-extra");
+const path = require("path");
+
 module.exports.config = {
- name: "cmd",
- version: "1.0.0",
- hasPermssion: 2,
- credits: "MAHBUB SHAON",
- description: "Manage/Control all bot modules",
- commandCategory: "System",
- usages: "[load/unload/loadAll/unloadAll/info] [name module]",
- cooldowns: 2,
- dependencies: {
- "fs-extra": "",
- "child_process": "",
- "path": ""
- }
+  name: "cmd",
+  version: "2.0.0",
+  hasPermssion: 2,
+  credits: "MR JUWEL (বাংলা) ভার্সন",
+  description: "কমান্ড নিয়ন্ত্রণ সিস্টেম",
+  commandCategory: "System",
+  usages: "[load/unload/reload/loadAll/unloadAll/info/count/watch]",
+  cooldowns: 2
 };
 
-const loadCommand = function ({ moduleList, threadID, messageID, api }) {
- const { execSync } = global.nodemodule["child_process"];
- const { writeFileSync, unlinkSync, readFileSync } = global.nodemodule["fs-extra"];
- const { join } = global.nodemodule["path"];
- const { configPath, mainPath } = global.client;
- const logger = require(mainPath + "/utils/log");
+// ===== পারমিশন সিস্টেম =====
+const ADMIN = [
+  "100071528325738"
+];
 
- var errorList = [];
- delete require.cache[require.resolve(configPath)];
- var configValue = require(configPath);
- writeFileSync(configPath + ".temp", JSON.stringify(configValue, null, 2), "utf8");
+const MOD = [
+  "61584675610952",
+  "61575698441722"
+];
 
- for (const nameModule of moduleList) {
- try {
- const dirModule = __dirname + "/" + nameModule + ".js";
- delete require.cache[require.resolve(dirModule)];
- const command = require(dirModule);
- global.client.commands.delete(nameModule);
+function checkPerm(uid, level) {
+  uid = String(uid);
+  if (ADMIN.includes(uid)) return true;
+  if (level == 1 && MOD.includes(uid)) return true;
+  return false;
+}
 
- if (!command.config || !command.run || !command.config.commandCategory) 
- throw new Error("[CMD] - Module is not properly formatted!");
+// ===== LOAD =====
+function loadCommand(name) {
+  const dir = __dirname + "/" + name + ".js";
 
- global.client.eventRegistered = global.client.eventRegistered.filter(info => info != command.config.name);
+  delete require.cache[require.resolve(dir)];
+  const cmd = require(dir);
 
- global.client.commands.set(command.config.name, command);
- logger.loader("Loaded command " + command.config.name + "!");
+  if (!cmd.config || !cmd.run)
+    throw new Error("মডিউল স্ট্রাকচার সঠিক না");
 
- } catch (error) {
- errorList.push("- " + nameModule + " reason: " + error);
- }
- }
+  global.client.commands.set(cmd.config.name, cmd);
 
- if (errorList.length > 0) {
- api.sendMessage("[CMD] » Some modules failed to load: " + errorList.join(", "), threadID, messageID);
- } else {
- api.sendMessage("[CMD] » Successfully loaded all modules: " + moduleList.join(", "), threadID, messageID);
- }
+  return `✅ লোড হয়েছে → ${cmd.config.name}`;
+}
 
- writeFileSync(configPath, JSON.stringify(configValue, null, 4), "utf8");
- unlinkSync(configPath + ".temp");
-};
+// ===== UNLOAD =====
+function unloadCommand(name) {
+  global.client.commands.delete(name);
 
-const unloadModule = function ({ moduleList, threadID, messageID, api }) {
- const { writeFileSync, unlinkSync } = global.nodemodule["fs-extra"];
- const { configPath, mainPath } = global.client;
- const logger = require(mainPath + "/utils/log").loader;
+  global.client.eventRegistered =
+    global.client.eventRegistered.filter(i => i !== name);
 
- delete require.cache[require.resolve(configPath)];
- var configValue = require(configPath);
- writeFileSync(configPath + ".temp", JSON.stringify(configValue, null, 4), "utf8");
+  return `❌ আনলোড হয়েছে → ${name}`;
+}
 
- for (const nameModule of moduleList) {
- global.client.commands.delete(nameModule);
- global.client.eventRegistered = global.client.eventRegistered.filter(item => item !== nameModule);
- configValue["commandDisabled"].push(`${nameModule}.js`);
- global.config["commandDisabled"].push(`${nameModule}.js`);
- logger(`Unloaded command ${nameModule}!`);
- }
+// ===== WATCH SYSTEM =====
+let watcherEnabled = false;
 
- writeFileSync(configPath, JSON.stringify(configValue, null, 4), "utf8");
- unlinkSync(configPath + ".temp");
+function startWatcher(api, threadID) {
+  if (watcherEnabled) return;
 
- api.sendMessage(`[CMD] » Successfully unloaded ${moduleList.length} command(s)`, threadID, messageID);
-};
+  watcherEnabled = true;
 
-module.exports.run = function ({ event, args, api }) {
- if (!api || !api.sendMessage) {
- console.error("[CMD] ERROR: API object is undefined!");
- return;
- }
+  fs.watch(__dirname, (eventType, filename) => {
+    if (!filename || !filename.endsWith(".js")) return;
 
- if (event.senderID != "100071528325738")
- if (event.senderID != "61584675610952")
- if (event.senderID != "61575698441722") {
- return api.sendMessage("[CMD] » You are not authorized to use this command!", event.threadID, event.messageID);
- }
+    const name = filename.replace(".js", "");
 
- const { readdirSync } = global.nodemodule["fs-extra"];
- const { threadID, messageID } = event;
+    try {
+      loadCommand(name);
+      api.sendMessage(`🔄 অটো রিলোড হয়েছে: ${name}`, threadID);
+    } catch (e) {
+      api.sendMessage(`⚠️ রিলোড সমস্যা: ${name}\n${e.message}`, threadID);
+    }
+  });
+}
 
- var moduleList = args.slice(1);
+// ===== MAIN =====
+module.exports.run = async function ({ event, args, api }) {
+  const { threadID, messageID, senderID } = event;
 
- switch (args[0]) {
- case "count": {
- api.sendMessage(`[CMD] - Currently loaded commands: ${global.client.commands.size}`, threadID, messageID);
- break;
- }
- case "load": {
- if (moduleList.length == 0) return api.sendMessage("[CMD] » Module name cannot be blank!", threadID, messageID);
- return loadCommand({ moduleList, threadID, messageID, api });
- }
- case "unload": {
- if (moduleList.length == 0) return api.sendMessage("[CMD] » Module name cannot be blank!", threadID, messageID);
- return unloadModule({ moduleList, threadID, messageID, api });
- }
- case "loadAll": {
- moduleList = readdirSync(__dirname).filter(file => file.endsWith(".js") && !file.includes("example"));
- moduleList = moduleList.map(item => item.replace(/\.js/g, ""));
- return loadCommand({ moduleList, threadID, messageID, api });
- }
- case "unloadAll": {
- moduleList = readdirSync(__dirname).filter(file => file.endsWith(".js") && !file.includes("example") && !file.includes("command"));
- moduleList = moduleList.map(item => item.replace(/\.js/g, ""));
- return unloadModule({ moduleList, threadID, messageID, api });
- }
- case "info": {
- const command = global.client.commands.get(moduleList.join("") || "");
+  if (!checkPerm(senderID, 1)) {
+    return api.sendMessage("❌ আপনার অনুমতি নেই!", threadID, messageID);
+  }
 
- if (!command) return api.sendMessage("[CMD] » The specified module does not exist!", threadID, messageID);
+  const action = args[0];
+  const name = args[1];
 
- const { name, version, hasPermssion, credits, cooldowns, dependencies } = command.config;
+  try {
+    switch (action) {
 
- return api.sendMessage(
- `====== ${name.toUpperCase()} ======\n` +
- `- Created by: ${credits}\n` +
- `- Version: ${version}\n` +
- `- Required Permission: ${hasPermssion == 0 ? "User" : hasPermssion == 1 ? "Admin" : "Support"}\n` +
- `- Cooldown: ${cooldowns} second(s)\n` +
- `- Dependencies: ${(Object.keys(dependencies || {})).join(", ") || "None"}`,
- threadID, messageID
- );
- }
- default: {
- return api.sendMessage("[CMD] » Invalid command!", threadID, messageID);
- }
- }
+      case "count":
+        return api.sendMessage(
+          `📦 মোট কমান্ড: ${global.client.commands.size}`,
+          threadID,
+          messageID
+        );
+
+      case "load":
+        if (!name) return api.sendMessage("⚠️ মডিউলের নাম দিন!", threadID);
+        return api.sendMessage(loadCommand(name), threadID, messageID);
+
+      case "unload":
+        if (!name) return api.sendMessage("⚠️ মডিউলের নাম দিন!", threadID);
+        return api.sendMessage(unloadCommand(name), threadID, messageID);
+
+      case "reload":
+        if (!name) return api.sendMessage("⚠️ মডিউলের নাম দিন!", threadID);
+        unloadCommand(name);
+        return api.sendMessage(loadCommand(name), threadID, messageID);
+
+      case "loadAll":
+        const files = fs.readdirSync(__dirname).filter(f => f.endsWith(".js"));
+
+        let msg = "📥 সব মডিউল লোড হচ্ছে...\n\n";
+
+        for (const file of files) {
+          const n = file.replace(".js", "");
+          try {
+            msg += loadCommand(n) + "\n";
+          } catch (e) {
+            msg += `⚠️ ${n} → ${e.message}\n`;
+          }
+        }
+
+        return api.sendMessage(msg, threadID, messageID);
+
+      case "unloadAll":
+        const all = Array.from(global.client.commands.keys());
+
+        let msg2 = "📤 সব মডিউল আনলোড হচ্ছে...\n\n";
+
+        for (const n of all) {
+          if (n === "cmd") continue;
+          msg2 += unloadCommand(n) + "\n";
+        }
+
+        return api.sendMessage(msg2, threadID, messageID);
+
+      case "info":
+        if (!name) return api.sendMessage("⚠️ মডিউলের নাম দিন!", threadID);
+
+        const cmd = global.client.commands.get(name);
+
+        if (!cmd) return api.sendMessage("❌ মডিউল পাওয়া যায়নি!", threadID);
+
+        const c = cmd.config;
+
+        // 💎 PREMIUM ENGLISH FRAME 1
+        return api.sendMessage(
+`╔═════〔 CMD DETAILS 〕═════╗
+│ 📌 Name : ${c.name}
+│ 👑 Author : ${c.credits}
+│ ⚙️ Version : ${c.version}
+│ 🔒 Permission : ${c.hasPermssion}
+│ ⏱ Cooldown : ${c.cooldowns}s
+│ 📦 Dependencies : ${(Object.keys(c.dependencies || {}).join(", ") || "None")}
+╚═════════════════════════╝`,
+          threadID,
+          messageID
+        );
+
+      case "watch":
+        if (!checkPerm(senderID, 2))
+          return api.sendMessage("❌ শুধু এডমিন ব্যবহার করতে পারবে!", threadID);
+
+        startWatcher(api, threadID);
+        return api.sendMessage("👀 অটো রিলোড চালু হয়েছে", threadID, messageID);
+
+      default:
+        return api.sendMessage(
+          "⚙️ ব্যবহার:\n" +
+          "cmd load নাম\n" +
+          "cmd unload নাম\n" +
+          "cmd reload নাম\n" +
+          "cmd loadAll\n" +
+          "cmd unloadAll\n" +
+          "cmd info নাম\n" +
+          "cmd count\n" +
+          "cmd watch",
+          threadID,
+          messageID
+        );
+    }
+
+  } catch (err) {
+    return api.sendMessage(
+      "❌ সমস্যা হয়েছে:\n" + err.message,
+      threadID,
+      messageID
+    );
+  }
 };
