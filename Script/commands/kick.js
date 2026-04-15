@@ -1,39 +1,74 @@
 module.exports.config = {
 	name: "kick",
-	version: "1.0.1", 
-	hasPermssion: 0,
-	credits: "𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
- description: "the person you need to remove from the group by tag",
-	commandCategory: "System", 
-	usages: "[tag]", 
-	cooldowns: 0,
+	version: "1.1.0",
+	hasPermssion: 1,
+	credits: "MR JUWEL",
+	description: "Tag/reply দিয়ে একসাথে একাধিক ইউজার কিক করা যায়",
+	commandCategory: "System",
+	usages: "[tag/reply]",
+	cooldowns: 3,
 };
 
 module.exports.languages = {
-	"vi": {
-		"error": "Đã có lỗi xảy ra, vui lòng thử lại sau",
-		"needPermssion": "Cần quyền quản trị viên nhóm\nVui lòng thêm và thử lại!",
-		"missingTag": "Bạn phải tag người cần kick"
-	},
 	"en": {
-		"error": "Error! An error occurred. Please try again later!",
-		"needPermssion": "Need group admin\nPlease add and try again!",
-		"missingTag": "You need tag some person to kick"
+		"error": "Error! Something went wrong.",
+		"needBotAdmin": "Bot needs admin permission!",
+		"needTagOrReply": "Please reply to a message or tag someone!",
+		"noPermission": "You need to be group admin!"
 	}
-}
+};
 
-module.exports.run = async function({ api, event, getText, Threads }) {
-	var mention = Object.keys(event.mentions);
+module.exports.run = async function ({ api, event, getText, Threads }) {
 	try {
-		let dataThread = (await Threads.getData(event.threadID)).threadInfo;
-		if (!dataThread.adminIDs.some(item => item.id == api.getCurrentUserID())) return api.sendMessage(getText("needPermssion"), event.threadID, event.messageID);
-		if(!mention[0]) return api.sendMessage("You have to tag the need to kick",event.threadID);
-		if (dataThread.adminIDs.some(item => item.id == event.senderID)) {
-			for (const o in mention) {
-				setTimeout(() => {
-					api.removeUserFromGroup(mention[o],event.threadID) 
-				},3000)
-			}
+
+		let targetIDs = [];
+
+		// 👉 Reply system (single)
+		if (event.type === "message_reply") {
+			targetIDs.push(event.messageReply.senderID);
 		}
-	} catch { return api.sendMessage(getText("error"),event.threadID) }
-}
+
+		// 👉 Tag system (MULTIPLE SUPPORT)
+		let mention = Object.keys(event.mentions || {});
+		if (mention.length > 0) {
+			targetIDs = targetIDs.concat(mention);
+		}
+
+		if (targetIDs.length === 0)
+			return api.sendMessage(getText("needTagOrReply"), event.threadID, event.messageID);
+
+		const threadData = await Threads.getData(event.threadID);
+		const threadInfo = threadData.threadInfo || (await api.getThreadInfo(event.threadID));
+
+		const admins = threadInfo.adminIDs || [];
+
+		const isUserAdmin = admins.some(a => a.id == event.senderID);
+		const isBotAdmin = admins.some(a => a.id == api.getCurrentUserID());
+
+		if (!isBotAdmin)
+			return api.sendMessage(getText("needBotAdmin"), event.threadID, event.messageID);
+
+		if (!isUserAdmin)
+			return api.sendMessage(getText("noPermission"), event.threadID, event.messageID);
+
+		// ❗ নিজেকে কিক করা বন্ধ
+		targetIDs = targetIDs.filter(id => id != api.getCurrentUserID());
+
+		// 👉 একসাথে কিক
+		for (let id of targetIDs) {
+			api.removeUserFromGroup(id, event.threadID, (err) => {
+				if (err) console.log(err);
+			});
+		}
+
+		return api.sendMessage(
+			`✅ ${targetIDs.length} জন ইউজারকে গ্রুপ থেকে কিক করা হয়েছে!`,
+			event.threadID,
+			event.messageID
+		);
+
+	} catch (err) {
+		console.log(err);
+		return api.sendMessage(getText("error"), event.threadID, event.messageID);
+	}
+};
