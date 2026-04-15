@@ -19,7 +19,7 @@ let lastRun = 0;
 module.exports.config = {
     name: "autoseen",
     version: "3.0.0",
-    hasPermssion: 2,
+    hasPermssion: 1,
     credits: "MR JUWEL",
     description: "Auto Seen with full persistent system",
     commandCategory: "tools",
