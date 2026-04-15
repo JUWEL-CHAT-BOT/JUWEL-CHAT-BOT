@@ -24,9 +24,7 @@ module.exports.run = async function ({ api, event, args }) {
     // 🔒 Permission Check
     if (event.senderID !== ADMIN_UID) {
       return api.sendMessage(
-`╔══════════════════════╗
-❌ তোমার permission নাই!
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ❌ তোমার permission নাই! ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -37,9 +35,7 @@ module.exports.run = async function ({ api, event, args }) {
 
     if (!fileName || !input) {
       return api.sendMessage(
-`╔══════════════════════╗
-⚠️ ফাইল নাম + কোড/লিংক দিন!
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ⚠️ ফাইল নাম + কোড/লিংক দিন! ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -48,9 +44,7 @@ module.exports.run = async function ({ api, event, args }) {
     // ❌ invalid name
     if (fileName.includes("..") || path.isAbsolute(fileName)) {
       return api.sendMessage(
-`╔══════════════════════╗
-❌ অবৈধ ফাইল নাম!
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ❌ অবৈধ ফাইল নাম! ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -59,9 +53,7 @@ module.exports.run = async function ({ api, event, args }) {
     // ❌ only js
     if (!fileName.endsWith(".js")) {
       return api.sendMessage(
-`╔══════════════════════╗
-⚠️ শুধুমাত্র .js ফাইল!
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ⚠️ শুধুমাত্র .js ফাইল! ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -77,9 +69,7 @@ module.exports.run = async function ({ api, event, args }) {
         code = res.data;
       } catch (e) {
         return api.sendMessage(
-`╔══════════════════════╗
-❌ লিংক থেকে কোড আনতে সমস্যা!
-╚══════════════════════╝`,
+          `╔══════════════════════╗ ❌ লিংক থেকে কোড আনতে সমস্যা! ╚══════════════════════╝`,
           event.threadID,
           event.messageID
         );
@@ -93,10 +83,7 @@ module.exports.run = async function ({ api, event, args }) {
       new vm.Script(code);
     } catch (err) {
       return api.sendMessage(
-`╔══════════════════════╗
-❌ Syntax Error:
-${err.message}
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ❌ Syntax Error: ${err.message} ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -113,6 +100,8 @@ ${err.message}
     fs.writeFileSync(filePath, code, "utf-8");
 
     // ⚡ AUTO RELOAD SYSTEM
+    let fileInfo = ""; // ⭐ ADDITION (NO CHANGE TO ORIGINAL LOGIC)
+
     try {
       const commandName = fileName.replace(".js", "");
 
@@ -123,23 +112,29 @@ ${err.message}
       global.client.commands.delete(commandName);
       global.client.commands.set(commandName, newCommand);
 
+      // ⭐ FILE INFO FEATURE (ADDED ONLY)
+      const c = newCommand.config || {};
+
+      fileInfo =
+        `╭━━━〔 ⚙️ FILE INFO 〕━━━╮\n` +
+        `┃ 📌 Name : ${c.name || fileName}\n` +
+        `┃ 👑 Author : ${c.credits || "Unknown"}\n` +
+        `┃ ⚙️ Version : ${c.version || "1.0.0"}\n` +
+        `┃ 🔒 Permission : ${c.hasPermission ?? c.hasPermssion ?? "N/A"}\n` +
+        `┃ ⏱ Cooldown : ${c.cooldowns || 0}s\n` +
+        `┃ 📦 Dependencies : ${(Object.keys(c.dependencies || {}).join(", ") || "None")}\n` +
+        `╰━━━━━━━━━━━━━━━━━━━╯`;
+
     } catch (reloadErr) {
       return api.sendMessage(
-`╔══════════════════════╗
-⚠️ ফাইল সেভ হয়েছে কিন্তু reload fail!
-${reloadErr.message}
-╚══════════════════════╝`,
+        `╔══════════════════════╗ ⚠️ ফাইল সেভ হয়েছে কিন্তু reload fail! ${reloadErr.message} ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
     }
 
     return api.sendMessage(
-`╔══════════════════════╗
-${status}
-📂 ${fileName}
-⚡ Auto Reload Complete!
-╚══════════════════════╝`,
+      `╔══════════════════════╗ ${status} 📂 ${fileName} ⚡ Auto Reload Complete! ╚══════════════════════╝\n\n${fileInfo}`,
       event.threadID,
       event.messageID
     );
@@ -147,9 +142,7 @@ ${status}
   } catch (err) {
     console.error(err);
     return api.sendMessage(
-`╔══════════════════════╗
-❌ Unexpected Error!
-╚══════════════════════╝`,
+      `╔══════════════════════╗ ❌ Unexpected Error! ╚══════════════════════╝`,
       event.threadID,
       event.messageID
     );
