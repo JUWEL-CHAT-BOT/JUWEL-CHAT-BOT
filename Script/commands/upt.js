@@ -6,29 +6,21 @@ const { execSync } = require('child_process');
 
 module.exports.config = {
   name: "upt",
-  version: "1.0.0",
+  version: "3.0.0",
   hasPermssion: 0,
   credits: "MR JUWEL",
-  description: "System real-time monitoring with image (No Prefix)",
+  description: "Ultra System Monitor Dashboard",
   commandCategory: "system",
   usages: "",
   cooldowns: 5
 };
 
-// cache folder
 module.exports.onLoad = () => {
-  const cache = __dirname + "/cache/";
+  const cache = path.join(__dirname, "cache");
   if (!fs.existsSync(cache)) fs.mkdirSync(cache, { recursive: true });
 };
 
-// helper (bytes to size)
-const f = b => {
-  const s = ['B','KB','MB','GB','TB'];
-  const i = Math.floor(Math.log(b) / Math.log(1024));
-  return (b / Math.pow(1024, i)).toFixed(2) + ' ' + s[i];
-};
-
-// CPU usage
+/* ---------- CPU ---------- */
 let prev = null;
 const getCPU = () => {
   let idle = 0, total = 0;
@@ -44,129 +36,181 @@ const getCPU = () => {
   return dt ? Math.round(100 - (100 * di / dt)) : 0;
 };
 
-// Disk usage
-const getDisk = () => {
+/* ---------- Disk ---------- */
+const getDiskInfo = () => {
   try {
-    const d = execSync('df -k /').toString().split('\n')[1].split(/\s+/);
-    const used = parseInt(d[2]) * 1024;
-    const total = parseInt(d[1]) * 1024;
-    return Math.min(100, Math.round((used / total) * 100));
+    const out = execSync('df -h').toString().split('\n').slice(1, 4);
+    return out.map(l => {
+      const p = l.split(/\s+/);
+      return { mount: p[5], used: p[2], total: p[1], percent: p[4] };
+    });
   } catch {
-    return 80;
+    return [];
   }
 };
 
-// rounded rect
-const rr = (c,x,y,w,h,r) => {
-  c.beginPath();
-  c.moveTo(x+r,y);
-  c.arcTo(x+w,y,x+w,y+h,r);
-  c.arcTo(x+w,y+h,x,y+h,r);
-  c.arcTo(x,y+h,x,y,r);
-  c.arcTo(x,y,x+w,y,r);
-  c.closePath();
+/* ---------- Ping ---------- */
+const getPing = () => {
+  try {
+    const res = execSync('ping -c 1 8.8.8.8').toString();
+    const match = res.match(/time=(\d+\.?\d*)/);
+    return match ? Math.round(Number(match[1])) : 0;
+  } catch {
+    return 0;
+  }
 };
 
-// ================= NOPREFIX HANDLER =================
-module.exports.handleEvent = async function ({ api, event }) {
+/* ---------- Process ---------- */
+const getTopProcess = () => {
+  try {
+    const res = execSync('ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -6')
+      .toString()
+      .split('\n')
+      .slice(1, 6);
+
+    return res.map(l => l.trim()).filter(Boolean);
+  } catch {
+    return [];
+  }
+};
+
+/* ---------- Health ---------- */
+const healthScore = (cpu, ram, disk, ping) => {
+  let score = 100;
+  score -= cpu * 0.4;
+  score -= ram * 0.3;
+  score -= disk * 0.2;
+  score -= ping * 0.1;
+  return Math.max(0, Math.round(score));
+};
+
+module.exports.handleEvent = async ({ api, event }) => {
   if (!event.body) return;
-  const msg = event.body.toLowerCase().trim();
-  if (msg === "upt") {
+  if (event.body.trim().toLowerCase() === "upt") {
     return module.exports.run({ api, event });
   }
 };
 
-// ================= MAIN RUN =================
-module.exports.run = async function ({ api, event }) {
+module.exports.run = async ({ api, event }) => {
   try {
-    const start = Date.now();
 
+    getCPU();
+    await new Promise(r => setTimeout(r, 400));
     const cpu = getCPU();
+
     const totalRam = os.totalmem();
     const usedRam = totalRam - os.freemem();
-    const ram = Math.min(100, Math.round((usedRam / totalRam) * 100));
-    const disk = getDisk();
+    const ram = Math.round((usedRam / totalRam) * 100);
 
-    const sec = process.uptime();
-    const d = Math.floor(sec / 86400);
-    const h = Math.floor(sec % 86400 / 3600);
-    const m = Math.floor(sec % 3600 / 60);
-    const s = Math.floor(sec % 60);
-    const uptime = d ? `${d}d ${h}h ${m}m ${s}s` : `${h}h ${m}m ${s}s`;
+    const diskRaw = getDiskInfo();
+    const disk = diskRaw.length ? parseInt(diskRaw[0].percent) : 0;
 
-    const ping = Date.now() - start;
+    const ping = getPing();
+    const health = healthScore(cpu, ram, disk, ping);
 
-    // canvas
-    const cv = createCanvas(1080, 720);
-    const c = cv.getContext('2d');
+    const uptimeSec = process.uptime();
+    const uptime = `${Math.floor(uptimeSec/3600)}h ${Math.floor(uptimeSec%3600/60)}m ${Math.floor(uptimeSec%60)}s`;
 
-    c.fillStyle = '#0b0b22';
-    c.fillRect(0, 0, 1080, 720);
+    const processes = getTopProcess();
 
-    c.fillStyle = 'rgba(15,15,40,0.95)';
-    c.strokeStyle = '#3399ff';
-    c.lineWidth = 6;
-    rr(c, 30, 30, 1020, 660, 60);
-    c.fill();
+    const canvas = createCanvas(1080, 780);
+    const c = canvas.getContext('2d');
+
+    /* =======================================================
+       🎨 ONLY COLOR + FRAME CHANGED
+    ======================================================= */
+
+    /* ---------- Background ---------- */
+    const bg = c.createLinearGradient(0, 0, 1080, 780);
+    bg.addColorStop(0, '#000000');
+    bg.addColorStop(1, '#111111');
+    c.fillStyle = bg;
+    c.fillRect(0, 0, 1080, 780);
+
+    /* ---------- Outer Frame (RED) ---------- */
+    c.strokeStyle = '#ff0000';
+    c.lineWidth = 7;
+    c.shadowColor = '#ff0000';
+    c.shadowBlur = 25;
+    c.beginPath();
+    c.roundRect(20, 20, 1040, 740, 50);
     c.stroke();
 
-    c.font = 'bold 80px Arial';
-    c.fillStyle = '#fff';
+    /* ---------- Main Panel ---------- */
+    c.shadowBlur = 0;
+    c.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    c.beginPath();
+    c.roundRect(45, 45, 990, 690, 40);
+    c.fill();
+
+    /* ---------- Inner Border (GREEN) ---------- */
+    c.strokeStyle = '#00ff00';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.roundRect(60, 60, 960, 660, 35);
+    c.stroke();
+
+    /* ======================================================= */
+
+    /* ---------- Avatar ---------- */
+    c.beginPath();
+    c.arc(540,110,50,0,Math.PI*2);
+    c.fillStyle = '#ffff00';
+    c.fill();
+    c.fillStyle = '#000';
+    c.font = 'bold 20px Arial';
+    c.fillText("UP",525,118);
+
+    /* ---------- Title ---------- */
+    c.fillStyle = '#ffff00';
+    c.font = 'bold 60px Arial';
     c.textAlign = 'center';
-    c.fillText('SYSTEM STATUS', 540, 145);
+    c.fillText("ULTRA SYSTEM DASHBOARD",540,210);
 
-    c.font = '36px Arial';
-    c.fillStyle = '#60a5fa';
-    c.fillText('Real-time Server Monitoring', 540, 195);
+    /* ---------- Stats ---------- */
+    c.textAlign = 'left';
+    c.font = '28px Arial';
 
-    const ring = (x, y, p, col, label) => {
-      const r = 118, t = 26;
+    c.fillStyle = '#00ff00';
+    c.fillText(`CPU: ${cpu}%   RAM: ${ram}%   DISK: ${disk}%`,80,280);
+    c.fillText(`Health Score: ${health}%`,80,320);
 
-      c.beginPath();
-      c.arc(x, y, r, 0, Math.PI * 2);
-      c.fillStyle = 'rgba(255,255,255,0.08)';
-      c.fill();
+    c.fillStyle = '#ffffff';
+    c.fillText(`Uptime: ${uptime}`,80,360);
+    c.fillText(`Ping: ${ping} ms`,80,400);
 
-      c.beginPath();
-      c.arc(x, y, r, -Math.PI/2, (p/100) * Math.PI*2 - Math.PI/2);
-      c.lineWidth = t;
-      c.strokeStyle = col;
-      c.lineCap = 'round';
-      c.stroke();
+    /* ---------- Disk ---------- */
+    let y = 460;
+    c.fillStyle = '#ff0000';
+    c.fillText("DISK PARTITIONS:",80,y);
 
-      c.font = 'bold 62px Arial';
-      c.fillStyle = '#fff';
-      c.textAlign = 'center';
-      c.textBaseline = 'middle';
-      c.fillText(p + '%', x, y);
+    diskRaw.slice(0,3).forEach(d => {
+      y += 35;
+      c.fillStyle = '#00ff00';
+      c.fillText(`${d.mount} -> ${d.used}/${d.total} (${d.percent})`,100,y);
+    });
 
-      c.font = '30px Arial';
-      c.fillStyle = '#ccc';
-      c.fillText(label, x, y + 85);
-    };
+    /* ---------- Processes ---------- */
+    y += 60;
+    c.fillStyle = '#ffff00';
+    c.fillText("TOP PROCESSES:",80,y);
 
-    ring(240, 355, cpu, '#00ff88', 'CPU');
-    ring(540, 355, ram, '#ff3366', 'RAM');
-    ring(840, 355, disk, '#3399ff', 'DISK');
+    processes.forEach(p => {
+      y += 30;
+      c.fillStyle = '#cccccc';
+      c.fillText(p,100,y);
+    });
 
-    const g = (txt, y, col='#00ffcc') => {
-      c.font = 'bold 38px Arial';
-      c.fillStyle = col;
-      c.textAlign = 'left';
-      c.fillText(txt, 100, y);
-    };
+    /* ---------- Owner ---------- */
+    c.fillStyle = '#00ff00';
+    c.fillText("Owner: MR JUWEL",700,280);
+    c.fillText(`OS: ${os.platform()}`,700,320);
+    c.fillText(`CPU Cores: ${os.cpus().length}`,700,360);
 
-    g(`Uptime  →  ${uptime}`, 520);
-    g(`RAM     →  ${ram}%   •   Disk  →  ${disk}%`, 570);
-    g(`Memory  →  ${f(usedRam)} / ${f(totalRam)}`, 620);
+    const file = path.join(__dirname,'cache','upt.png');
+    fs.writeFileSync(file, canvas.toBuffer());
 
-    const pc = ping < 80 ? '#00ff88' : ping < 150 ? '#ffaa00' : '#ff3366';
-    g(`Ping    →  ${ping}ms`, 670, pc);
-
-    const file = path.join(__dirname, 'cache', 'upt.png');
-    fs.writeFileSync(file, cv.toBuffer('image/png'));
-
-    api.sendMessage(
+    return api.sendMessage(
       { attachment: fs.createReadStream(file) },
       event.threadID,
       () => fs.unlinkSync(file),
@@ -174,6 +218,6 @@ module.exports.run = async function ({ api, event }) {
     );
 
   } catch (e) {
-    api.sendMessage("❌ UPT image generate error", event.threadID, event.messageID);
+    return api.sendMessage("❌ Dashboard error", event.threadID, event.messageID);
   }
 };
