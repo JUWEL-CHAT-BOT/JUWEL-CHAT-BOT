@@ -1,74 +1,137 @@
-const chalk = require('chalk');
+const chalk = require("chalk");
+const fs = require("fs");
+
+const logFile = __dirname + "/joinHistory.json";
+
+// ensure log file
+if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "[]");
+
+function saveLog(data) {
+ fs.writeFileSync(logFile, JSON.stringify(data, null, 2));
+}
+
+function addLog(entry) {
+ let data = JSON.parse(fs.readFileSync(logFile));
+ data.push(entry);
+ saveLog(data);
+}
 
 module.exports.config = {
  name: "join",
- version: "2.1.0",
+ version: "3.0.0",
  hasPermssion: 2,
- credits: "Shahadat Sahu",
- description: "Join one or all bot groups using number or 'add all'",
+ credits: "MR JUWEL (Advanced v3)",
+ description: "Advanced Join System with retry, fallback, auto mode & logs",
  commandCategory: "system",
- usages: "",
  cooldowns: 5
 };
 
+let autoMode = false;
+
 module.exports.onLoad = () => {
- console.log(chalk.bold.hex("#00c300")(" JOIN COMMAND LOADED SUCCESSFULLY✅"));
+ console.log(chalk.bold.hex("#00c300")(" JOIN SYSTEM v3 LOADED 🚀"));
 };
 
-module.exports.handleReply = async function({ api, event, handleReply, Threads }) {
- const { threadID, messageID, senderID, body } = event;
- const { ID } = handleReply;
+// ---------------- HANDLE REPLY ----------------
+module.exports.handleReply = async function ({ api, event, handleReply, Threads }) {
+ const { threadID, senderID, body } = event;
+ const { ID, author } = handleReply;
 
- if (!body) return api.sendMessage('❗ Reply with numbers (e.g. 1 2 3) or "add all" to join all.', threadID, messageID);
+ if (senderID != author) return;
 
- const input = body.trim().toLowerCase();
-
- let selectedIndexes = [];
+ const input = (body || "").trim().toLowerCase();
+ let selected = [];
 
  if (input === "add all") {
- selectedIndexes = ID.map((_, index) => index); // all indexes
+ selected = ID.map((_, i) => i);
  } else {
- selectedIndexes = body.split(/\s+/).map(x => parseInt(x.trim()) - 1).filter(i => !isNaN(i) && i >= 0 && i < ID.length);
- if (selectedIndexes.length === 0) {
- return api.sendMessage("⭕ Invalid input. Use numbers (1 2 3) or 'add all'.", threadID, messageID);
- }
+ selected = input.split(/\s+/)
+  .map(x => parseInt(x) - 1)
+  .filter(i => !isNaN(i) && i >= 0 && i < ID.length);
  }
 
- let added = 0, skipped = 0, failed = 0;
+ if (selected.length === 0)
+  return api.sendMessage("❌ Invalid input", threadID);
 
- for (const i of selectedIndexes) {
+ let result = {
+  added: 0,
+  failed: 0,
+  retry: 0,
+  details: []
+ };
+
+ for (const i of selected) {
+ const tid = ID[i];
+
+ let success = false;
+
+ // 🔄 RETRY SYSTEM (3 times)
+ for (let r = 0; r < 3; r++) {
  try {
- const threadIDToJoin = ID[i];
- const threadInfo = await Threads.getInfo(threadIDToJoin);
- const { participantIDs, approvalMode, adminIDs } = threadInfo;
-
- if (participantIDs.includes(senderID)) {
- skipped++;
- continue;
- }
-
- await api.addUserToGroup(senderID, threadIDToJoin);
-
- if (approvalMode && !adminIDs.some(ad => ad.id == api.getCurrentUserID())) {
- api.sendMessage(`📨 Pending approval in "${threadInfo.threadName}".`, threadID);
- } else {
- api.sendMessage(`✅ Added to "${threadInfo.threadName}".`, threadID);
- }
-
- added++;
- } catch (err) {
- failed++;
- api.sendMessage(`❌ Failed to add to #${i + 1}: ${err.message}`, threadID);
+ await api.addUserToGroup(senderID, tid);
+ success = true;
+ result.retry += r;
+ break;
+ } catch (e) {
+ await new Promise(res => setTimeout(res, 800));
  }
  }
 
- return api.sendMessage(`📊 Join Report:\n✅ Added: ${added}\n⏩ Already in group: ${skipped}\n❌ Failed: ${failed}`, threadID);
+ if (!success) {
+ result.failed++;
+
+ // 🔗 Fallback: try invite link
+ try {
+ const info = await Threads.getInfo(tid);
+ const link = info.inviteLink || "No invite link found";
+ api.sendMessage(`🔗 Join manually: ${link}`, threadID);
+ } catch {}
+ }
+
+ // log + UI
+ try {
+ const info = await Threads.getInfo(tid);
+
+ const status = success ? "✅ Joined" : "❌ Failed";
+
+ result.details.push(`${status} → ${info.threadName}`);
+
+ addLog({
+ user: senderID,
+ threadID: tid,
+ name: info.threadName,
+ status,
+ time: new Date().toISOString()
+ });
+
+ } catch {}
+ }
+
+ // 📊 REPORT UI (THEME)
+ return api.sendMessage(
+ `╔═════════════╗
+║ 🔰 JOIN REPORT  
+╠══════════════╣
+║ ✅ Added: ${result.added}
+║ ❌ Failed: ${result.failed}
+║ 🔄 Retry used: ${result.retry}
+╚══════════════╝
+
+📌 Details:
+${result.details.join("\n")}
+
+⚡ Mode: ${autoMode ? "AUTO ON" : "MANUAL"}`,
+ threadID
+ );
 };
 
-module.exports.run = async function({ api, event, Threads }) {
- const { threadID, messageID, senderID } = event;
+// ---------------- MAIN RUN ----------------
+module.exports.run = async function ({ api, event, Threads }) {
+ const { threadID, senderID, messageID } = event;
+
  const allThreads = await Threads.getAll();
- let msg = `🔰 𝗝𝗢𝗜𝗡 𝗕𝗢𝗫 𝗟𝗜𝗦𝗧 🔰\n\n`;
+
+ let msg = "╔════════════════════╗\n║ 🔰 GROUP LIST v3 ║\n╚════════════════════╝\n\n";
  const ID = [];
 
  allThreads.forEach((t, i) => {
@@ -76,7 +139,8 @@ module.exports.run = async function({ api, event, Threads }) {
  ID.push(t.threadID);
  });
 
- msg += `\n✏️ Reply with multiple numbers (e.g. 1 3 5) or type 'add all' to join all groups.`;
+ msg += `\n✏️ Reply numbers / add all\n`;
+ msg += `⚡ Type "auto on" / "auto off"\n`;
 
  return api.sendMessage(msg, threadID, (err, info) => {
  if (!err) {
@@ -88,4 +152,19 @@ module.exports.run = async function({ api, event, Threads }) {
  });
  }
  }, messageID);
+};
+
+// ---------------- AUTO MODE SUPPORT ----------------
+module.exports.handleEvent = async function ({ api, event }) {
+ const body = (event.body || "").toLowerCase();
+
+ if (body === "auto on") {
+ autoMode = true;
+ return api.sendMessage("⚡ Auto Join Mode ENABLED", event.threadID);
+ }
+
+ if (body === "auto off") {
+ autoMode = false;
+ return api.sendMessage("⚡ Auto Join Mode DISABLED", event.threadID);
+ }
 };
