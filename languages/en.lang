@@ -83,7 +83,7 @@ includes/handle/handleCommand.js
 
 handleCommand.userBanned=বক্স এ বেশি আবলামি করার কারণে তুমাকে ব্যান করা হয়েছে..!🚫
 handleCommand.threadBanned=Group Has Been Banned..!⛔️\nPlease Contact Owner MR JUWEL For Unban ⚠️
-handleCommand.commandNotExist=⚠️তোমার  দেওয়া 🗣️কমান্ডটি ভুল🤦‍♂️ এটা কমান্ড  আমার মধ্য এড নাই⚠️
+handleCommand.commandNotExist=⚠️তোমার দেওয়া🗣️কমান্ডটি ভুল🤦‍♂️       এটা কমান্ড আমার মধ্য এড নাই⚠️       ✅সঠিক কমান্ড দাও বেবি♻️🎀
 handleCommand.commandThreadBanned=😘সঠিক কমান্ড করো বেবি🫂😘 "%1"
 handleCommand.commandUserBanned=You are unable to use command "%1"
 handleCommand.threadNotAllowNSFW=This Commnd Only use Andmin
