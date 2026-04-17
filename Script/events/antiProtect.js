@@ -1,23 +1,25 @@
-╔══════════════════════════════════════╗
-║        ⚙️ ANTI PROTECT SYSTEM       ║
-║     🚫 NAME & PHOTO PROTECTION      ║
-║     📩 AUTO INBOX REPORT SYSTEM     ║
-╚══════════════════════════════════════╝
-
 const fs = require("fs-extra");
 const axios = require("axios");
 
 module.exports.config = {
   name: "antiProtect",
-  version: "6.0.0",
+  version: "4.0.0",
   credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
-  description: "Protect group + inbox report (no admin warning)",
+  description: "Advanced group protection system",
   eventType: ["log:thread-name", "log:thread-icon"],
   cooldowns: 3
 };
 
-const warnData = {};
-const BOT_ADMIN_UID = "100071528325738"; // 👉 নিজের UID বসাও
+const warnDB = {};
+
+function frame(text) {
+  return `
+╔══════════════════════╗
+║   🔐 ANTI PROTECT    ║
+╠══════════════════════╣
+${text.split("\n").map(t => "║ " + t).join("\n")}
+╚══════════════════════╝`;
+}
 
 module.exports.run = async function ({ api, event }) {
   try {
@@ -25,115 +27,101 @@ module.exports.run = async function ({ api, event }) {
     const senderID = event.author || event.senderID;
 
     const dir = `${__dirname}/../../cache/antiProtect/`;
-    await fs.ensureDir(dir);
+    fs.ensureDirSync(dir);
 
-    const dataFile = `${dir}${threadID}.json`;
+    const file = `${dir}${threadID}.json`;
+    const logFile = `${dir}log.json`;
 
     const threadInfo = await api.getThreadInfo(threadID);
-    const adminIDs = (threadInfo.adminIDs || []).map(i => i.id);
+    const adminIDs = (threadInfo.adminIDs || []).map(u => u.id);
     const botID = api.getCurrentUserID();
 
-    const isAdmin = adminIDs.includes(senderID);
-    const botAdmin = adminIDs.includes(botID);
-    if (!botAdmin) return;
+    if (!adminIDs.includes(botID)) return;
 
-    // ===== USER INFO =====
-    const userInfo = await api.getUserInfo(senderID);
-    const userName = userInfo[senderID]?.name || "Unknown";
-
-    const groupName = threadInfo.threadName || "Unknown Group";
-    const time = new Date().toLocaleString("en-BD");
-
-    // ===== FIRST SAVE =====
-    if (!fs.existsSync(dataFile)) {
-      await fs.writeJson(dataFile, {
+    if (!fs.existsSync(file)) {
+      fs.writeJsonSync(file, {
         name: threadInfo.threadName || "",
         image: threadInfo.imageSrc || null
-      });
+      }, { spaces: 2 });
       return;
     }
 
-    const old = await fs.readJson(dataFile);
+    const old = fs.readJsonSync(file);
 
-    const type =
-      event.logMessageType === "log:thread-name" ? "নাম" : "ফটো";
+    const isAdmin = adminIDs.includes(senderID);
 
-    // ===== REVERT =====
-    if (event.logMessageType === "log:thread-name") {
-      if (old.name) await api.setTitle(old.name, threadID).catch(() => {});
+    // snapshot update only admin/bot
+    if (isAdmin || senderID === botID) {
+      fs.writeJsonSync(file, {
+        name: threadInfo.threadName,
+        image: threadInfo.imageSrc
+      }, { spaces: 2 });
+      return;
     }
 
+    // warning system init
+    if (!warnDB[threadID]) warnDB[threadID] = {};
+    if (!warnDB[threadID][senderID]) warnDB[threadID][senderID] = 0;
+
+    const warnUser = () => {
+      warnDB[threadID][senderID]++;
+
+      const count = warnDB[threadID][senderID];
+
+      if (count >= 2) {
+        api.removeUserFromGroup(senderID, threadID);
+
+        const log = fs.existsSync(logFile)
+          ? fs.readJsonSync(logFile)
+          : [];
+
+        log.push({
+          user: senderID,
+          action: "KICK",
+          reason: "AntiProtect violation"
+        });
+
+        fs.writeJsonSync(logFile, log, { spaces: 2 });
+
+        api.sendMessage(
+          frame(`🚫 USER KICKED\n👤 ID: ${senderID}\n⚠️ Reason: 2 warnings reached`),
+          threadID
+        );
+      } else {
+        api.sendMessage(
+          frame(`⚠️ WARNING ${count}/2\n👤 User: ${senderID}\n🚨 Do not change group settings`),
+          threadID
+        );
+      }
+    };
+
+    // NAME PROTECT
+    if (event.logMessageType === "log:thread-name") {
+      await api.setTitle(old.name, threadID).catch(() => {});
+      warnUser();
+
+      return api.sendMessage(
+        frame(`🚫 NAME CHANGE BLOCKED\n♻️ Restored successfully`),
+        threadID
+      );
+    }
+
+    // IMAGE PROTECT
     if (event.logMessageType === "log:thread-icon") {
       try {
         if (old.image) {
-          const res = await axios.get(old.image, {
-            responseType: "arraybuffer"
-          });
-          const buffer = Buffer.from(res.data, "binary");
-          await api.changeGroupImage(buffer, threadID);
+          const res = await axios.get(old.image, { responseType: "arraybuffer" });
+          const img = Buffer.from(res.data, "binary");
+          await api.changeGroupImage(img, threadID);
         }
       } catch {}
-    }
 
-    // ❌ Admin হলে কিছুই করবে না (silent ignore)
-    if (isAdmin) return;
+      warnUser();
 
-    // ===== WARN SYSTEM =====
-    if (!warnData[threadID]) warnData[threadID] = {};
-    if (!warnData[threadID][senderID]) warnData[threadID][senderID] = 0;
-
-    warnData[threadID][senderID]++;
-
-    let actionText = "";
-    let groupMsg = "";
-
-    // ===== USER ACTION =====
-    if (warnData[threadID][senderID] >= 2) {
-
-      actionText = "KICKED";
-
-      await api.removeUserFromGroup(senderID, threadID).catch(() => {});
-
-      groupMsg =
-`╭━━━〔 ❌ PROTECT SYSTEM 〕━━━╮
-┃ 👤 ${userName}
-┃ 🚫 গুপের ${type} চেঞ্জ করেছিল!
-┃ তাই তাকে কিক দেওয়া হয়েছে
-╰━━━━━━━━━━━━━━━━━━━━╯`;
-
-    } else {
-
-      actionText = "WARNING";
-
-      groupMsg =
-`╭━━━〔 ⚠️ WARNING 〕━━━╮
-┃ 👤 ${userName}
-┃ 🚫 গুপের ${type} চেঞ্জ করার চেষ্টা!
-┃ ⚠️ Warning: ${warnData[threadID][senderID]}/2
-╰━━━━━━━━━━━━━━━━━━━━╯`;
-    }
-
-    // ===== SEND GROUP =====
-    await api.sendMessage(groupMsg, threadID);
-
-    // ===== REPORT =====
-    const report =
-`╭━━━〔 📢 PROTECT REPORT 〕━━━╮
-┃ 👤 User: ${userName}
-┃ 🆔 UID: ${senderID}
-┃ 🏷 Group: ${groupName}
-┃ ⚙️ Action: ${actionText}
-┃ 🕒 Time: ${time}
-╰━━━━━━━━━━━━━━━━━━━━╯`;
-
-    // ===== BOT ADMIN =====
-    if (BOT_ADMIN_UID) {
-      await api.sendMessage(report, BOT_ADMIN_UID).catch(() => {});
-    }
-
-    // ===== GROUP ADMINS =====
-    for (const admin of adminIDs) {
-      await api.sendMessage(report, admin).catch(() => {});
+      return api.sendMessage(
+        frame(`🚫 PHOTO CHANGE BLOCKED\n♻️ Restored successfully`),
+        threadID
+      );
     }
 
   } catch (e) {
