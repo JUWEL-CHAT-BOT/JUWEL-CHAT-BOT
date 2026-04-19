@@ -1,20 +1,20 @@
 module.exports.config = {
   name: "antiout",
   eventType: ["log:unsubscribe"],
-  version: "3.0.0",
+  version: "2.1.0",
   credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
-  description: "Antiout Savage Roast Level 2"
+  description: "Anti leave funny limit system"
 };
 
 const leaveData = {};
 
 function frame(msg) {
   return `
-╔══════════════════════╗
-   🚫  ANTI OUT SYSTEM
-╠══════════════════════╣
-${msg}
-╚══════════════════════╝`;
+   ╔═══════════════╗   
+   ☢️ ANTI OUT SYSTEM⚠️   
+   ╠═══════════════╣   
+   ${msg}   
+   ╚═══════════════╝`;
 }
 
 module.exports.run = async function ({ event, api, Threads, Users }) {
@@ -27,12 +27,17 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 
     if (leftID == api.getCurrentUserID()) return;
 
-    let name = global.data.userName.get(leftID) || await Users.getNameUser(leftID);
+    let name =
+      global.data.userName.get(String(leftID)) ||
+      await Users.getNameUser(leftID.toString());
 
     if (event.author != leftID) return;
 
     if (!leaveData[leftID]) {
-      leaveData[leftID] = { count: 0, time: Date.now() };
+      leaveData[leftID] = {
+        count: 0,
+        time: Date.now()
+      };
     }
 
     let user = leaveData[leftID];
@@ -44,49 +49,143 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 
     user.count++;
 
-    // ❌ BAN ZONE (3 times)
+    // ❌ limit reached
     if (user.count >= 3) {
-      return api.sendMessage(frame(
-`💀 আরে ${name}!!
 
-😵 তুই তো দেখি “Group Ghost Simulator” খেলতেছোস!
-👻 আসো → যাইসো → আবার আসো... সিরিয়াসলি?
+      let msg = frame(`
+😂 আরে ${name}!!
 
-😂 ১ ঘন্টায় ৩ বার লিভ মানে:
-👉 তুই relationship না, buffering mode এ আছোস!
+🆔 UID: ${leftID}
 
-🚫 এখন থেকে তোকে আর এড করার টাইম নাই
-🥱 “Not Eligible for Group Life” certified!
-💀 RIP Social Stability 😏`
-      ), threadID);
+😴 তুই কি লিভ দেওয়ার কম্পিটিশন করতেছোস নাকি? 🏆
+১ ঘন্টায় ৩ বার লিভ = Disqualified!
+
+🚫 তোকে আর গুপে এড করলাম না তুই 🐸
+এই গুপে থাকার যোগ্য না🥵💦!
+🥵 বিদায় লুচ্চা 🫂🫦`);
+
+      api.sendMessage(msg, threadID);
+
+      // ✅ ADMIN FORWARD
+      try {
+        const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+        let threadInfo = await Threads.getInfo(threadID);
+        let threadName = threadInfo.threadName || "Unknown Group";
+
+        let adminMsg = `
+🚨 ANTI OUT ALERT 🚨
+
+👤 Name: ${name}
+🆔 UID: ${leftID}
+
+🏷️ Group: ${threadName}
+🕒 Time: ${time}
+
+⚠️ User reached leave limit!
+`;
+
+        const adminUIDs = ["61567576882007", "100071528325738"];
+
+        for (let admin of adminUIDs) {
+          api.sendMessage(adminMsg, admin);
+        }
+
+      } catch (e) {
+        console.log("Forward Error:", e);
+      }
+
+      return;
     }
 
     api.addUserToGroup(leftID, threadID, async (err) => {
       if (err) {
-        return api.sendMessage(frame(
-`🤡 ${name} disappeared again!
 
-🧠 Theory:
-👉 Bot block করছে না
-👉 তুই নিজেই “privacy boss” হয়ে গেছোস
+        let msg = frame(`
+😆 ${name} এরে এড করতে গেলাম ও'মা😴
 
-📵 WhatsApp: “access denied”
-📩 Report ID: 100071528325738`
-        ), threadID);
+🆔 UID: ${leftID}
+
+সে তো ভয় পাইছে 😵
+🤖 Bot ব্লক করছে 📵
+বা privacy tight করে রাখছে
+
+📩 রিপোর্ট আইডি: 100071528325738`);
+
+        api.sendMessage(msg, threadID);
+
+        // ✅ ADMIN FORWARD
+        try {
+          const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+          let threadInfo = await Threads.getInfo(threadID);
+          let threadName = threadInfo.threadName || "Unknown Group";
+
+          let adminMsg = `
+🚨 ANTI OUT ALERT 🚨
+
+👤 Name: ${name}
+🆔 UID: ${leftID}
+
+🏷️ Group: ${threadName}
+🕒 Time: ${time}
+
+⚠️ Failed to re-add user!
+`;
+
+          const adminUIDs = ["61567576882007", "100071528325738"];
+
+          for (let admin of adminUIDs) {
+            api.sendMessage(adminMsg, admin);
+          }
+
+        } catch (e) {
+          console.log("Forward Error:", e);
+        }
+
+        return;
       }
 
-      return api.sendMessage(frame(
-`😏 ${name} আবার পালানোর চেষ্টা করলি?
+      let msg = frame(`
+😏 ওহ ${name} আবার পালাইছোস?
 
-😂 (${user.count}/3) বার attempt failed
-🎯 Mission: “Escape Group” → FAILED
+🆔 UID: ${leftID}
 
-👑 তোর জন্য rule:
-👉 Leave করলে vibe নষ্ট
-👉 তাই তোকে বারবার ফিরায় আনা হচ্ছে
+😂 (${user.count}/3) বার ধরা পড়ছোস 🔁
+তোকে আবার টেনে আনা হইলো
 
-💀 বেশি try করলে “Professional Runner” tag দিবো 😎`
-      ), threadID);
+😒🤌 এটা কোনো সাধারণ গ্রুপ নয় লা👻 এ হলো
+গ্যাংস্টারদের গুপ লা😝এখান থেকে লিভ নিতে হলে
+এডমিন পারমিশন লাগবে লা🤧😂`);
+
+      api.sendMessage(msg, threadID);
+
+      // ✅ ADMIN FORWARD
+      try {
+        const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+        let threadInfo = await Threads.getInfo(threadID);
+        let threadName = threadInfo.threadName || "Unknown Group";
+
+        let adminMsg = `
+🚨 ANTI OUT ALERT 🚨
+
+👤 Name: ${name}
+🆔 UID: ${leftID}
+
+🏷️ Group: ${threadName}
+🕒 Time: ${time}
+
+⚠️ User left & was re-added!
+`;
+
+        const adminUIDs = ["61567576882007", "100071528325738"];
+
+        for (let admin of adminUIDs) {
+          api.sendMessage(adminMsg, admin);
+        }
+
+      } catch (e) {
+        console.log("Forward Error:", e);
+      }
+
     });
 
   } catch (e) {
