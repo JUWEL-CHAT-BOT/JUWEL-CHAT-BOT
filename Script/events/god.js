@@ -1,8 +1,8 @@
 module.exports.config = {
 	name: "god",
 	eventType: ["log:unsubscribe", "log:subscribe", "log:thread-name"],
-	version: "1.0.0",
-	credits: "SHAHADAT SAHU",
+	version: "1.0.1",
+	credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
 	description: "Record bot activity notifications!",
 	envConfig: {
 		enable: true
@@ -11,54 +11,63 @@ module.exports.config = {
 
 module.exports.run = async function({ api, event, Threads }) {
 	const logger = require("../../utils/log");
-	if (!global.configModule[this.config.name].enable) return;
-	
-	let formReport = "=== ─꯭─⃝‌‌𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭 Notification ===" +
-					"\n\n» Thread ID: " + event.threadID +
-					"\n» Action: {task}" +
-					"\n» Action created by userID: " + event.author +
-					"\n» " + Date.now() + " «";
-	
+
+	if (!global.configModule[this.config.name]?.enable) return;
+
+	const author = event.author || "Unknown";
+	const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+
 	let task = "";
-	
+
 	switch (event.logMessageType) {
+
 		case "log:thread-name": {
-			const oldName = (await Threads.getData(event.threadID)).name || "Name does not exist";
-			const newName = event.logMessageData.name || "Name does not exist";
-			task = "User changed group name from: '" + oldName + "' to '" + newName + "'";
+			const data = await Threads.getData(event.threadID);
+			const oldName = data?.name || "Unknown";
+			const newName = event.logMessageData?.name || "Unknown";
+
+			task = `Group name changed: "${oldName}" ➜ "${newName}"`;
+
 			await Threads.setData(event.threadID, { name: newName });
 			break;
 		}
+
 		case "log:subscribe": {
-			if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
-				task = "The user added the bot to a new group!";
+			const added = event.logMessageData?.addedParticipants || [];
+			if (added.some(i => i.userFbId == api.getCurrentUserID())) {
+				task = "Bot was added to a new group";
 			}
 			break;
 		}
+
 		case "log:unsubscribe": {
-			if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) {
-				task = "The user kicked the bot out of the group!";
+			if (event.logMessageData?.leftParticipantFbId == api.getCurrentUserID()) {
+				task = "Bot was removed from group";
 			}
 			break;
 		}
-		default: 
-			break;
 	}
 
-	if (task.length === 0) return;
+	if (!task) return;
 
-	formReport = formReport.replace(/\{task}/g, task);
+	const message =
+`=== MR JUWEL ===
+
+📌 Thread ID: ${event.threadID}
+⚡ Action: ${task}
+👤 User ID: ${author}
+🕒 Time: ${time}`;
 
 	const receivers = [
-		"100001039692046",   // Replace youR UID
-		"2056569868083458"   //  Replace youR Group UID
+		"100071528325738",
+		"61567576882007"
 	];
 
 	for (const id of receivers) {
 		try {
-			await api.sendMessage(formReport, id);
-		} catch (error) {
-			logger(formReport, "[ Logging Event ]");
+			await api.sendMessage(message, id);
+		} catch (e) {
+			logger(message, "[ Logging Event ]");
 		}
 	}
 };
