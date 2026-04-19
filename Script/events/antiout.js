@@ -10,11 +10,11 @@ const leaveData = {};
 
 function frame(msg) {
   return `
-   ╔═══════════════╗   
+   ╔══════════════════╗   
    ☢️ ANTI OUT SYSTEM⚠️   
-   ╠═══════════════╣   
+   ╠══════════════════╣   
    ${msg}   
-   ╚═══════════════╝`;
+   ╚══════════════════╝`;
 }
 
 module.exports.run = async function ({ event, api, Threads, Users }) {
