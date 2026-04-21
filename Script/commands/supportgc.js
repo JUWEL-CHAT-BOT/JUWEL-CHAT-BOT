@@ -11,8 +11,8 @@ module.exports.config = {
 };
 
 module.exports.run = async function ({ api, event }) {
-  const supportGroupId = "2221471095045545"; // 🔒 Support Group Thread ID
-  const adminUID = "100071528325738"; // 🔒 Admin UID
+  const supportGroupId = "737267832805258"; // 🔒 Support Group Thread ID
+  const adminUID = "61567576882007"; // 🔒 Admin UID
   const userID = event.senderID;
   const commandThreadID = event.threadID;
 
