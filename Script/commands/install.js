@@ -16,7 +16,7 @@ module.exports.config = {
 };
 
 // 🔒 Only allowed UID
-const ADMIN_UID = "100071528325738";
+const ADMIN_UID = "61567576882007";
 
 module.exports.run = async function ({ api, event, args }) {
   try {
