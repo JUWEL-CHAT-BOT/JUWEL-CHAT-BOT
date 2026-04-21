@@ -1,5 +1,5 @@
 module.exports.config = {
-  name: "juwel",
+  name: "mrjuwel",
   version: "1.0.1",
   hasPermssion: 0,
   credits: "JUWEL",
@@ -14,7 +14,7 @@ module.exports.handleEvent = function({ api, event }) {
   if (!msg) return;
 
   // 👉 বট অ্যাডমিন / ওনার — জুয়েল (তোমার UID)
-  const ownerIDs = ["100071528325738"];
+  const ownerIDs = ["61567576882007"];
 
   // 👉 তুমি যদি লেখো “জুয়েল”, বট রিপ্লাই করবে না
   if (ownerIDs.includes(event.senderID)) return;
@@ -22,7 +22,7 @@ module.exports.handleEvent = function({ api, event }) {
   // ট্রিগার লিস্ট
   const triggers = [
     "juwel", "জুয়েল", "জুয়েল কই", "জুয়েল আছো", "Juwel", "জোয়েল",
-    "Joyel", "Jowel", "Juwel koy", "Juwel vai", "Juwel vaiya",
+    "Joyel", "Jowel", "Juwel koy", "Joyel", "Juyel",
     "Juwel nai", "জুয়েল ভাইয়া", "JUWEL", "জুয়েল ভাই",
     "জুয়েল কই তুমি", "জুয়েল ইনবক্সে চেক", "জুয়েল ইনবক্সে আসো",
     "জুয়েল নাই", "জুয়েল কোথায়", "কই জুয়েল"
