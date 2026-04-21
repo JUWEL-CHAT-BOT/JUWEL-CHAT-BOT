@@ -22,7 +22,7 @@ let antiGaliStatus = true;
 
 // 🔰 Bot Owner / Bot Admin UID list
 const BOT_ADMINS = [
-  "100071528325738", // তোমার UID
+  "61567576882007", // তোমার UID
   // একাধিক UID চাইলে কমা দিয়ে
 ];
 
