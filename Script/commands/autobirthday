@@ -121,4 +121,4 @@ module.exports.handleEvent = async function ({ api }) {
 // ===== COMMAND =====
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage("✅ Birthday system running...", event.threadID);
-};const
+};
