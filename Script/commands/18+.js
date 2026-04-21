@@ -2,7 +2,7 @@
 module.exports.config = {
   name: "18+",
   version: "1.0.0",
-  hasPermssion: 2,
+  hasPermssion: 1,
   credits: "Mohammad Akash",
   description: "18+ VIDEOS",
   commandCategory: "video",
