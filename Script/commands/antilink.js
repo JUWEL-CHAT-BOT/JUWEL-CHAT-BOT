@@ -25,7 +25,7 @@ let antiLinkStatus = true;
 
 // 🔰 Bot Owner / Bot Admin UID list
 const BOT_ADMINS = [
-  "100071528325738",
+  "61567576882007",
 ];
 
 module.exports.config = {
