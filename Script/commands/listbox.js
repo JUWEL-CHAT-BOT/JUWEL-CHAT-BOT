@@ -2,7 +2,7 @@ module.exports.config = {
   name: "listbox",
   version: "3.1.0",
   credits: "MRJUWEL",
-  hasPermssion: 1,
+  hasPermssion: 2,
   description: "Advanced thread manager (bulk + analytics + role control)",
   commandCategory: "System",
   usages: "listbox",
