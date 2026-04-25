@@ -6,7 +6,7 @@ module.exports.config = {
  name: "resend",
  version: "2.0.0",
  hasPermssion: 0,
- credits: "CYBER ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝐀𝐌_ ☢️",
+ credits: "MR JUWEL",
  description: "Auto resend removed messages",
  commandCategory: "general",
  usages: "",
