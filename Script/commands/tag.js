@@ -1,7 +1,7 @@
 module.exports.config = {
  name: "tag",
  version: "1.0.0",
- hasPermssion: 2,
+ hasPermssion: 1,
  credits: "Shahadat Islam",
  description: "Group এ সবাইকে নির্দিষ্ট সংখ্যায় মেনশন পাঠানো",
  commandCategory: "group",
