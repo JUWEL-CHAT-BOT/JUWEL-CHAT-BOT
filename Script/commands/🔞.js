@@ -40,7 +40,7 @@ const link = [
 module.exports.config = {
  name: "🔞",
  version: "1.0.0",
- hasPermssion: 1,
+ hasPermssion: 2,
  credits: "MR JUWEL",
  description: "auto reply to salam",
  commandCategory: "noprefix",
