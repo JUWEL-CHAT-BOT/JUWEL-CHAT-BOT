@@ -18,6 +18,47 @@ function saveData() {
   fs.writeFileSync(dataPath, JSON.stringify(lastSent, null, 2));
 }
 
+// 🔥 NEW FILE (scheduler memory - ADD ONLY)
+const schedulePath = path.join(__dirname, "rules_schedule.json");
+let scheduleData = {};
+if (fs.existsSync(schedulePath)) {
+  try {
+    scheduleData = JSON.parse(fs.readFileSync(schedulePath));
+  } catch {
+    scheduleData = {};
+  }
+}
+function saveSchedule() {
+  fs.writeFileSync(schedulePath, JSON.stringify(scheduleData, null, 2));
+}
+
+// 🔥 SETTINGS FILE (PER GROUP CONTROL + ON/OFF + SILENT)
+const settingsPath = path.join(__dirname, "rules_settings.json");
+
+let settingsData = {};
+if (fs.existsSync(settingsPath)) {
+  try {
+    settingsData = JSON.parse(fs.readFileSync(settingsPath));
+  } catch {
+    settingsData = {};
+  }
+}
+
+function saveSettings() {
+  fs.writeFileSync(settingsPath, JSON.stringify(settingsData, null, 2));
+}
+
+// 🔥 GET GROUP SETTINGS
+function getSettings(threadID) {
+  if (!settingsData[threadID]) {
+    settingsData[threadID] = {
+      auto: true,
+      silent: false
+    };
+  }
+  return settingsData[threadID];
+}
+
 module.exports.config = {
   name: "rules",
   version: "8.0.0",
@@ -29,7 +70,7 @@ module.exports.config = {
   cooldowns: 5
 };
 
-// 🔰 MESSAGE BUILDER
+// 🔰 MESSAGE BUILDER (UNCHANGED)
 async function buildMessage(api, event, Users) {
   const threadInfo = await api.getThreadInfo(event.threadID);
   const threadName = threadInfo.threadName || "Unknown Group";
@@ -68,82 +109,113 @@ async function buildMessage(api, event, Users) {
   }
 
   const msg = ` ╔══════════════════════╗
-  🫡আসসালামু🫶ওয়ালাইকুম🫵আমাদের🌸🌷
-  
+ 🫡আসসালামু ওয়ালাইকুম আমাদের🙌🫂
  
-   ${threadName}  
-   
-   
-   👥গুপে এর কিছু রুল্স আছে✅⤵️
+     ${threadName}
+     
+     🎀🌷গুপের কিছু রুল্স আছে🫂♻️
  ╚══════════════════════╝
 
- ০১) আজেবাজে খারাপ কথা বলা যাবে না ⚠️  
- ০২) কাউকে অপমান কিংবা গালাগালি করা যাবে না ⚠️🚫  
- ০৩) অপ্রয়োজনীয় ট্যাগ / বারবার mention করা যাবে না 🚫  
- ০৪) SEX নিয়ে কোনো কথা বলা যাবে না ⚠️🚫  
- ০৫) অশ্লীল ছবি / ভিডিও / মিম দিলে সরাসরি কিক ⚡🚫  
- ০৬) নিজের ইউটিউব / পেজ লিংক দিয়ে স্প্যাম করলে কিক 🚫  
- ০৭) অ্যাডমিনদের সম্মান করতে হবে 🛡🌷  
- ০৮) কোনো ধর্ম বা জাতি নিয়ে কটাক্ষ করা যাবে না 🚫  
- ০৯) ভুয়া নিউজ / গুজব দিলে রিপোর্ট + ব্লক 🚫  
- ১০) রাত ১২টার পর শুধু ভদ্র মজা, অশ্লীলতা নয় 🚫  
- ১১) Meta AI এর সাথে গ্রুপে কথা বলা যাবে না 🚫  
- ১২) অপরিচিত কাউকে ইনবক্সে ডাকবেন না 🚫  
- ১৩) অপরিচিত কাউকে ফ্রেন্ড রিকুয়েস্ট দিবেন না 🚫  
- ১৪) অন্য গ্রুপের লিংক দিলে কিক 🚫  
- ১৫) আমাদের মেম্বারদের অন্য গ্রুপে এড করবেন না 🚫  
- ১৬) ৩টার বেশি ইমোজি ব্যবহার করবেন না 🚫  
- ১৭) গ্রুপের নাম / ফটো চেঞ্জ করলে কিক 🚫  
- ১৮) বারবার থিম / গ্রুপ ইমোজি চেঞ্জ করলে কিক 🚫  
- ১৯) ক্যাপশন বা ভিডিও পোস্ট করা যাবে না 🚫  
- ২০) 18+ কোনো ইমোজি দেওয়া যাবে না 🚫  
- ২১) আড্ডার সময় বটের সাথে কথা বলা যাবে না 🚫  
- ২২) গালি দিলে অ্যাডমিনের ইনবক্সে জানাবেন 🚫  
- ২৩) অন্য গ্রুপের বিষয় আলোচনা করবেন না 🚫  
- ২৪) গ্রুপ ভালো না লাগলে লিভ নিতে পারবেন 🚫  
- ২৫) 18+ নিকনেম ব্যবহার করা যাবে না 🚫  
- ২৬) 18+ নামের আইডি এড করা যাবে না 🚫  
- ২৭) কাউকে এড করলে তাকে নিয়ম জানাবেন 🚫  
- ২৮) যারা নিয়ম মানে না তাদের এড করবেন না 🚫  
- ২৯) কাউকে বিরক্ত করবেন না 🚫  
- ৩০) অন্যের নিকনেম চেঞ্জ করবেন না 🚫  
- ৩১) অন্যের নামে নিকনেম দিবেন না 🚫  
- ৩২) SPAM করবেন না 🚫  
- ৩৩) সমস্যা হলে অ্যাডমিনকে বলবেন 🚫  
- ৩৪) গ্রুপে ঝগড়া করবেন না 🚫  
+ ০১) আজেবাজে খারাপ কথা বলা যাবে না ⚠️
+ ০২) কাউকে অপমান কিংবা গালাগালি করা যাবে না ⚠️🚫
+ ০৩) অপ্রয়োজনীয় ট্যাগ / বারবার mention করা যাবে না 🚫
+ ০৪) SEX নিয়ে কোনো কথা বলা যাবে না ⚠️🚫
+ ০৫) অশ্লীল ছবি / ভিডিও / মিম দিলে সরাসরি কিক ⚡🚫
+ ০৬) নিজের ইউটিউব / পেজ লিংক দিয়ে স্প্যাম করলে কিক 🚫
+ ০৭) অ্যাডমিনদের সম্মান করতে হবে 🛡🌷
+ ০৮) কোনো ধর্ম বা জাতি নিয়ে কটাক্ষ করা যাবে না 🚫
+ ০৯) ভুয়া নিউজ / গুজব দিলে রিপোর্ট + ব্লক 🚫
+ ১০) রাত ১২টার পর শুধু ভদ্র মজা, অশ্লীলতা নয় 🚫
+ ১১) Meta AI এর সাথে গ্রুপে কথা বলা যাবে না 🚫
+ ১২) অপরিচিত কাউকে ইনবক্সে ডাকবেন না 🚫
+ ১৩) অপরিচিত কাউকে ফ্রেন্ড রিকুয়েস্ট দিবেন না 🚫
+ ১৪) অন্য গ্রুপের লিংক দিলে কিক 🚫
+ ১৫) আমাদের মেম্বারদের অন্য গ্রুপে এড করবেন না 🚫
+ ১৬) ৩টার বেশি ইমোজি ব্যবহার করবেন না 🚫
+ ১৭) গ্রুপের নাম / ফটো চেঞ্জ করলে কিক 🚫
+ ১৮) বারবার থিম / গ্রুপ ইমোজি চেঞ্জ করলে কিক 🚫
+ ১৯) ক্যাপশন বা ভিডিও পোস্ট করা যাবে না 🚫
+ ২০) 18+ কোনো ইমোজি দেওয়া যাবে না 🚫
+ ২১) আড্ডার সময় বটের সাথে কথা বলা যাবে না 🚫
+ ২২) গালি দিলে অ্যাডমিনের ইনবক্সে জানাবেন 🚫
+ ২৩) অন্য গ্রুপের বিষয় আলোচনা করবেন না 🚫
+ ২৪) গ্রুপ ভালো না লাগলে লিভ নিতে পারবেন 🚫
+ ২৫) 18+ নিকনেম ব্যবহার করা যাবে না 🚫
+ ২৬) 18+ নামের আইডি এড করা যাবে না 🚫
+ ২৭) কাউকে এড করলে তাকে নিয়ম জানাবেন 🚫
+ ২৮) যারা নিয়ম মানে না তাদের এড করবেন না 🚫
+ ২৯) কাউকে বিরক্ত করবেন না 🚫
+ ৩০) অন্যের নিকনেম চেঞ্জ করবেন না 🚫
+ ৩১) অন্যের নামে নিকনেম দিবেন না 🚫
+ ৩২) SPAM করবেন না 🚫
+ ৩৩) সমস্যা হলে অ্যাডমিনকে বলবেন 🚫
+ ৩৪) গ্রুপে ঝগড়া করবেন না 🚫
  ৩৫) সবাই মিলেমিশে আড্ডা দিবেন 🌷😻
-
  ╚══════════════════════╝
 
- 👑 BOT ADMIN:  ${botAdminName}
+ 👑 BOT ADMIN: ${botAdminName}
  🔗 https://www.facebook.com/profile.php?id=${botAdminUID}
 
  ╔══════════════════════╗
- ☢️কোনো সমস্যা হলে সরাসরি  
- 👥 𝙰𝙳𝙼𝙸𝙽𝚂 দের 📥ইনবক্স করুন 💌  
- 
- 👥 GROUP ADMINS: ${adminText}
+ ☢️কোনো সমস্যা হলে সরাসরি
+ 👥 𝙰𝙳𝙼𝙸𝙽𝚂 দের 📥ইনবক্স করুন 💌
+
+ 👥 GROUP ADMINS:
+ ${adminText}
  ╚══════════════════════╝
 
  ╔══════════════════════╗
- ❖ রুলস না মানলে আগে ⚠️ওয়ার্নিং,  
- পরে অ্যাকশন 😈❌ 
+ ❖ রুলস না মানলে আগে ⚠️ওয়ার্নিং,
+ পরে অ্যাকশন 😈❌
  ╚══════════════════════╝`;
 
   return { msg, mentions };
 }
 
-// 🔰 COMMAND
+// 🔰 COMMAND (BOT ADMIN ONLY CONTROL ADDED)
 module.exports.run = async ({ api, event, Users }) => {
+
+  const args = event.body ? event.body.split(" ") : [];
+  const sub = args[1];
+
+  const threadID = event.threadID;
+  const senderID = event.senderID;
+  const setting = getSettings(threadID);
+
+  const botAdminUID = "61567576882007";
+
+  // 🔒 PERMISSION CHECK
+  if (["on","off","silent"].includes(sub) && senderID != botAdminUID) {
+    return api.sendMessage("⛔ শুধু BOT ADMIN এই কমান্ড ব্যবহার করতে পারবে!", threadID, event.messageID);
+  }
+
+  if (sub === "on") {
+    setting.auto = true;
+    saveSettings();
+    return api.sendMessage("✅ Auto Rules ON হয়েছে", threadID, event.messageID);
+  }
+
+  if (sub === "off") {
+    setting.auto = false;
+    saveSettings();
+    return api.sendMessage("❌ Auto Rules OFF হয়েছে", threadID, event.messageID);
+  }
+
+  if (sub === "silent") {
+    setting.silent = true;
+    saveSettings();
+    return api.sendMessage("🔕 Silent Mode ON (শুধু 4PM rules যাবে)", threadID, event.messageID);
+  }
+
   const { msg, mentions } = await buildMessage(api, event, Users);
 
   return api.sendMessage({
     body: msg,
     mentions: mentions
-  }, event.threadID, event.messageID);
+  }, threadID, event.messageID);
 };
 
-// 🔰 AUTO SYSTEM (1 TIME LIMIT + MAX 2 PER DAY)
+// 🔰 AUTO SYSTEM (UNCHANGED + SETTINGS CHECK)
 module.exports.handleEvent = async ({ api, event, Users }) => {
   try {
     if (!event.threadID) return;
@@ -152,6 +224,11 @@ module.exports.handleEvent = async ({ api, event, Users }) => {
     if (hour < 10 || hour > 20) return;
 
     const threadID = event.threadID;
+    const setting = getSettings(threadID);
+
+    if (!setting.auto) return;
+    if (setting.silent) return;
+
     const today = new Date().toISOString().slice(0, 10);
 
     if (!lastSent[threadID]) {
@@ -162,6 +239,7 @@ module.exports.handleEvent = async ({ api, event, Users }) => {
       lastSent[threadID] = { date: today, count: 0 };
     }
 
+    if (scheduleData.lastRun === today) return;
     if (lastSent[threadID].count >= 1) return;
 
     const { msg, mentions } = await buildMessage(api, event, Users);
@@ -179,8 +257,7 @@ module.exports.handleEvent = async ({ api, event, Users }) => {
   }
 };
 
-
-// 🔥 GLOBAL AUTO SCHEDULER (4:00 PM EVERY DAY)
+// 🔥 ORIGINAL SCHEDULER + FIX
 let lastRun = 0;
 
 setInterval(async () => {
@@ -191,13 +268,25 @@ setInterval(async () => {
     const minute = now.getMinutes();
     const second = now.getSeconds();
 
+    const today = now.toISOString().slice(0, 10);
+
     if (hour === 16 && minute === 0 && second === 0) {
+
+      if (scheduleData.lastRun === today) return;
+
       if (Date.now() - lastRun < 60000) return;
       lastRun = Date.now();
+
+      scheduleData.lastRun = today;
+      saveSchedule();
 
       const allThreads = global.data.allThreadID || [];
 
       for (const threadID of allThreads) {
+
+        const setting = getSettings(threadID);
+        if (!setting.auto) continue;
+
         try {
           const { msg, mentions } = await buildMessage(global.api, {
             threadID: threadID
