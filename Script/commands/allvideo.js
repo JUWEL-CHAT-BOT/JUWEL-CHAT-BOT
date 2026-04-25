@@ -1,8 +1,8 @@
 module.exports.config = {
   name: "allvideo",
   version: "1.0.0",
-  hasPermission: 1,
-  credits: "Shaon",
+  hasPermission: 2,
+  credits: "MR JUWEL",
   description: "Send a trending TikTok video",
   commandCategory: "media",
   usages: "admin",
