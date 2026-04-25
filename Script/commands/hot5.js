@@ -3,9 +3,9 @@ const axios = require("axios");
 
 module.exports = {
   config: {
-    name: "hot",
+    name: "hot5",
     version: "1.0.1",
-    role: 5,
+    role: 2,
     author: "MOHAMMAD AKASH",
     description: "18+ VIDEO SEND",
     category: "18+",
