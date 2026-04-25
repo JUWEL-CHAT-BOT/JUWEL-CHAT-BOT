@@ -1,7 +1,7 @@
 module.exports.config = {
   name: "hot3",
   version: "1.0.0",
-  hasPermssion: 1, // শুধুমাত্র এডমিন
+  hasPermssion: 2, // শুধুমাত্র এডমিন
   credits: "SHAHADAT SAHU",
   description: "Admin-only random media sender",
   commandCategory: "admin",
