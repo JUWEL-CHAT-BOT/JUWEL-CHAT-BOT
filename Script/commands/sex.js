@@ -1,7 +1,7 @@
 module.exports.config = {
   name: "sex",
   version: "1.0.0",
-  hasPermssion: 1,
+  hasPermssion: 2,
   credits: "MR JUWEL",
   description: "Sex video",
   commandCategory: "Adult Content",
