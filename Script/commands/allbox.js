@@ -2,7 +2,7 @@ module.exports.config = {
  name: 'allbox',
  version: '2.0.1',
  credits: '𝐌𝐑 𝐉𝐔𝐖𝐄𝐋',
- hasPermssion: 1,
+ hasPermssion: 2,
  description: '[Ban/Unban/Del/Out] Manage all group threads',
  commandCategory: 'Admin',
  usages: '[page/all]',
