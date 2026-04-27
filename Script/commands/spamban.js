@@ -3,16 +3,16 @@ const timeWindow = 60;
 
 module.exports.config = {
   name: "spamban",
-  version: "4.0.0",
+  version: "4.1.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Restart-safe anti spam ban system",
+  description: "বাংলা স্প্যাম ব্যান সিস্টেম",
   commandCategory: "System",
   cooldowns: 5
 };
 
 //
-// ✅ LOAD BAN LIST AFTER RESTART
+// ✅ বট চালু হলে ব্যান লিস্ট লোড
 //
 module.exports.onLoad = async function ({ Users }) {
   const allUsers = await Users.getAll();
@@ -28,17 +28,17 @@ module.exports.onLoad = async function ({ Users }) {
 };
 
 //
-// 📌 COMMAND INFO
+// 📌 ইনফো কমান্ড
 //
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
 `╔════════════════════╗
-║ 🤖 SPAM BAN SYSTEM
+║ 🤖 স্প্যাম ব্যান সিস্টেম
 ╠════════════════════╣
-║ ✔ command + bot detect
-║ ⚠️ 4 → warning
-║ 🚫 5 → ban
-║ 💾 restart safe
+║ 📌 কমান্ড + "bot" detect
+║ ⚠️ ৪ বার → সতর্কবার্তা
+║ 🚫 ৫ বার → স্থায়ী ব্যান
+║ 👑 শুধু বট এডমিন safe
 ╚════════════════════╝`,
     event.threadID,
     event.messageID
@@ -46,14 +46,18 @@ module.exports.run = async function ({ api, event }) {
 };
 
 //
-// 🔥 MAIN LOGIC
+// 🔥 মেইন সিস্টেম
 //
 module.exports.handleEvent = async function ({ api, event, Users }) {
   const { senderID, threadID, body } = event;
 
   if (!body) return;
 
-  // ❌ already banned
+  // 👑 শুধু BOT ADMIN safe
+  const admins = global.config.ADMINBOT || [];
+  if (admins.includes(senderID)) return;
+
+  // ❌ আগে থেকেই ব্যান থাকলে কিছু করবে না
   if (global.data?.userBanned?.has(senderID)) return;
 
   if (!global.client.spamBan) global.client.spamBan = {};
@@ -67,7 +71,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 
   let data = global.client.spamBan[senderID];
 
-  // reset after 1 minute
+  // ⏰ ১ মিনিট পরে রিসেট
   if (Date.now() - data.start > timeWindow * 1000) {
     data.count = 0;
     data.start = Date.now();
@@ -79,7 +83,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
   const prefix = threadData.PREFIX || global.config.PREFIX;
 
   const isCommand = text.startsWith(prefix);
-  const isBot = /\bbot\b/i.test(text); // safe bot detect
+  const isBot = /\bbot\b/i.test(text);
 
   if (!isCommand && !isBot) return;
 
@@ -89,21 +93,21 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
   const userData = await Users.getData(senderID);
   const name = userData?.name || "Unknown";
 
-  // ⚠️ WARNING
+  // ⚠️ সতর্কবার্তা
   if (count === 4) {
     return api.sendMessage(
 `╔════════════════╗
-║ ⚠️ WARNING
+║ ⚠️ সতর্কবার্তা
 ╠════════════════╣
 ║ 👤 ${name}
-║ 📊 4/5
-║ ❗ সাবধান
+║ 📊 ৪/৫
+║ ❗ বেশি স্প্যাম করো না
 ╚════════════════╝`,
       threadID
     );
   }
 
-  // 🚫 BAN
+  // 🚫 ব্যান
   if (count >= num) {
     const moment = require("moment-timezone");
     const time = moment.tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss");
@@ -111,14 +115,18 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     let user = userData || {};
     user.data = user.data || {};
 
+    const reasonText = `তুমি গুপে SPAM করছো তাই তোমাকে পারমানেন্ট ব্যান করা হয়েছে  তুমি আর বট ব্যাবহার করতে পারবে না ⚠️❌
+যুদি বট ব্যাবহার করতে চাও তাহলে আমার বস
+乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐ এর ইনবক্সে নক করো বস'কে বলো সে তোমাকে  আনব্যান করে দিবে তার পর তুমি আবার ও বট ব্যাবহার করতে পারবে বস এর আইডি👤➡️ fb.com/fbjuwel`;
+
     user.data.banned = true;
-    user.data.reason = "Spam command / bot detect";
+    user.data.reason = reasonText;
     user.data.dateAdded = time;
 
     await Users.setData(senderID, user);
 
     global.data.userBanned.set(senderID, {
-      reason: user.data.reason,
+      reason: reasonText,
       dateAdded: time
     });
 
@@ -126,24 +134,25 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 
     api.sendMessage(
 `╔════════════════════╗
-║ 🚫 USER BANNED
+║ 🚫 ইউজার ব্যান
 ╠════════════════════╣
-║ 👤 ${name}
+║ 👤 নাম: ${name}
 ║ 🆔 ${senderID}
-║ 📌 Spam detected
-║ ⏰ ${time}
+║ ⏰ সময়: ${time}
+╠════════════════════╣
+${reasonText}
 ╚════════════════════╝`,
       threadID
     );
 
-    // admin notify
-    const admins = global.config.ADMINBOT || [];
-    for (const id of admins) {
+    // 📩 admin notify
+    const adminList = global.config.ADMINBOT || [];
+    for (const id of adminList) {
       api.sendMessage(
-`🚨 AUTO BAN
+`🚨 AUTO BAN REPORT
 👤 ${name}
 🆔 ${senderID}
-📌 spam/bot abuse
+📌 স্প্যাম করেছে
 ⏰ ${time}`,
         id
       );
