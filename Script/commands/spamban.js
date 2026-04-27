@@ -1,37 +1,59 @@
-const num = 6; // 6th command = BAN
-const timeWindow = 60; // 1 minute
+const num = 5;
+const timeWindow = 60;
 
 module.exports.config = {
   name: "spamban",
-  version: "3.1.0",
+  version: "4.0.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "৬ বার কমান্ড করলে অটো ব্যান সিস্টেম",
+  description: "Restart-safe anti spam ban system",
   commandCategory: "System",
-  usages: "on/off info",
   cooldowns: 5
 };
 
+//
+// ✅ LOAD BAN LIST AFTER RESTART
+//
+module.exports.onLoad = async function ({ Users }) {
+  const allUsers = await Users.getAll();
+
+  for (const user of allUsers) {
+    if (user?.data?.banned) {
+      global.data.userBanned.set(user.userID, {
+        reason: user.data.reason,
+        dateAdded: user.data.dateAdded
+      });
+    }
+  }
+};
+
+//
+// 📌 COMMAND INFO
+//
 module.exports.run = async function ({ api, event }) {
   return api.sendMessage(
 `╔════════════════════╗
-║ 🤖 স্প্যাম ব্যান সিস্টেম
+║ 🤖 SPAM BAN SYSTEM
 ╠════════════════════╣
-║ 📌 ১-৩ → কিছু না
-║ ⚠️ ৪-৫ → ওয়ার্নিং
-║ 🚫 ৬ → অটো ব্যান
+║ ✔ command + bot detect
+║ ⚠️ 4 → warning
+║ 🚫 5 → ban
+║ 💾 restart safe
 ╚════════════════════╝`,
     event.threadID,
     event.messageID
   );
 };
 
+//
+// 🔥 MAIN LOGIC
+//
 module.exports.handleEvent = async function ({ api, event, Users }) {
   const { senderID, threadID, body } = event;
 
   if (!body) return;
 
-  // banned check
+  // ❌ already banned
   if (global.data?.userBanned?.has(senderID)) return;
 
   if (!global.client.spamBan) global.client.spamBan = {};
@@ -45,46 +67,52 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 
   let data = global.client.spamBan[senderID];
 
-  // reset after time window
+  // reset after 1 minute
   if (Date.now() - data.start > timeWindow * 1000) {
     data.count = 0;
     data.start = Date.now();
   }
 
+  const text = body.toLowerCase();
+
   const threadData = global.data.threadData.get(threadID) || {};
   const prefix = threadData.PREFIX || global.config.PREFIX;
 
-  if (body.indexOf(prefix) !== 0) return;
+  const isCommand = text.startsWith(prefix);
+  const isBot = /\bbot\b/i.test(text); // safe bot detect
+
+  if (!isCommand && !isBot) return;
 
   data.count++;
-
   const count = data.count;
+
   const userData = await Users.getData(senderID);
   const name = userData?.name || "Unknown";
 
-  // 4-5 warning
-  if (count === 4 || count === 5) {
+  // ⚠️ WARNING
+  if (count === 4) {
     return api.sendMessage(
 `╔════════════════╗
-║ ⚠️ সতর্কবার্তা
+║ ⚠️ WARNING
 ╠════════════════╣
-║ 👤 ইউজার: ${name}
-║ 📊 স্ট্যাটাস: ${count}/6
-║ ❗ সাবধান থাকুন
+║ 👤 ${name}
+║ 📊 4/5
+║ ❗ সাবধান
 ╚════════════════╝`,
       threadID
     );
   }
 
-  // BAN
+  // 🚫 BAN
   if (count >= num) {
     const moment = require("moment-timezone");
     const time = moment.tz("Asia/Dhaka").format("DD/MM/YYYY HH:mm:ss");
 
     let user = userData || {};
     user.data = user.data || {};
+
     user.data.banned = true;
-    user.data.reason = "৬ বার কমান্ড স্প্যাম";
+    user.data.reason = "Spam command / bot detect";
     user.data.dateAdded = time;
 
     await Users.setData(senderID, user);
@@ -98,12 +126,12 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 
     api.sendMessage(
 `╔════════════════════╗
-║ 🚫 ইউজার ব্যান
+║ 🚫 USER BANNED
 ╠════════════════════╣
-║ 👤 নাম: ${name}
-║ 🆔: ${senderID}
-║ 📌 কারণ: স্প্যাম
-║ ⏰ সময়: ${time}
+║ 👤 ${name}
+║ 🆔 ${senderID}
+║ 📌 Spam detected
+║ ⏰ ${time}
 ╚════════════════════╝`,
       threadID
     );
@@ -112,10 +140,10 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     const admins = global.config.ADMINBOT || [];
     for (const id of admins) {
       api.sendMessage(
-`🚨 AUTO BAN REPORT
+`🚨 AUTO BAN
 👤 ${name}
 🆔 ${senderID}
-📌 Spam Limit Reached
+📌 spam/bot abuse
 ⏰ ${time}`,
         id
       );
