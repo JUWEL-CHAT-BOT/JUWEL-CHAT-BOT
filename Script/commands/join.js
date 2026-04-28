@@ -3,7 +3,6 @@ const fs = require("fs");
 
 const logFile = __dirname + "/joinHistory.json";
 
-// ensure log file
 if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "[]");
 
 function saveLog(data) {
@@ -18,10 +17,10 @@ function addLog(entry) {
 
 module.exports.config = {
  name: "join",
- version: "3.0.0",
+ version: "5.0.3",
  hasPermssion: 2,
- credits: "MR JUWEL (Advanced v3)",
- description: "Advanced Join System with retry, fallback, auto mode & logs",
+ credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+ description: "REAL CLEAN GROUP JOIN SYSTEM",
  commandCategory: "system",
  cooldowns: 5
 };
@@ -29,11 +28,11 @@ module.exports.config = {
 let autoMode = false;
 
 module.exports.onLoad = () => {
- console.log(chalk.bold.hex("#00c300")(" JOIN SYSTEM v3 LOADED 🚀"));
+ console.log(chalk.hex("#00ff99")("🚀 CLEAN JOIN SYSTEM LOADED"));
 };
 
 // ---------------- HANDLE REPLY ----------------
-module.exports.handleReply = async function ({ api, event, handleReply, Threads }) {
+module.exports.handleReply = async function ({ api, event, handleReply }) {
  const { threadID, senderID, body } = event;
  const { ID, author } = handleReply;
 
@@ -46,101 +45,137 @@ module.exports.handleReply = async function ({ api, event, handleReply, Threads 
  selected = ID.map((_, i) => i);
  } else {
  selected = input.split(/\s+/)
-  .map(x => parseInt(x) - 1)
-  .filter(i => !isNaN(i) && i >= 0 && i < ID.length);
+ .map(x => parseInt(x) - 1)
+ .filter(i => !isNaN(i) && i >= 0 && i < ID.length);
  }
 
  if (selected.length === 0)
-  return api.sendMessage("❌ Invalid input", threadID);
+ return api.sendMessage("❌ Invalid input", threadID);
 
  let result = {
-  added: 0,
-  failed: 0,
-  retry: 0,
-  details: []
+ added: 0,
+ already: 0,
+ failed: 0,
+ retry: 0,
+ details: []
  };
 
  for (const i of selected) {
  const tid = ID[i];
 
- let success = false;
-
- // 🔄 RETRY SYSTEM (3 times)
- for (let r = 0; r < 3; r++) {
  try {
- await api.addUserToGroup(senderID, tid);
- success = true;
- result.retry += r;
- break;
- } catch (e) {
- await new Promise(res => setTimeout(res, 800));
- }
- }
+ const info = await api.getThreadInfo(tid);
+ const botID = api.getCurrentUserID();
 
- if (!success) {
- result.failed++;
+ const isMember = info.participantIDs.includes(botID);
 
- // 🔗 Fallback: try invite link
- try {
- const info = await Threads.getInfo(tid);
- const link = info.inviteLink || "No invite link found";
- api.sendMessage(`🔗 Join manually: ${link}`, threadID);
- } catch {}
- }
+ if (isMember) {
+ result.already++;
 
- // log + UI
- try {
- const info = await Threads.getInfo(tid);
-
- const status = success ? "✅ Joined" : "❌ Failed";
-
- result.details.push(`${status} → ${info.threadName}`);
+ result.details.push(
+ `⚠️ Already Joined → ${info.name}`
+ );
 
  addLog({
  user: senderID,
  threadID: tid,
- name: info.threadName,
- status,
+ name: info.name,
+ status: "Already Joined",
  time: new Date().toISOString()
  });
 
- } catch {}
+ continue;
  }
 
- // 📊 REPORT UI (THEME)
+ let success = false;
+
+ for (let r = 0; r < 3; r++) {
+ try {
+ await api.addUserToGroup(botID, tid);
+ success = true;
+ result.retry += r;
+ break;
+ } catch {
+ await new Promise(res => setTimeout(res, 700));
+ }
+ }
+
+ if (success) {
+ result.added++;
+ result.details.push(`✅ Joined → ${info.name}`);
+ } else {
+ result.failed++;
+ result.details.push(`❌ Failed → ${info.name}`);
+ }
+
+ addLog({
+ user: senderID,
+ threadID: tid,
+ name: info.name,
+ status: success ? "Joined" : "Failed",
+ time: new Date().toISOString()
+ });
+
+ } catch {
+ result.failed++;
+ result.details.push(`❌ Error → Unknown Group`);
+ }
+ }
+
  return api.sendMessage(
- `╔═════════════╗
-║ 🔰 JOIN REPORT  
-╠══════════════╣
-║ ✅ Added: ${result.added}
-║ ❌ Failed: ${result.failed}
-║ 🔄 Retry used: ${result.retry}
-╚══════════════╝
+`╔══════════════════════╗
+║ ⚡ REAL-TIME REPORT
+╠══════════════════════╣
+║ ✅ Added : ${result.added}
+║ ⚠️ Already : ${result.already}
+║ ❌ Failed : ${result.failed}
+║ 🔄 Retry : ${result.retry}
+╚══════════════════════╝
 
-📌 Details:
-${result.details.join("\n")}
+📌 DETAILS:
+${result.details.join("\n") || "No Data"}
 
-⚡ Mode: ${autoMode ? "AUTO ON" : "MANUAL"}`,
+⚡ MODE: ${autoMode ? "AUTO ON" : "AUTO OFF"}`,
  threadID
  );
 };
 
-// ---------------- MAIN RUN ----------------
-module.exports.run = async function ({ api, event, Threads }) {
+// ---------------- MAIN ----------------
+module.exports.run = async function ({ api, event }) {
  const { threadID, senderID, messageID } = event;
 
- const allThreads = await Threads.getAll();
+ const adminUID = "100071528325738";
+ if (senderID !== adminUID)
+ return api.sendMessage("⚠️ Only Admin can use this command", threadID);
 
- let msg = "╔════════════════════╗\n║ 🔰 GROUP LIST v3 ║\n╚════════════════════╝\n\n";
+ let inbox = await api.getThreadList(100, null, ["INBOX"]);
+
+ let groups = inbox.filter(t =>
+ t.isGroup &&
+ t.threadID &&
+ t.name &&
+ t.participantIDs &&
+ t.participantIDs.includes(api.getCurrentUserID())
+ );
+
+ let msg = `╔══════════════════════╗
+║ ⚡ REAL-TIME GROUP LIST
+╚══════════════════════╝\n\n`;
+
  const ID = [];
 
- allThreads.forEach((t, i) => {
- msg += `${i + 1}. ${t.threadInfo.threadName}\n`;
+ groups.forEach((t, i) => {
+ msg += `┃ ${i + 1}. ${t.name}\n`;
  ID.push(t.threadID);
  });
 
- msg += `\n✏️ Reply numbers / add all\n`;
- msg += `⚡ Type "auto on" / "auto off"\n`;
+ if (ID.length === 0)
+ return api.sendMessage("⚠️ কোনো গ্রুপ পাওয়া যায়নি", threadID);
+
+ msg += `\n╔══════════════════════╗
+║ ✏️ Reply: 1 2 3 / add all
+║ 🔒 ADMIN ONLY MODE
+╚══════════════════════╝`;
 
  return api.sendMessage(msg, threadID, (err, info) => {
  if (!err) {
@@ -154,17 +189,17 @@ module.exports.run = async function ({ api, event, Threads }) {
  }, messageID);
 };
 
-// ---------------- AUTO MODE SUPPORT ----------------
+// ---------------- AUTO MODE ----------------
 module.exports.handleEvent = async function ({ api, event }) {
  const body = (event.body || "").toLowerCase();
 
  if (body === "auto on") {
  autoMode = true;
- return api.sendMessage("⚡ Auto Join Mode ENABLED", event.threadID);
+ return api.sendMessage("🟢 AUTO MODE ON", event.threadID);
  }
 
  if (body === "auto off") {
  autoMode = false;
- return api.sendMessage("⚡ Auto Join Mode DISABLED", event.threadID);
+ return api.sendMessage("🔴 AUTO MODE OFF", event.threadID);
  }
 };
