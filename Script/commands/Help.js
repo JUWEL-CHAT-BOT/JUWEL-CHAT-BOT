@@ -4,185 +4,137 @@ const path = require("path");
 
 module.exports.config = {
     name: "help",
-    version: "4.0.1",
+    version: "6.0.0",
     hasPermssion: 0,
-    credits: "MR JUWEL",
-    description: "Help system (prefix required)",
+    credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+    description: "Ultra Premium Help Menu",
     commandCategory: "system",
-    usages: "[name/page/category]",
+    usages: "[command/page]",
     cooldowns: 5
 };
 
-// 🖼️ images
-const helpImages = [
-    "https://i.imgur.com/koljbGQ.jpeg",
- 
+// 💎 ULTRA PREMIUM FRAMES
+const frames = [
+(content, prefix, bot) => `╔════════════════════════╗
+║   🌌 𝙋𝙍𝙀𝙈𝙄𝙐𝙈 𝙃𝙀𝙇𝙋 🌌   ║
+╠════════════════════════╣
+${content}
+╠════════════════════════╣
+║ ⚙ PREFIX : ${prefix}
+║ 🤖 BOT    : ${bot}
+║ 📡 STATUS : ONLINE
+╚════════════════════════╝`,
+
+(content, prefix, bot) => `┏━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃    ⚡ 𝙐𝙇𝙏𝙍𝘼 𝙃𝙀𝙇𝙋 𝙈𝙀𝙉𝙐 ⚡     ┃
+┣━━━━━━━━━━━━━━━━━━━━━━━━┫
+${content}
+┣━━━━━━━━━━━━━━━━━━━━━━━━┫
+┃ ⚙ ${prefix}  |  🤖 ${bot}
+┃ 💠 POWERED BY JUWEL
+┗━━━━━━━━━━━━━━━━━━━━━━━━┛`,
+
+(content, prefix, bot) => `╭━━━━━━━━━━━━━━━━━━━━━━━━╮
+│   🚀 𝙎𝙔𝙎𝙏𝙀𝙈 𝘾𝙊𝙉𝙏𝙍𝙊𝙇 🚀    │
+├━━━━━━━━━━━━━━━━━━━━━━━━┤
+${content}
+├━━━━━━━━━━━━━━━━━━━━━━━━┤
+│ ⚙ Prefix ➤ ${prefix}
+│ 🤖 Bot    ➤ ${bot}
+│ 🔥 Mode   ➤ Premium
+╰━━━━━━━━━━━━━━━━━━━━━━━━╯`
 ];
 
-// 📊 usage file
-const usageDataPath = __dirname + "/cache/helpUsage.json";
-if (!fs.existsSync(usageDataPath)) fs.writeFileSync(usageDataPath, JSON.stringify({}));
-
-function saveUsage(cmd) {
-    let data = JSON.parse(fs.readFileSync(usageDataPath));
-    data[cmd] = (data[cmd] || 0) + 1;
-    fs.writeFileSync(usageDataPath, JSON.stringify(data, null, 2));
+function getFrame(content, prefix, bot) {
+    return frames[Math.floor(Math.random() * frames.length)](content, prefix, bot);
 }
 
-// 🖼️ image download
-function downloadImages(callback) {
-    const url = helpImages[Math.floor(Math.random() * helpImages.length)];
-    const filePath = path.join(__dirname, "cache", "help.jpg");
+// 🖼 IMAGE
+const imgs = [
+    "https://i.imgur.com/sj7ieqs.jpeg"
+];
+
+function getImage(callback) {
+    const url = imgs[Math.floor(Math.random() * imgs.length)];
+    const filePath = path.join(__dirname, "cache", `help_${Date.now()}.jpg`);
 
     request(url)
-        .on("error", () => callback([]))
         .pipe(fs.createWriteStream(filePath))
-        .on("close", () => callback([filePath]));
+        .on("close", () => callback(filePath))
+        .on("error", () => callback(null));
 }
 
-// 🔎 suggestion
-function getSuggest(input, list) {
-    input = input.toLowerCase();
-    return list.find(x => x.toLowerCase().includes(input));
-}
-
-module.exports.run = function ({ api, event, args }) {
-    const { threadID, messageID } = event;
+// 🔥 MAIN
+module.exports.run = async function ({ api, event, args }) {
     const { commands } = global.client;
+    const { threadID, messageID } = event;
 
-    const prefix = global.config.PREFIX || "";
+    const prefix = global.config.PREFIX || "!";
+    const botName = global.config.BOTNAME || "BOT";
 
-    const allCommands = Array.from(commands.keys());
-
-    // 🔍 SEARCH
-    if (args[0] === "-s") {
-        const keyword = args.slice(1).join(" ").toLowerCase();
-
-        const result = allCommands.filter(cmd =>
-            cmd.toLowerCase().includes(keyword)
-        );
-
-        return api.sendMessage(
-`╔════════════════════╗
-🔍 SEARCH RESULT
-╚════════════════════╝
-
-🔎 Query: ${keyword}
-
-${result.length ? result.join("\n") : "❌ No command found"}
-
-━━━━━━━━━━━━━━`,
-            threadID,
-            messageID
-        );
-    }
-
-    // 📂 CATEGORY
+    // 🔎 COMMAND INFO
     if (args[0] && isNaN(args[0])) {
-        const category = args[0].toLowerCase();
-        const filtered = [];
+        const cmd = commands.get(args[0].toLowerCase());
 
-        for (let [name, cmd] of commands) {
-            if ((cmd.config.commandCategory || "").toLowerCase() === category) {
-                filtered.push(name);
-            }
+        if (!cmd) {
+            return api.sendMessage("❌ Command not found!", threadID, messageID);
         }
 
-        if (filtered.length > 0) {
-            return api.sendMessage(
-`╔════════════════════╗
-📂 CATEGORY: ${category.toUpperCase()}
-╚════════════════════╝
+        const perm = ["User", "Admin", "Bot Admin"][cmd.config.hasPermssion] || "Unknown";
 
-${filtered.join("\n")}
+        const raw = `📛 NAME   ➤ ${cmd.config.name}
+📌 USAGE  ➤ ${cmd.config.usages || "N/A"}
+📝 DESC   ➤ ${cmd.config.description || "N/A"}
+🔑 PERM   ➤ ${perm}
+👨‍💻 DEV    ➤ ${cmd.config.credits}
+📂 CAT    ➤ ${cmd.config.commandCategory}
+⏳ COOLD  ➤ ${cmd.config.cooldowns}s`;
 
-━━━━━━━━━━━━━━`,
-                threadID,
-                messageID
-            );
-        }
-    }
+        const final = getFrame(raw, prefix, botName);
 
-    // 📌 COMMAND INFO
-    if (args[0] && commands.has(args[0])) {
-        const cmd = commands.get(args[0]);
-        saveUsage(cmd.config.name);
+        api.sendMessage("⏳ Loading Premium Menu...", threadID, (err, info) => {
+            getImage(file => {
+                if (!file) return api.editMessage(final, info.messageID);
 
-        let usageData = JSON.parse(fs.readFileSync(usageDataPath));
-        let used = usageData[cmd.config.name] || 0;
-
-        const msg =
-`╔════════════════════╗
-✨ COMMAND INFO
-╚════════════════════╝
-
-📌 Name: ${cmd.config.name}
-📄 Usage: ${cmd.config.usages || "N/A"}
-📜 Description: ${cmd.config.description}
-📂 Category: ${cmd.config.commandCategory}
-📊 Used: ${used} times
-
-⚙ Prefix Required: YES (${prefix}help)
-━━━━━━━━━━━━━━`;
-
-        return downloadImages(files => {
-            api.sendMessage({
-                body: msg,
-                attachment: files.map(f => fs.createReadStream(f))
-            }, threadID, () => files.forEach(f => fs.unlinkSync(f)), messageID);
+                api.sendMessage({
+                    body: final,
+                    attachment: fs.createReadStream(file)
+                }, threadID, () => fs.unlinkSync(file), info.messageID);
+            });
         });
+
+        return;
     }
 
-    // ❌ SUGGESTION
-    if (args[0] && !commands.has(args[0])) {
-        const suggest = getSuggest(args[0], allCommands);
+    // 📜 COMMAND LIST
+    const all = Array.from(commands.keys()).sort();
 
-        if (suggest) {
-            return api.sendMessage(
-`❌ Command not found
+    const page = Math.max(parseInt(args[0]) || 1, 1);
+    const perPage = 50;
+    const totalPage = Math.ceil(all.length / perPage);
 
-👉 Did you mean: ${suggest}?`,
-                threadID,
-                messageID
-            );
-        }
-    }
+    const start = (page - 1) * perPage;
+    const list = all.slice(start, start + perPage);
 
-    // 📄 PAGINATION
-    const page = Math.max(1, parseInt(args[0]) || 1);
-    const perPage = 15;
-    const totalPages = Math.ceil(allCommands.length / perPage);
+    let msg = list.map((c, i) => `✅ ${String(i + 1).padStart(2, "0")} ➤ ${c}`).join("\n");
 
-    const list = allCommands.slice((page - 1) * perPage, page * perPage);
+    const raw = `📄 PAGE ➤ ${page}/${totalPage}
+📊 TOTAL ➤ ${all.length}
 
-    let msg =
-`╔════════════════════╗
-📜 HELP MENU
-╚════════════════════╝
+${msg}
 
-📄 Page: ${page}/${totalPages}
-🧮 Total Commands: ${allCommands.length}
+💎 TYPE ➤ ${prefix}help <cmd>`;
 
-━━━━━━━━━━━━━━
-`;
+    const final = getFrame(raw, prefix, botName);
 
-    msg += list.map(cmd => `✦ ${cmd}`).join("\n");
+    api.sendMessage("🚀 Loading Premium Commands...", threadID, (err, info) => {
+        getImage(file => {
+            if (!file) return api.editMessage(final, info.messageID);
 
-    msg += `
-
-━━━━━━━━━━━━━━
-🤖 Bot: ${global.config.BOTNAME || "BOT"}
-👑 Owner: MR JUWEL
-⚙ Prefix Required: YES (${prefix}help)
-
-▶ Next: ${prefix}help ${page + 1}
-◀ Prev: ${prefix}help ${page - 1}
-━━━━━━━━━━━━━━`;
-
-    downloadImages(files => {
-        api.sendMessage({
-            body: msg,
-            attachment: files.map(f => fs.createReadStream(f))
-        }, threadID, () => files.forEach(f => fs.unlinkSync(f)), messageID);
+            api.sendMessage({
+                body: final,
+                attachment: fs.createReadStream(file)
+            }, threadID, () => fs.unlinkSync(file), info.messageID);
+        });
     });
 };
