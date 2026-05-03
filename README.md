@@ -1,20 +1,109 @@
-### —͟͟͞͞𝐉𝐔𝐖𝐄𝐋 𝐂𝐇𝐀𝐓 𝐁𝐎𝐓  𝐅𝐎𝐑𝐊  🌺
+# —͟͟͞͞𝐉𝐔𝐖𝐄𝐋 𝐂𝐇𝐀𝐓 𝐁𝐎𝐓 🌺  
+### ⚡ Ultra Premium Messenger Automation System
 
-❖ **`A Messenger Multi Device Bot To Take Your Messenger To Another Level!`** 
+---
 
-<!-- Typing Animation -->
+<!-- HERO ANIMATION -->
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=22&duration=3000&pause=1000&color=00A8FF&center=true&vCenter=true&width=500&lines=Assalamualaikum+Everyone!;Welcome+To+JUWEL+CHAT+BOT+Fork!" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=24&duration=2500&pause=1000&color=00A8FF&center=true&vCenter=true&width=650&lines=Welcome+To+JUWEL+CHAT+BOT;Advanced+Messenger+Automation+System;Fast+%7C+Smart+%7C+Secure+%7C+Stable" />
 </p>
 
+---
 
-
-![Box-shaped Image](https://files.catbox.moe/fu54e0.jpg)
-
-<p align="center" style="animation: glow 2s infinite alternate; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-  <span style="font-size: 24px; font-weight: bold;">JUWEL CHAT BOT</span><br>
-  <span> Develop By JUWEL</span>
+<!-- BANNER -->
+<p align="center">
+  <img src="https://files.catbox.moe/fu54e0.jpg" width="85%" />
 </p>
+
+---
+
+<!-- VISITOR -->
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=YOURNAME&color=blue" />
+</p>
+
+---
+
+# 🚀 PROJECT STATUS
+![Version](https://img.shields.io/badge/version-4.0-blue)
+![Platform](https://img.shields.io/badge/platform-Messenger-black)
+![Status](https://img.shields.io/badge/status-active-success)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Uptime](https://img.shields.io/badge/uptime-24%2F7-success)
+![Node](https://img.shields.io/badge/node.js-powered-yellow)
+
+---
+
+# 📊 GITHUB STATS
+![Stats](https://github-readme-stats.vercel.app/api?username=YOURNAME&show_icons=true&theme=tokyonight)
+
+---
+
+# ⚡ LIVE DEPLOY
+
+<p align="center">
+
+<a href="https://heroku.com/deploy">
+<img src="https://www.herokucdn.com/deploy/button.svg" />
+</a>
+
+<a href="https://render.com">
+<img src="https://img.shields.io/badge/Deploy%20On-Render-blue?style=for-the-badge&logo=render" />
+</a>
+
+<a href="https://railway.app">
+<img src="https://img.shields.io/badge/Deploy%20On-Railway-purple?style=for-the-badge&logo=railway" />
+</a>
+
+</p>
+
+---
+
+# 📌 ABOUT BOT
+
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=20&duration=2000&pause=800&color=FF4D4D&center=true&vCenter=true&width=600&lines=Automation+System;Group+%26+Inbox+Control;Smart+AI+Features" />
+</p>
+
+**JUWEL CHAT BOT** একটি advanced Messenger automation system যা group এবং inbox smartভাবে control করে।
+
+---
+
+# ✨ FEATURES
+
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=18&duration=2000&pause=800&color=00FF88&center=true&vCenter=true&width=600&lines=Auto+Reply+System;Quiz+%26+Games;Economy+System;Admin+Tools;Media+Downloader" />
+</p>
+
+- 🤖 Auto Reply System  
+- 🎮 Quiz & Games  
+- 💰 Economy (Coins / Gift)  
+- 👥 Group Management  
+- 📥 Media Downloader  
+- ⚡ Fast Response Engine  
+
+---
+
+# 🐾 ANIMAL POWER SYSTEM
+
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=JetBrains+Mono&size=20&duration=2000&pause=800&color=FFAA00&center=true&vCenter=true&width=600&lines=Lion+Mode+Activated;Wolf+Speed+System;Eagle+Vision+Bot;Tiger+Performance+Engine" />
+</p>
+
+---
+
+# 🐾 ANIMAL MODES
+
+- 🦁 Lion Mode → Admin Power Control  
+- 🐺 Wolf Mode → Fast Auto Reply  
+- 🦅 Eagle Mode → Smart Detection System  
+- 🐯 Tiger Mode → High Speed Execution  
+- 🐉 Dragon Mode → Ultra AI Power  
+- 🦂 Scorpion Mode → Security Shield  
+
+---
+
+# 🧠 COMMANDS
 
 _____
 
