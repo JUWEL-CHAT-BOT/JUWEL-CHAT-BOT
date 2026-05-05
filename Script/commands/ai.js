@@ -1,57 +1,101 @@
 const axios = require("axios");
 
-module.exports = {
-  config: {
-    name: "ai",
-    version: "1.0.1",
-    credit: "—͟͟͞͞𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
-    description: "google ai",
-    cooldowns: 0,
-    hasPermssion: 0,
-    commandCategory: "google",
-    usages: {
-      en: "{pn} message | photo reply"
-    }
-  },
+module.exports.config = {
+  name: "ai",
+  version: "3.0",
+  hasPermssion: 0,
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  description: "GPT-4 Style Smart AI",
+  commandCategory: "ai",
+  usages: "[question]",
+  cooldowns: 2
+};
 
-  run: async ({ api, args, event }) => {
-    const input = args.join(" ");
-    const encodedApi = "aHR0cHM6Ly9hcGlzLWtlaXRoLnZlcmNlbC5hcHAvYWkvZGVlcHNlZWtWMz9xPQ==";
-    const apiUrl = Buffer.from(encodedApi, "base64").toString("utf-8");
+// 🔗 API BASE
+const mahmud = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+  return base.data.mahmud;
+};
 
-    if (event.type === "message_reply") {
-      try {
-        const imageUrl = event.messageReply.attachments[0]?.url;
-        if (!imageUrl)
-          return api.sendMessage("Please reply to an image.", event.threadID, event.messageID);
+// 🧠 Smart Prompt Builder
+function buildPrompt(userMsg) {
+  return `
+You are a highly intelligent AI like GPT-4.
 
-        const res = await axios.post(`${apiUrl}${encodeURIComponent(input || "Describe this image.")}`, {
-          image: imageUrl
+Rules:
+- Give clear, smart, human-like answers
+- Keep it short but meaningful
+- No unnecessary talking
+- Use simple language
+- If needed, give examples
+
+User: ${userMsg}
+AI:
+`;
+}
+
+// 🎨 Premium UI
+function format(text) {
+  return `╭──『 🧠 SMART AI 』──╮\n${text}\n╰──────────────────╯`;
+}
+
+// ⚡ RUN
+module.exports.run = async function ({ api, event, args }) {
+  const question = args.join(" ");
+  if (!question)
+    return api.sendMessage("⚠️ প্রশ্ন লিখো! Example: /ai life কি?", event.threadID, event.messageID);
+
+  try {
+    const baseUrl = await mahmud();
+    const prompt = buildPrompt(question);
+
+    const res = await axios.post(`${baseUrl}/api/ai`, {
+      question: prompt
+    });
+
+    const reply = format(res.data.response || "No response.");
+
+    return api.sendMessage(reply, event.threadID, (err, info) => {
+      if (!err) {
+        global.client.handleReply.set(info.messageID, {
+          name: module.exports.config.name,
+          author: event.senderID
         });
+      }
+    }, event.messageID);
 
-        const result = res.data.result || res.data.response || res.data.message || "No response from AI.";
-        api.sendMessage(result, event.threadID, event.messageID);
-      } catch (err) {
-        console.error("Error:", err.message);
-        api.sendMessage("processing.....", event.threadID, event.messageID);
-      }
-    } else {
-      if (!input) {
-        return api.sendMessage(
-          "Hey I'm Ai Chat Bot\nHow can I assist you today?",
-          event.threadID,
-          event.messageID
-        );
-      }
+  } catch (e) {
+    return api.sendMessage("× Error: " + e.message, event.threadID);
+  }
+};
 
-      try {
-        const res = await axios.get(`${apiUrl}${encodeURIComponent(input)}`);
-        const result = res.data.result || res.data.response || res.data.message || "No response from AI.";
-        api.sendMessage(result, event.threadID, event.messageID);
-      } catch (err) {
-        console.error("Error:", err.message);
-        api.sendMessage("Boss SAHU re Dakh ei file gece 😑", event.threadID, event.messageID);
+// 🔁 CONTINUE CHAT (context feel)
+module.exports.handleReply = async function ({ api, event, handleReply, args }) {
+  if (event.senderID != handleReply.author) return;
+
+  const msg = args.join(" ");
+  if (!msg) return;
+
+  try {
+    const baseUrl = await mahmud();
+    const prompt = buildPrompt(msg);
+
+    const res = await axios.post(`${baseUrl}/api/ai`, {
+      question: prompt
+    });
+
+    const reply = format(res.data.response || "No response.");
+
+    return api.sendMessage(reply, event.threadID, (err, info) => {
+      if (!err) {
+        global.client.handleReply.set(info.messageID, {
+          name: module.exports.config.name,
+          author: event.senderID
+        });
       }
-    }
+    }, event.messageID);
+
+  } catch (e) {
+    return api.sendMessage("× Error: " + e.message, event.threadID);
   }
 };
