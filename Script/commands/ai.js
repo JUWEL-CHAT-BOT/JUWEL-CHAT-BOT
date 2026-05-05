@@ -1,101 +1,127 @@
 const axios = require("axios");
 
 module.exports.config = {
-  name: "ai",
-  version: "3.0",
-  hasPermssion: 0,
-  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "GPT-4 Style Smart AI",
-  commandCategory: "ai",
-  usages: "[question]",
-  cooldowns: 2
+ name: "ai",
+ version: "2.0",
+ hasPermssion: 0,
+ credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+ description: "Premium AI Chat with Auto Reply",
+ commandCategory: "ai",
+ usages: "[question]",
+ cooldowns: 3
 };
 
 // 🔗 API BASE
 const mahmud = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-  return base.data.mahmud;
+ const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+ return base.data.mahmud;
 };
 
-// 🧠 Smart Prompt Builder
-function buildPrompt(userMsg) {
-  return `
-You are a highly intelligent AI like GPT-4.
-
-Rules:
-- Give clear, smart, human-like answers
-- Keep it short but meaningful
-- No unnecessary talking
-- Use simple language
-- If needed, give examples
-
-User: ${userMsg}
-AI:
-`;
+// ✨ UI STYLE
+function formatReply(text) {
+ return `╭──『 🤖 AI 』──╮\n${text}\n╰──────────────╯`;
 }
 
-// 🎨 Premium UI
-function format(text) {
-  return `╭──『 🧠 SMART AI 』──╮\n${text}\n╰──────────────────╯`;
+// ⚡ Typing Effect
+async function sendTyping(api, threadID) {
+ return new Promise(resolve => {
+ api.sendTypingIndicator(threadID, true);
+ setTimeout(() => {
+ api.sendTypingIndicator(threadID, false);
+ resolve();
+ }, 1500);
+ });
 }
 
-// ⚡ RUN
+// 🚀 RUN COMMAND
 module.exports.run = async function ({ api, event, args }) {
-  const question = args.join(" ");
-  if (!question)
-    return api.sendMessage("⚠️ প্রশ্ন লিখো! Example: /ai life কি?", event.threadID, event.messageID);
+ try {
+ const query = args.join(" ");
+ if (!query) {
+ return api.sendMessage("⚠️ কিছু লিখো! Example: /ai তুমি কে?", event.threadID, event.messageID);
+ }
 
-  try {
-    const baseUrl = await mahmud();
-    const prompt = buildPrompt(question);
+ await sendTyping(api, event.threadID);
 
-    const res = await axios.post(`${baseUrl}/api/ai`, {
-      question: prompt
-    });
+ const baseUrl = await mahmud();
+ const res = await axios.post(`${baseUrl}/api/ai`, { question: query });
 
-    const reply = format(res.data.response || "No response.");
+ const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
 
-    return api.sendMessage(reply, event.threadID, (err, info) => {
-      if (!err) {
-        global.client.handleReply.set(info.messageID, {
-          name: module.exports.config.name,
-          author: event.senderID
-        });
-      }
-    }, event.messageID);
+ return api.sendMessage(reply, event.threadID, (err, info) => {
+ if (!err) {
+ global.client.handleReply.set(info.messageID, {
+ name: module.exports.config.name,
+ author: event.senderID
+ });
+ }
+ }, event.messageID);
 
-  } catch (e) {
-    return api.sendMessage("× Error: " + e.message, event.threadID);
-  }
+ } catch (err) {
+ return api.sendMessage("× API Error: " + err.message, event.threadID);
+ }
 };
 
-// 🔁 CONTINUE CHAT (context feel)
+// 🔁 REPLY CONTINUE CHAT
 module.exports.handleReply = async function ({ api, event, handleReply, args }) {
-  if (event.senderID != handleReply.author) return;
+ if (event.senderID != handleReply.author) return;
 
-  const msg = args.join(" ");
-  if (!msg) return;
+ const prompt = args.join(" ");
+ if (!prompt) return;
 
-  try {
-    const baseUrl = await mahmud();
-    const prompt = buildPrompt(msg);
+ await sendTyping(api, event.threadID);
 
-    const res = await axios.post(`${baseUrl}/api/ai`, {
-      question: prompt
-    });
+ try {
+ const baseUrl = await mahmud();
+ const res = await axios.post(`${baseUrl}/api/ai`, { question: prompt });
 
-    const reply = format(res.data.response || "No response.");
+ const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
 
-    return api.sendMessage(reply, event.threadID, (err, info) => {
-      if (!err) {
-        global.client.handleReply.set(info.messageID, {
-          name: module.exports.config.name,
-          author: event.senderID
-        });
-      }
-    }, event.messageID);
+ return api.sendMessage(reply, event.threadID, (err, info) => {
+ if (!err) {
+ global.client.handleReply.set(info.messageID, {
+ name: module.exports.config.name,
+ author: event.senderID
+ });
+ }
+ }, event.messageID);
 
-  } catch (e) {
-    return api.sendMessage("× Error: " + e.message, event.threadID);
-  }
+ } catch (err) {
+ return api.sendMessage("× API Error: " + err.message, event.threadID);
+ }
+};
+
+// 🤖 AUTO CHAT (mention দিলে)
+module.exports.handleEvent = async function ({ api, event }) {
+ try {
+ if (!event.body) return;
+
+ // bot UID
+ const botID = api.getCurrentUserID();
+
+ // mention check
+ if (!event.mentions || !event.mentions[botID]) return;
+
+ const msg = event.body.replace(/@\S+/g, "").trim();
+ if (!msg) return;
+
+ await sendTyping(api, event.threadID);
+
+ const baseUrl = await mahmud();
+ const res = await axios.post(`${baseUrl}/api/ai`, { question: msg });
+
+ const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
+
+ return api.sendMessage(reply, event.threadID, (err, info) => {
+ if (!err) {
+ global.client.handleReply.set(info.messageID, {
+ name: module.exports.config.name,
+ author: event.senderID
+ });
+ }
+ });
+
+ } catch (e) {
+ console.log("AutoChat Error:", e.message);
+ }
 };
