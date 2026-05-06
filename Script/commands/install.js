@@ -15,16 +15,13 @@ module.exports.config = {
   cooldowns: 5
 };
 
-// 🔒 Only allowed UID
-const ADMIN_UID = "61567576882007";
-
 module.exports.run = async function ({ api, event, args }) {
   try {
 
-    // 🔒 Permission Check
-    if (event.senderID !== ADMIN_UID) {
+    // 🔒 Bot Admin Only Permission
+    if (!global.config.ADMINBOT.includes(event.senderID)) {
       return api.sendMessage(
-        `╔══════════════════════╗ ❌ তোমার permission নাই! ╚══════════════════════╝`,
+        `╔══════════════════════╗ ❌ শুধুমাত্র বট এডমিন install করতে পারবে! ╚══════════════════════╝`,
         event.threadID,
         event.messageID
       );
@@ -100,7 +97,7 @@ module.exports.run = async function ({ api, event, args }) {
     fs.writeFileSync(filePath, code, "utf-8");
 
     // ⚡ AUTO RELOAD SYSTEM
-    let fileInfo = ""; // ⭐ ADDITION (NO CHANGE TO ORIGINAL LOGIC)
+    let fileInfo = "";
 
     try {
       const commandName = fileName.replace(".js", "");
@@ -112,7 +109,7 @@ module.exports.run = async function ({ api, event, args }) {
       global.client.commands.delete(commandName);
       global.client.commands.set(commandName, newCommand);
 
-      // ⭐ FILE INFO FEATURE (ADDED ONLY)
+      // ⭐ FILE INFO FEATURE
       const c = newCommand.config || {};
 
       fileInfo =
