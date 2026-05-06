@@ -13,12 +13,7 @@ module.exports.config = {
 
 // ================== WORD LIST ==================
 const badWords = [
-    "bot mc", "mc bot", "chutiya bot", "bsdk bot",
-    "jhatu bot", "stupid bot", "useless bot",
-    "ভোদার বট", "চাপড়ি বট", "বালের জুয়েল",
-    "bot lund", "bot lon", "bot cac",
-    "bot fake", "bot sida", "bot oc",
-    "bot kharap", "bot stupid"
+    "bot mc", "Mc bot", "Chutiya bot", "Bsdk bot", "Bot teri maa ki chut", "Jhatu bot", "ভোদার বট", "stupid bots", "চাপড়ি বট", "Bot lund", "Juwel mc", "Mc Juwel", "বালের বট জুয়েল কে", "সাউয়ার বট ","এটা বট ভালো না", "ভালো না এটা বট"," পাগল বট",বট পাগল হইছে","বালের বট","বালের বট কে এড করছে","কেউ বট কে এড করবে না" , "তোর বস বোকাচোদা", "বট তোর জুয়েল কে চুদি", "useless bot", "বট চুদি", "crazy bots", "bc bot", "Nikal bsdk bot", "bot khùng", "হেড়ার বট", "বালের জুয়েল", "তোর জুয়েল বস কে চুদি"," লুচ্চা বট", "cmm bot", "clap bot", "bot ncc", "bot oc", "bot óc", "bot óc chó", "cc bot", "bot tiki", "lozz bottt", "lol bot", "loz bot", "lồn bot", "boder bot", "bot lon", "bot cac", "bot nhu lon", "bot xodi", "bot sudi", "Bot sida", "bot sida", "bot fake", "Bot code", "bot shoppee", "bad bots", "bot cau"
 ];
 
 // ================== EVENT HANDLER ==================
