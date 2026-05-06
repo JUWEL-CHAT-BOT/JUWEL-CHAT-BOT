@@ -39,7 +39,7 @@ module.exports.run = async ({ api, event, args, Users }) => {
  // ✅ STRICT RULE FIX
  if (!targetID) {
  return api.sendMessage(
- "☢️দয়া করে কাউকে mention করো বা তার message এ reply দিয়ে /welcome ব্যবহার করো✅",
+ "😘বেবি কাউকে mention করো বা তার message এ reply দিয়ে /welcome ব্যবহার করো✅",
  threadID,
  event.messageID
  );
