@@ -1,109 +1,112 @@
 module.exports = {
   config: {
     name: "age",
-    version: "2.1",
-    author: "—͟͟͞͞𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
+    version: "2.5",
+    author: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
     hasPermission: 0,
     commandCategory: "utility",
     cooldowns: 5,
-    description: "Calculate age from birth date",
-    usage: "[DD/MM/YYYY]",
-    dependencies: {
-      "moment-timezone": "",
-      "fs-extra": "",
-      "axios": ""
-    }
+    description: "Calculate age with beautiful UI",
+    usage: "[DD/MM/YYYY]"
   },
 
   run: async function ({ api, event, args }) {
-    const fs = require("fs-extra");
     const moment = require("moment-timezone");
-    const axios = require("axios");
 
     try {
-      
+
+      // HELP UI
       if (!args[0]) {
-        return api.sendMessage("⚠️ Please provide your birth date in DD/MM/YYYY format\nExample: age 16/12/2006", event.threadID);
+        return api.sendMessage(
+`╔════════════════════╗
+      🎂 AGE COMMAND
+╚════════════════════╝
+
+📌 ব্যবহার:
+➤ age DD/MM/YYYY
+
+📌 উদাহরণ:
+➤ age 16/12/2006
+
+✨ ফিচার:
+✔ বয়স হিসাব
+✔ Next Birthday countdown
+✔ সুন্দর UI রিপোর্ট
+
+╔════════════════════╗`,
+          event.threadID,
+          event.messageID
+        );
       }
 
-      const input = args[0];
-      const dateParts = input.split('/');
-      
-      if (dateParts.length !== 3) {
-        return api.sendMessage("❌ Invalid date format. Please use DD/MM/YYYY", event.threadID);
-      }
+      const [day, month, year] = args[0].split("/").map(Number);
 
-      const day = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]);
-      const year = parseInt(dateParts[2]);
+      if (!day || day < 1 || day > 31)
+        return api.sendMessage("❌ ভুল দিন", event.threadID);
 
-      
-      if (isNaN(day) || day < 1 || day > 31) {
-        return api.sendMessage("❌ Invalid day (1-31)", event.threadID);
-      }
-      if (isNaN(month) || month < 1 || month > 12) {
-        return api.sendMessage("❌ Invalid month (1-12)", event.threadID);
-      }
-      if (isNaN(year) || year < 1000 || year > new Date().getFullYear()) {
-        return api.sendMessage("❌ Invalid year", event.threadID);
-      }
+      if (!month || month < 1 || month > 12)
+        return api.sendMessage("❌ ভুল মাস", event.threadID);
 
-      
-      const birthDate = moment.tz(`${year}-${month}-${day}`, "YYYY-MM-DD", "Asia/Dhaka");
+      if (!year || year > new Date().getFullYear())
+        return api.sendMessage("❌ ভুল সাল", event.threadID);
+
       const now = moment.tz("Asia/Dhaka");
-      
-      if (birthDate.isAfter(now)) {
-        return api.sendMessage("❌ You can't be born in the future!", event.threadID);
+      const birth = moment.tz(`${year}-${month}-${day}`, "YYYY-MM-DD", "Asia/Dhaka");
+
+      if (birth.isAfter(now)) {
+        return api.sendMessage("❌ ভবিষ্যতের তারিখ দেওয়া যাবে না", event.threadID);
       }
 
-      const duration = moment.duration(now.diff(birthDate));
-      
-      
+      // AGE CALC
+      const duration = moment.duration(now.diff(birth));
       const years = duration.years();
       const months = duration.months();
       const days = duration.days();
-      const totalMonths = years * 12 + months;
+
       const totalDays = Math.floor(duration.asDays());
-      const totalHours = Math.floor(duration.asHours());
-      const totalMinutes = Math.floor(duration.asMinutes());
-      const totalSeconds = Math.floor(duration.asSeconds());
 
-      
-      const avatarPath = `${__dirname}/cache/${event.senderID}.jpg`;
-      const avatarUrl = `https://graph.facebook.com/${event.senderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-      
-      const response = await axios.get(avatarUrl, { responseType: 'stream' });
-      const writer = fs.createWriteStream(avatarPath);
-      response.data.pipe(writer);
-      
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
+      // NEXT BIRTHDAY
+      let nextBirthday = moment.tz(
+        `${now.year()}-${month}-${day}`,
+        "YYYY-MM-DD",
+        "Asia/Dhaka"
+      );
 
-      
-      const message = {
-        body: `┏━━━━━━━━━━━━━━━━❂
-┃            🎂 𝗔𝗚𝗘 𝗖𝗔𝗟𝗖𝗨𝗟𝗔𝗧𝗢𝗥  🎂
-┣━━━━━━━━━━━━━━━━❂
-┃✦ 𝗗𝗮𝘁𝗲 𝗼𝗳 𝗕𝗶𝗿𝘁𝗵: ${day}/${month}/${year}
-┃✦ 𝗖𝘂𝗿𝗿𝗲𝗻𝘁 𝗔𝗴𝗲: ${years} years ${months} months
-┣━━━━[ 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 ]━━━━❂
-┃❖ ${totalMonths} Months
-┃❖ ${totalDays} Days
-┃❖ ${totalHours} Hours
-┣━━━━━━━━━━━━━━━━❂
-┃  𝗖𝗿𝗲𝗮𝘁𝗲𝗱 𝗯𝘆: ─꯭─⃝‌‌𝐒𝐡𝐚𝐡𝐚𝐝𝐚𝐭 𝐂𝐡𝐚𝐭 𝐁𝐨𝐭
-┗━━━━━━━━━━━━━━━━❂`,
-        attachment: fs.createReadStream(avatarPath)
-      };
+      if (nextBirthday.isBefore(now)) {
+        nextBirthday = nextBirthday.add(1, "year");
+      }
 
-      await api.sendMessage(message, event.threadID);
-      fs.unlinkSync(avatarPath);
+      const diffDays = nextBirthday.diff(now, "days");
+      const diffHours = nextBirthday.diff(now, "hours") % 24;
+      const diffMinutes = nextBirthday.diff(now, "minutes") % 60;
 
-    } catch (error) {
-      console.error("Error in age command:", error);
-      api.sendMessage("❌ An error occurred while processing your request", event.threadID);
+      const msg =
+`╔════════════════════╗
+        🎂 AGE RESULT
+╚════════════════════╝
+
+👤 জন্ম তারিখ : ${day}/${month}/${year}
+
+🧓 বয়স:
+➤ ${years} বছর
+➤ ${months} মাস
+➤ ${days} দিন
+
+📊 মোট সময়:
+➤ ${totalDays} দিন
+
+🎉 Next Birthday:
+⏳ বাকি: ${diffDays} দিন ${diffHours} ঘন্টা ${diffMinutes} মিনিট
+
+╔════════════════════╗
+     ✨ Thank You ✨
+╚════════════════════╝`;
+
+      return api.sendMessage(msg, event.threadID, event.messageID);
+
+    } catch (e) {
+      console.log(e);
+      api.sendMessage("❌ কিছু সমস্যা হয়েছে", event.threadID);
     }
   }
 };
