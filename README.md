@@ -168,7 +168,7 @@ Click the image above to watch the step-by-step tutorial on YouTube.
 **Start Command**  
    Navigate to the folder where your bot files are located:
    ```bash
-   node Sahu.js
+   node Juwel.js
 ```
 
 
