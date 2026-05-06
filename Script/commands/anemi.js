@@ -89,7 +89,7 @@ module.exports.run = async function ({ api, event }) {
         {
           body:
 `╭─❍ 𝗔𝗡𝗜𝗠𝗘 𝗩𝗜𝗗𝗘𝗢 ❍─╮
-│ 🎬 Title     : Random Anime
+│ 🎬 Title     : Random Anemi
 │ 📦 Size      : ${sizeMB} MB
 │ ⏱️ Duration  : ${duration} sec
 │ ⚡ Speed     : ${seconds} sec
