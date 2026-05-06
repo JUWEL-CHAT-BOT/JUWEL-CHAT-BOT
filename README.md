@@ -116,7 +116,7 @@ _______
 
 ### <br>   ❖ DEPLOY_WORKFLOWS ❖
 ```
-name: Node.js CI
+name: Juwel.js CI
 
 on:
   push:
