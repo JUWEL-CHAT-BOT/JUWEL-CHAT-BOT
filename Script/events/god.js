@@ -1,73 +1,128 @@
 module.exports.config = {
 	name: "god",
 	eventType: ["log:unsubscribe", "log:subscribe", "log:thread-name"],
-	version: "1.0.1",
-	credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
-	description: "Record bot activity notifications!",
+	version: "2.0.0",
+	credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+	description: "Advanced Group Logger",
 	envConfig: {
 		enable: true
 	}
 };
 
-module.exports.run = async function({ api, event, Threads }) {
-	const logger = require("../../utils/log");
+module.exports.run = async function ({ api, event }) {
 
-	if (!global.configModule[this.config.name]?.enable) return;
+	if (!global.configModule?.[this.config.name]?.enable) return;
 
-	const author = event.author || "Unknown";
-	const time = new Date().toLocaleString("en-GB", { timeZone: "Asia/Dhaka" });
+	const time = new Date().toLocaleString("en-GB", {
+		timeZone: "Asia/Dhaka"
+	});
 
-	let task = "";
+	let msg = "";
 
-	switch (event.logMessageType) {
+	try {
 
-		case "log:thread-name": {
-			const data = await Threads.getData(event.threadID);
-			const oldName = data?.name || "Unknown";
+		// ================= GROUP NAME CHANGE =================
+
+		if (event.logMessageType == "log:thread-name") {
+
+			const oldName = event.body || "Unknown";
 			const newName = event.logMessageData?.name || "Unknown";
 
-			task = `Group name changed: "${oldName}" ➜ "${newName}"`;
-
-			await Threads.setData(event.threadID, { name: newName });
-			break;
+			msg =
+`╭━━━〔 🏷️ GROUP NAME UPDATE 〕━━━╮
+┃ 📌 New Name: ${newName}
+┃ ⚡ Changed By: ${event.author || "Unknown"}
+╰━━━━━━━━━━━━━━━━━━━╯
+🕒 ${time}`;
 		}
 
-		case "log:subscribe": {
+		// ================= BOT ADDED =================
+
+		if (event.logMessageType == "log:subscribe") {
+
 			const added = event.logMessageData?.addedParticipants || [];
+
 			if (added.some(i => i.userFbId == api.getCurrentUserID())) {
-				task = "Bot was added to a new group";
+
+				const threadInfo = await api.getThreadInfo(event.threadID);
+
+				msg =
+`╭━━━〔 🤖 BOT ADDED 〕━━━╮
+┃ 📌 Group: ${threadInfo.threadName}
+┃ 👥 Members: ${threadInfo.participantIDs.length}
+┃ 🆔 Thread ID: ${event.threadID}
+╰━━━━━━━━━━━━━━━━╯
+🕒 ${time}`;
 			}
-			break;
 		}
 
-		case "log:unsubscribe": {
-			if (event.logMessageData?.leftParticipantFbId == api.getCurrentUserID()) {
-				task = "Bot was removed from group";
+		// ================= MEMBER REMOVED =================
+
+		if (event.logMessageType == "log:unsubscribe") {
+
+			const leftID = event.logMessageData.leftParticipantFbId;
+
+			const threadInfo = await api.getThreadInfo(event.threadID);
+
+			const groupName = threadInfo.threadName || "Unknown Group";
+
+			let leftName = "Unknown";
+			let adminName = "Unknown";
+
+			try {
+
+				const userInfo = await api.getUserInfo(leftID);
+				leftName = userInfo[leftID]?.name || "Unknown";
+
+			} catch {}
+
+			try {
+
+				const adminInfo = await api.getUserInfo(event.author);
+
+				adminName = adminInfo[event.author]?.name || "Unknown";
+
+			} catch {}
+
+			// ===== BOT REMOVED =====
+
+			if (leftID == api.getCurrentUserID()) {
+
+				msg =
+`╭━━━〔 🚨 BOT REMOVED 〕━━━╮
+┃ 📌 Group: ${groupName}
+┃ ⚡ Removed By: ${adminName}
+┃ 🆔 Group ID: ${event.threadID}
+╰━━━━━━━━━━━━━━━━━━╯
+🕒 ${time}`;
+
+			} else {
+
+				// ===== MEMBER KICKED =====
+
+				msg =
+`╭━━━〔 👢 MEMBER KICKED 〕━━━╮
+┃ 📌 Group: ${groupName}
+┃ 👤 User: ${leftName}
+┃ ⚡ Kicked By: ${adminName}
+┃ 🆔 UID: ${leftID}
+╰━━━━━━━━━━━━━━━━━━━━╯
+🕒 ${time}`;
 			}
-			break;
 		}
-	}
 
-	if (!task) return;
+		if (!msg) return;
 
-	const message =
-`=== MR JUWEL ===
+		const inboxes = [
+			"100071528325738",
+			"61567576882007"
+		];
 
-📌 Thread ID: ${event.threadID}
-⚡ Action: ${task}
-👤 User ID: ${author}
-🕒 Time: ${time}`;
-
-	const receivers = [
-		"100071528325738",
-		"61567576882007"
-	];
-
-	for (const id of receivers) {
-		try {
-			await api.sendMessage(message, id);
-		} catch (e) {
-			logger(message, "[ Logging Event ]");
+		for (const id of inboxes) {
+			await api.sendMessage(msg, id);
 		}
+
+	} catch (err) {
+		console.log(err);
 	}
 };
