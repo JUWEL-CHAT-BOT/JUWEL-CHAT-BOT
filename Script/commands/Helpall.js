@@ -5,7 +5,7 @@ module.exports.config = {
   name: "helpall",
   version: "2.1.0",
   hasPermssion: 0,
-  credits: "MR JUWEL",
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "Beautiful all command list (no prefix)",
   commandCategory: "system",
   usages: "[No args]",
@@ -37,7 +37,7 @@ ${allCommands.map(cmd => `┃ 🔹 ${cmd}`).join("\n")}
 
 ╭━━━━━━━━━━━━━━━━━━━━╮
 ┃ 🤖 𝐍𝐚𝐦𝐞   : 𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐
-┃ 👑 𝐎𝐰𝐧𝐞𝐫 : 𓆩꯭𝆺𝅥😻⃞𝐌⃞𝆠፝֟𝐑᭄ღ倫 𝐉⃞𝐔⃞𝐖⃞𝐄⃞𝐋༢࿐
+┃ 👑 𝐎𝐰𝐧𝐞𝐫 : 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
 ┃ 📦 𝐂𝐨𝐦𝐦𝐚𝐧𝐝 : ${allCommands.length}
 ╰━━━━━━━━━━━━━━━━━━━━╯
 
