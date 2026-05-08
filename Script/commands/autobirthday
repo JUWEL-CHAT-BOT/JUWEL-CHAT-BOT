@@ -41,7 +41,7 @@ async function checkBirthday(api) {
     const threads = await api.getThreadList(100, null, ["INBOX"]);
     if (!threads) return;
 
-    const link = "fb.com/mrjuwel99";
+    const link = "fb.com/fbjuwel";
 
     // ================= MORNING (10:00 AM) =================
     if (hours === 10 && minutes === 0) {
