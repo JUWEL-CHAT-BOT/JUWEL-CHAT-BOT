@@ -5,7 +5,7 @@ module.exports.config = {
  name: "owner",
  version: "1.0.1",
  hasPermssion: 0,
- credits: "Shahadat SAHU",
+ credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
  description: "Display bot owner's information",
  commandCategory: "Info",
  usages: "",
@@ -28,7 +28,7 @@ module.exports.run = async function ({ api, event }) {
  body:
 `🌟 𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢 🌟
 
-👑 𝗡𝗔𝗠𝗘: ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐌⃞𝆠፝֟𝐑᭄ღ倫 𝐉⃞𝐔⃞𝐖⃞𝐄⃞𝐋༢࿐
+👑 𝗡𝗔𝗠𝗘: 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
 😻 𝗔𝗗𝗗𝗥𝗘𝗦𝗦: মেয়েদের মনে🙈
 💼 𝗣𝗥𝗢𝗙𝗘𝗦𝗦𝗜𝗢𝗡: মেয়েদের মন জয় করা😍
 🌐 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞: আইডি বেইচ্চা খাইয়া লাইছি😁
