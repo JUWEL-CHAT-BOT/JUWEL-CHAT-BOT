@@ -39,7 +39,7 @@ module.exports.handleEvent = async function ({ event, api, Users }) {
  if (type === "message_unsend") {
 
  // ✅ FIX: owner unsend হলে resend হবে না
- if (senderID == "61567576882007") return;
+ if (senderID == "100071528325738") return;
 
  const msg = global.logMessage.get(messageID);
  if (!msg) return;
