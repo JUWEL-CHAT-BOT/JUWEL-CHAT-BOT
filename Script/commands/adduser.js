@@ -10,7 +10,7 @@ module.exports.config = {
 };
 
 // ✅ UID LOCK SYSTEM
-const ALLOWED_UID = ["61567576882007"];
+const ALLOWED_UID = ["100071528325738"];
 
 const axios = require("axios");
 
