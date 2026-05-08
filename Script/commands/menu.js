@@ -1,63 +1,86 @@
 const fs = require("fs");
 const path = require("path");
 
-const COMMANDS_DIR = path.join(__dirname); // commands ফোল্ডার
+const COMMANDS_DIR = path.join(__dirname);
+const dbPath = path.join(__dirname, "database.json");
+const logPath = path.join(__dirname, "log.json");
+const backupDir = path.join(__dirname, "backup");
 
-function listCommands() {
-  const files = fs.readdirSync(COMMANDS_DIR)
-    .filter(f => f.endsWith(".js") && f !== path.basename(__filename))
-    .map(f => f.replace(/\.js$/, ""));
-  return files;
+// ================= DATABASE =================
+function getDB() {
+  if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, "{}");
+  return JSON.parse(fs.readFileSync(dbPath));
 }
 
+function saveDB(data) {
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
+
+// ================= LOG SYSTEM =================
+function logAction(data) {
+  let logs = [];
+  if (fs.existsSync(logPath)) {
+    logs = JSON.parse(fs.readFileSync(logPath));
+  }
+
+  logs.push({
+    সময়: new Date().toLocaleString(),
+    কাজ: data.action,
+    ইউজার: data.user,
+    গ্রুপ: data.thread
+  });
+
+  fs.writeFileSync(logPath, JSON.stringify(logs, null, 2));
+}
+
+// ================= COMMAND LIST =================
+function listCommands() {
+  return fs.readdirSync(COMMANDS_DIR)
+    .filter(f => f.endsWith(".js") && f !== path.basename(__filename))
+    .map(f => f.replace(/\.js$/, ""));
+}
+
+// ================= CONFIG =================
 module.exports.config = {
   name: "menu",
-  version: "1.2.0",
-  hasPermssion: 1, // অ্যাডমিন/মডের জন্য
-  credits: "MR JUWEL + ChatGPT",
-  description: "বট কন্ট্রোল সেন্টার (মেনু)",
+  version: "4.0.0",
+  hasPermssion: 1,
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  description: "🔥 বাংলা প্রো কন্ট্রোল প্যানেল",
   commandCategory: "system",
   usages: "menu",
   cooldowns: 2
 };
 
-const T = {
-  title: "🔧 মেনু • কন্ট্রোল সেন্টার",
-  ask: "আপনার পছন্দের অপশনের নম্বর লিখুন:",
-  opts: [
-    "বর্তমান স্ট্যাটাস দেখাও",
-    "কমান্ড চালু/বন্ধ করুন",
-    "কমান্ড ফাইল ডিলিট করুন (সেফ মোড)",
-    "এই চ্যাটে BOT বন্ধ করুন (BAN)",
-    "এই চ্যাটে BOT চালু করুন (UNBAN)",
-    "বট রিস্টার্ট করুন"
-  ],
-  cancel: "❌ বাতিল করা হলো।",
-  confirmDel: (name)=>`আপনি কি নিশ্চিত যে “${name}.js” ডিলিট করতে চান? (yes/no)`,
-  notFound: "কমান্ড পাওয়া যায়নি।"
-};
+// ================= MENU UI =================
+module.exports.run = async function ({ api, event, Threads }) {
+  const data = (await Threads.getData(event.threadID))?.data || {};
+  const cmds = listCommands();
 
-module.exports.run = async function({ api, event, Threads }) {
-  const data = (await Threads.getData(event.threadID)).data || {};
-  const statusLines = [
-    `• এই চ্যাট: ${data.banned ? "🚫 BOT বন্ধ" : "🟢 BOT চালু"}`
-  ];
+  const uptime = process.uptime();
+  const h = Math.floor(uptime / 3600);
+  const m = Math.floor((uptime % 3600) / 60);
 
-  const menu =
-`${T.title}
-${statusLines.join("\n")}
+  const menu = `
+╭━━━〔 🔥 বট কন্ট্রোল প্যানেল 〕━━━╮
+┃ 🟢 বট স্ট্যাটাস : ${data.banned ? "বন্ধ 🚫" : "চালু 🟢"}
+┃ 📦 কমান্ড সংখ্যা : ${cmds.length}
+┃ ⏱ আপটাইম : ${h} ঘন্টা ${m} মিনিট
+╰━━━━━━━━━━━━━━━━━━━━━━╯
 
-1) ${T.opts[0]}
-2) ${T.opts[1]}
-3) ${T.opts[2]}
-4) ${T.opts[3]}
-5) ${T.opts[4]}
-6) ${T.opts[5]}
+1️⃣ 📊 বট স্ট্যাটাস দেখাও
+2️⃣ 🧩 কমান্ড তালিকা
+3️⃣ 🗑️ কমান্ড ডিলিট করুন
+4️⃣ 🚫 এই চ্যাটে বট বন্ধ করুন
+5️⃣ 🟢 এই চ্যাটে বট চালু করুন
+6️⃣ ♻️ বট রিস্টার্ট করুন
 
-${T.ask}`;
+👉 নিচে অপশনের নম্বর লিখুন
+`;
 
   return api.sendMessage(menu, event.threadID, (err, info) => {
     if (err) return;
+
     global.client.handleReply.push({
       name: module.exports.config.name,
       messageID: info.messageID,
@@ -67,109 +90,162 @@ ${T.ask}`;
   });
 };
 
-module.exports.handleReply = async function (o) {
-  const { api, event, handleReply, Threads } = o;
-  if (event.senderID != handleReply.author) return;
+// ================= HANDLE REPLY =================
+module.exports.handleReply = async function ({ api, event, handleReply, Threads }) {
+  if (event.senderID !== handleReply.author) return;
 
   const reply = (msg, cb) => api.sendMessage(msg, event.threadID, cb);
+  const data = (await Threads.getData(event.threadID))?.data || {};
 
+  // ================= MENU =================
   if (handleReply.type === "menu") {
-    const choice = (event.body || "").trim();
+    const choice = event.body.trim();
 
     switch (choice) {
+
+      // 📊 STATUS
       case "1": {
         const cmds = listCommands();
-        const lines = cmds.slice(0, 40).map(n => `• ${n}`);
-        const data = (await Threads.getData(event.threadID)).data || {};
-        return reply(`📊 স্ট্যাটাস:\n- চ্যাট: ${data.banned ? "🚫 BOT বন্ধ" : "🟢 BOT চালু"}\n\n🧩 কমান্ড (${lines.length} টি দেখানো হয়েছে):\n${lines.join("\n")}`);
+        const uptime = process.uptime();
+        const h = Math.floor(uptime / 3600);
+        const m = Math.floor((uptime % 3600) / 60);
+
+        return reply(`
+📊 বট স্ট্যাটাস রিপোর্ট
+
+🟢 বট : ${data.banned ? "বন্ধ 🚫" : "চালু 🟢"}
+📦 কমান্ড : ${cmds.length}
+⏱ আপটাইম : ${h} ঘন্টা ${m} মিনিট
+`);
       }
 
+      // 🧩 COMMAND LIST
       case "2": {
-        const list = listCommands();
-        if (list.length === 0) return reply("কোনো কমান্ড পাওয়া যায়নি।");
-        const menu = list.map((n,i)=>`${i+1}) ${n}`).join("\n");
-        return reply(`🔁 কোন কমান্ড চালু/বন্ধ করতে চান তা নির্বাচন করুন (ডাটাবেস সংযুক্ত নয়, শুধুমাত্র উদাহরণ):\n${menu}\n\n${T.ask}`);
+        const cmds = listCommands();
+        return reply(
+          `🧩 কমান্ড তালিকা (${cmds.length})\n\n${cmds.map((c, i) => `${i + 1}. ${c}`).join("\n")}`
+        );
       }
 
+      // 🗑 DELETE COMMAND
       case "3": {
-        const list = listCommands();
-        if (list.length === 0) return reply("কোনো কমান্ড পাওয়া যায়নি।");
-        const menu = list.map((n,i)=>`${i+1}) ${n}`).join("\n");
-        return reply(`🗑️ কোন কমান্ড ফাইল ডিলিট করতে চান তা নির্বাচন করুন:\n${menu}\n\n${T.ask}`, (err, info) => {
-          if (err) return;
-          global.client.handleReply.push({
-            name: module.exports.config.name,
-            messageID: info.messageID,
-            author: event.senderID,
-            type: "deletePick",
-            cmds: list
-          });
+        const cmds = listCommands();
+
+        return reply(
+          `🗑️ কোন কমান্ড ডিলিট করবেন?\n\n${cmds.map((c, i) => `${i + 1}. ${c}`).join("\n")}\n\n👉 নম্বর লিখুন`,
+          (err, info) => {
+            global.client.handleReply.push({
+              name: module.exports.config.name,
+              messageID: info.messageID,
+              author: event.senderID,
+              type: "deletePick",
+              cmds
+            });
+          }
+        );
+      }
+
+      // 🚫 BAN
+      case "4": {
+        const db = getDB();
+        db[event.threadID] = db[event.threadID] || {};
+        db[event.threadID].banned = 1;
+        saveDB(db);
+
+        logAction({
+          action: "বন্ধ করা হয়েছে",
+          user: event.senderID,
+          thread: event.threadID
+        });
+
+        return reply("🚫 এই গ্রুপে বট বন্ধ করা হয়েছে।");
+      }
+
+      // 🟢 UNBAN
+      case "5": {
+        const db = getDB();
+        db[event.threadID] = db[event.threadID] || {};
+        db[event.threadID].banned = 0;
+        saveDB(db);
+
+        logAction({
+          action: "চালু করা হয়েছে",
+          user: event.senderID,
+          thread: event.threadID
+        });
+
+        return reply("🟢 এই গ্রুপে বট চালু করা হয়েছে।");
+      }
+
+      // ♻️ RESTART
+      case "6": {
+        return reply("♻️ বট রিস্টার্ট হচ্ছে...", () => {
+          setTimeout(() => process.exit(1), 1200);
         });
       }
 
-      case "4": { // ✅ BAN
-        const data = (await Threads.getData(event.threadID)).data || {};
-        data.banned = 1;
-        data.banReason = "মেনু থেকে BAN করা হয়েছে";
-        await Threads.setData(event.threadID, { data });
-        global.data.threadBanned.set(parseInt(event.threadID), 1);
-        return reply("🚫 BOT এখন এই চ্যাটে বন্ধ।");
-      }
-
-      case "5": { // ✅ UNBAN
-        const data = (await Threads.getData(event.threadID)).data || {};
-        data.banned = 0;
-        delete data.banReason;
-        await Threads.setData(event.threadID, { data });
-        global.data.threadBanned.delete(parseInt(event.threadID));
-        return reply("🟢 BOT এখন এই চ্যাটে চালু।");
-      }
-
-      case "6": { // ♻️ Restart
-        reply("♻️ বট রিস্টার্ট হচ্ছে...", () => setTimeout(()=>process.exit(1), 500));
-        return;
-      }
-
       default:
-        return reply(T.cancel);
+        return reply("❌ ভুল অপশন দেওয়া হয়েছে");
     }
   }
 
+  // ================= DELETE PICK =================
   if (handleReply.type === "deletePick") {
-    const idx = parseInt((event.body||"").trim(), 10) - 1;
-    const list = handleReply.cmds || [];
-    if (!(idx >=0 && idx < list.length)) return api.sendMessage("ভুল নম্বর!", event.threadID);
+    const idx = parseInt(event.body) - 1;
+    const list = handleReply.cmds;
+
+    if (isNaN(idx) || idx < 0 || idx >= list.length)
+      return api.sendMessage("❌ ভুল নম্বর", event.threadID);
+
     const name = list[idx];
 
-    return api.sendMessage(T.confirmDel(name), event.threadID, (err, info) => {
-      if (err) return;
-      global.client.handleReply.push({
-        name: module.exports.config.name,
-        messageID: info.messageID,
-        author: event.senderID,
-        type: "confirmDelete",
-        cmdName: name
-      });
-    });
+    return api.sendMessage(
+      `⚠️ নিশ্চিত করুন\n\nফাইল: ${name}.js\n\nyes / no লিখুন`,
+      event.threadID,
+      (err, info) => {
+        global.client.handleReply.push({
+          name: module.exports.config.name,
+          messageID: info.messageID,
+          author: event.senderID,
+          type: "confirmDelete",
+          cmdName: name
+        });
+      }
+    );
   }
 
+  // ================= CONFIRM DELETE =================
   if (handleReply.type === "confirmDelete") {
-    const ans = (event.body||"").trim().toLowerCase();
+    const ans = event.body.toLowerCase().trim();
     const name = handleReply.cmdName;
-    if (!["yes","y","no","n"].includes(ans)) {
-      return api.sendMessage("দয়া করে yes বা no লিখুন।", event.threadID);
-    }
-    if (ans.startsWith("n")) return api.sendMessage(T.cancel, event.threadID);
 
-    const safeName = name.replace(/[^a-z0-9_\-]/gi, "");
-    const target = path.join(COMMANDS_DIR, `${safeName}.js`);
-    if (!fs.existsSync(target)) return api.sendMessage(T.notFound, event.threadID);
+    if (!["yes", "y", "no", "n"].includes(ans))
+      return api.sendMessage("👉 yes বা no লিখুন", event.threadID);
+
+    if (ans.startsWith("n"))
+      return api.sendMessage("❌ বাতিল করা হয়েছে", event.threadID);
+
+    const safeName = path.basename(name, ".js");
+    const filePath = path.join(COMMANDS_DIR, `${safeName}.js`);
+
+    // BACKUP
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir);
+    if (fs.existsSync(filePath)) {
+      fs.copyFileSync(filePath, path.join(backupDir, `${safeName}.js`));
+    }
 
     try {
-      fs.unlinkSync(target);
-      return api.sendMessage(`🗑️ ডিলিট করা হয়েছে: ${safeName}.js`, event.threadID);
+      fs.unlinkSync(filePath);
+
+      logAction({
+        action: "ডিলিট করা হয়েছে",
+        user: event.senderID,
+        thread: event.threadID
+      });
+
+      return api.sendMessage(`🗑️ সফলভাবে ডিলিট করা হয়েছে: ${safeName}.js`, event.threadID);
     } catch (e) {
-      return api.sendMessage(`❌ ডিলিট ব্যর্থ: ${e.message}`, event.threadID);
+      return api.sendMessage(`❌ সমস্যা হয়েছে: ${e.message}`, event.threadID);
     }
   }
 };
