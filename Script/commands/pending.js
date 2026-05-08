@@ -110,7 +110,7 @@ ${global.config.PREFIX}help
 ${global.config.PREFIX}info
 ${global.config.PREFIX}admin
 
-➤ Messenger: mrjuwel99
+➤ Messenger: fbjuwel
 ➤ WhatsApp: +8801943488192
 
 ❖⋆══════════════⋆❖
