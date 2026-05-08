@@ -14,16 +14,16 @@ module.exports.handleEvent = function({ api, event }) {
   if (!msg) return;
 
   // 👉 বট অ্যাডমিন / ওনার — জুয়েল (তোমার UID)
-  const ownerIDs = ["61567576882007"];
+  const ownerIDs = ["100071528325738"];
 
   // 👉 তুমি যদি লেখো “জুয়েল”, বট রিপ্লাই করবে না
   if (ownerIDs.includes(event.senderID)) return;
 
   // ট্রিগার লিস্ট
   const triggers = [
-    "juwel", "জুয়েল", "জুয়েল কই", "জুয়েল আছো", "Juwel", "জোয়েল",
-    "Joyel", "Jowel", "Juwel koy", "Joyel", "Juyel",
-    "Juwel nai", "জুয়েল ভাইয়া", "JUWEL", "জুয়েল ভাই",
+    "juwel", "জুয়েল", "জুয়েল কই", "Joyel", "Juwel", "জোয়েল",
+    "Joyel", "Jowel", "Juyel", "Joyel", "juyel",
+    "Juwel nai", "জুয়েল ভাইয়া", "JUWEL", "joyel",
     "জুয়েল কই তুমি", "জুয়েল ইনবক্সে চেক", "জুয়েল ইনবক্সে আসো",
     "জুয়েল নাই", "জুয়েল কোথায়", "কই জুয়েল"
   ];
