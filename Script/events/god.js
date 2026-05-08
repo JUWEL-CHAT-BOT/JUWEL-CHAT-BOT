@@ -1,9 +1,17 @@
 module.exports.config = {
 	name: "god",
-	eventType: ["log:unsubscribe", "log:subscribe", "log:thread-name"],
-	version: "2.0.0",
+	eventType: [
+		"log:unsubscribe",
+		"log:subscribe",
+		"log:thread-name",
+		"log:thread-admins",
+		"log:user-nickname",
+		"log:thread-icon",
+		"log:thread-image"
+	],
+	version: "3.0.0",
 	credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-	description: "Advanced Group Logger",
+	description: "Ultra Pro Group Activity Logger",
 	envConfig: {
 		enable: true
 	}
@@ -21,19 +29,162 @@ module.exports.run = async function ({ api, event }) {
 
 	try {
 
+		const threadInfo = await api.getThreadInfo(event.threadID);
+		const groupName = threadInfo.threadName || "Unknown Group";
+
+		// ================= USER INFO FUNCTION =================
+
+		async function getName(uid) {
+			try {
+				const data = await api.getUserInfo(uid);
+				return data[uid]?.name || "Unknown";
+			} catch {
+				return "Unknown";
+			}
+		}
+
 		// ================= GROUP NAME CHANGE =================
 
 		if (event.logMessageType == "log:thread-name") {
 
-			const oldName = event.body || "Unknown";
-			const newName = event.logMessageData?.name || "Unknown";
+			const changer = await getName(event.author);
 
 			msg =
-`╭━━━〔 🏷️ GROUP NAME UPDATE 〕━━━╮
-┃ 📌 New Name: ${newName}
-┃ ⚡ Changed By: ${event.author || "Unknown"}
-╰━━━━━━━━━━━━━━━━━━━╯
+`╔════════════════════╗
+║ 🏷️ GROUP NAME UPDATE ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ ⚡ Changed By : ${changer}
+║ 🆔 TID : ${event.threadID}
+╚════════════════════╝
 🕒 ${time}`;
+		}
+
+		// ================= ADMIN UPDATE =================
+
+		if (event.logMessageType == "log:thread-admins") {
+
+			const targetID = event.logMessageData?.TARGET_ID;
+			const action = event.logMessageData?.ADMIN_EVENT;
+
+			const adminName = await getName(event.author);
+			const targetName = await getName(targetID);
+
+			if (action == "add_admin") {
+
+				msg =
+`╔════════════════════╗
+║ 👑 NEW ADMIN ADDED ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ 👤 User : ${targetName}
+║ ⚡ Added By : ${adminName}
+╚════════════════════╝
+🕒 ${time}`;
+			}
+
+			if (action == "remove_admin") {
+
+				msg =
+`╔══════════════════════╗
+║ 🚫 ADMIN REMOVED ║
+╠══════════════════════╣
+║ 📌 Group : ${groupName}
+║ 👤 Removed : ${targetName}
+║ ⚡ Removed By : ${adminName}
+╚══════════════════════╝
+🕒 ${time}`;
+			}
+		}
+
+		// ================= NICKNAME CHANGE =================
+
+		if (event.logMessageType == "log:user-nickname") {
+
+			const targetID = event.logMessageData?.participant_id;
+			const newNick = event.logMessageData?.nickname || "Removed";
+
+			const changer = await getName(event.author);
+			const targetName = await getName(targetID);
+
+			msg =
+`╔════════════════════╗
+║ ✏️ NICKNAME UPDATE ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ 👤 User : ${targetName}
+║ 📝 New Nick : ${newNick}
+║ ⚡ Changed By : ${changer}
+╚════════════════════╝
+🕒 ${time}`;
+		}
+
+		// ================= EMOJI CHANGE =================
+
+		if (event.logMessageType == "log:thread-icon") {
+
+			const changer = await getName(event.author);
+
+			msg =
+`╔════════════════════╗
+║ 😆 GROUP EMOJI UPDATE ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ 😀 New Emoji : ${event.logMessageData.thread_icon}
+║ ⚡ Changed By : ${changer}
+╚════════════════════╝
+🕒 ${time}`;
+		}
+
+		// ================= GROUP PHOTO CHANGE =================
+
+		if (event.logMessageType == "log:thread-image") {
+
+			const changer = await getName(event.author);
+
+			msg =
+`╔════════════════════╗
+║ 🖼️ GROUP PHOTO UPDATE ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ ⚡ Changed By : ${changer}
+║ 🆔 Thread : ${event.threadID}
+╚════════════════════╝
+🕒 ${time}`;
+		}
+
+		// ================= MEMBER REMOVED =================
+
+		if (event.logMessageType == "log:unsubscribe") {
+
+			const leftID = event.logMessageData.leftParticipantFbId;
+
+			const leftName = await getName(leftID);
+			const remover = await getName(event.author);
+
+			if (leftID == api.getCurrentUserID()) {
+
+				msg =
+`╔════════════════════╗
+║ 🚨 BOT REMOVED ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ ⚡ Removed By : ${remover}
+╚════════════════════╝
+🕒 ${time}`;
+
+			} else {
+
+				msg =
+`╔════════════════════╗
+║ 👢 MEMBER REMOVED ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ 👤 User : ${leftName}
+║ ⚡ By : ${remover}
+╚════════════════════╝
+🕒 ${time}`;
+			}
 		}
 
 		// ================= BOT ADDED =================
@@ -44,69 +195,13 @@ module.exports.run = async function ({ api, event }) {
 
 			if (added.some(i => i.userFbId == api.getCurrentUserID())) {
 
-				const threadInfo = await api.getThreadInfo(event.threadID);
-
 				msg =
-`╭━━━〔 🤖 BOT ADDED 〕━━━╮
-┃ 📌 Group: ${threadInfo.threadName}
-┃ 👥 Members: ${threadInfo.participantIDs.length}
-┃ 🆔 Thread ID: ${event.threadID}
-╰━━━━━━━━━━━━━━━━╯
-🕒 ${time}`;
-			}
-		}
-
-		// ================= MEMBER REMOVED =================
-
-		if (event.logMessageType == "log:unsubscribe") {
-
-			const leftID = event.logMessageData.leftParticipantFbId;
-
-			const threadInfo = await api.getThreadInfo(event.threadID);
-
-			const groupName = threadInfo.threadName || "Unknown Group";
-
-			let leftName = "Unknown";
-			let adminName = "Unknown";
-
-			try {
-
-				const userInfo = await api.getUserInfo(leftID);
-				leftName = userInfo[leftID]?.name || "Unknown";
-
-			} catch {}
-
-			try {
-
-				const adminInfo = await api.getUserInfo(event.author);
-
-				adminName = adminInfo[event.author]?.name || "Unknown";
-
-			} catch {}
-
-			// ===== BOT REMOVED =====
-
-			if (leftID == api.getCurrentUserID()) {
-
-				msg =
-`╭━━━〔 🚨 BOT REMOVED 〕━━━╮
-┃ 📌 Group: ${groupName}
-┃ ⚡ Removed By: ${adminName}
-┃ 🆔 Group ID: ${event.threadID}
-╰━━━━━━━━━━━━━━━━━━╯
-🕒 ${time}`;
-
-			} else {
-
-				// ===== MEMBER KICKED =====
-
-				msg =
-`╭━━━〔 👢 MEMBER KICKED 〕━━━╮
-┃ 📌 Group: ${groupName}
-┃ 👤 User: ${leftName}
-┃ ⚡ Kicked By: ${adminName}
-┃ 🆔 UID: ${leftID}
-╰━━━━━━━━━━━━━━━━━━━━╯
+`╔════════════════════╗
+║ 🤖 BOT ADDED ║
+╠════════════════════╣
+║ 📌 Group : ${groupName}
+║ 👥 Members : ${threadInfo.participantIDs.length}
+╚════════════════════╝
 🕒 ${time}`;
 			}
 		}
