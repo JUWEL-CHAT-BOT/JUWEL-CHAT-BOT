@@ -34,13 +34,13 @@ module.exports.handleEvent = async ({ event, api, Threads }) => {
     api.setMessageReaction("💖", messageID, () => {}, true);
 
     return api.sendMessage(
-`╔═━────━⌬〔 🌟 PREFIX SYSTEM 🌟 〕⌬━────━═╗
+`╔═─━⌬PREFIX SYSTEM⌬━━═╗
 ║
 ║  ✦ 『 𝐁𝐎𝐓 𝐈𝐍𝐅𝐎 』
 ║  ━━━━━━━━━━━━━━━
-║  ➤ 🧩 Prefix : 『 ${prefix} 』
+║  ➤ ✅ Prefix : 『 ${prefix} 』
 ║  ➤ 🤖 Name   : ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐
-║  ➤ 👑 Admin  : ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐌⃞𝆠፝֟𝐑᭄ღ倫 𝐉⃞𝐔⃞𝐖⃞𝐄⃞𝐋༢࿐
+║  ➤ 👑 Admin  : 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
 ║
 ║  ✦ 『 𝐁𝐎𝐗 𝐈𝐍𝐅𝐎 』
 ║  ━━━━━━━━━━━━━━━
@@ -50,14 +50,15 @@ module.exports.handleEvent = async ({ event, api, Threads }) => {
 ║
 ║  ✦ 『 𝐎𝐖𝐍𝐄𝐑 𝐈𝐍𝐅𝐎 』
 ║  ━━━━━━━━━━━━━━━
-║  ➤ 👤 Name : MR JUWEL
-║  ➤ 🌐 FB   : fb.com/mrjuwel2025
-║  ➤ 💬 MSG  : mrjuwel2025
+║  ➤ 👤 Name : 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
+║  ➤ 🌐 FB   : fb.com/fbjuwe
+║  ➤ 💬 MSG  : fbjuwel
 ║  ➤ 📱 WA   : +8801943488192
 ║
-╠═━────━⌬〔 💖 THANK YOU 💖 〕⌬━────━═╣
-║   ✨ Thanks for using RIYA BOT ✨
-╚═━────━⌬〔 🚀 POWERED BY JUWEL 〕⌬━────━═╝`,
+╠═━⌬THANK YOU⌬━═╣
+║Thanks for using RIYA BOT ✨
+╚═━━⌬POWERED BY MR JUWEL⌬━
+━═╝`,
       threadID,
       null
     );
