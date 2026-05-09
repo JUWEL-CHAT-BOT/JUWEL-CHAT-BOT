@@ -15,18 +15,18 @@ module.exports.config = {
 
 // 💎 UI FRAME
 function frame(content, prefix, bot) {
-    return `╔════════════════════════╗
-║      🌌 𝙋𝙍𝙀𝙈𝙄𝙐𝙈 𝙃𝙀𝙇𝙋 🌌     ║
-╠════════════════════════╣
+    return `╔══════════════════════╗
+║  🌌 𝙋𝙍𝙀𝙈𝙄𝙐𝙈 𝙃𝙀𝙇𝙋 🌌     ║
+╠══════════════════════╣
 ${content}
-╠════════════════════════╣
+╠══════════════════════╣
 ║ ⚙ PREFIX : ${prefix}
 ║ 🤖 BOT    : ${bot}
-╚════════════════════════╝`;
+╚══════════════════════╝`;
 }
 
 // 🖼 IMAGE
-const imgs = ["https://i.imgur.com/sj7ieqs.jpeg"];
+const imgs = ["https://i.imgur.com/pk3rpqL.jpeg"];
 
 function getImage(cb) {
     const file = path.join(__dirname, "cache", `help_${Date.now()}.jpg`);
