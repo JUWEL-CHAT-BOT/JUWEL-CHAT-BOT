@@ -1,5 +1,5 @@
 module.exports.config = {
-  name: "video1",
+  name: "album",
   version: "1.0.0",
   hasPermission: 0,
   credits: "MR JUWEL",
