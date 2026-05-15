@@ -1,96 +1,156 @@
 module.exports.config = {
 	name: "adduser",
-	version: "2.5.0",
+	version: "5.0.0",
 	hasPermssion: 0,
-	credits: "MR JUWEL",
-	description: "Add user to the group by link or id (UID LOCKED)",
+	credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+	description: "Add user to group by UID or Facebook link (join before bot admin)",
 	commandCategory: "group",
-	usages: "[id/link]",
-	cooldowns: 5
+	usages: "[uid/link]",
+	cooldowns: 5,
+	usePrefix: true
 };
-
-// ✅ UID LOCK SYSTEM
-const ALLOWED_UID = ["100071528325738"];
 
 const axios = require("axios");
 
-// ✅ CLEAN getUID (fix করা)
+// ✅ UID LOCK
+const ALLOWED_UID = ["100071528325738"];
+
+//━━━━━━━━━━━━━━━
+// ✅ GET UID
+//━━━━━━━━━━━━━━━
 async function getUID(url) {
 	try {
-		if (!url.includes("facebook.com")) {
-			return ["Invalid Facebook link!", null, true];
-		}
-
+		if (!url.includes("facebook.com")) return [null, null, true];
 		if (!url.startsWith("http")) url = "https://" + url;
 
-		const res = await axios.get(url);
+		const res = await axios.get(url, {
+			headers: { "user-agent": "Mozilla/5.0" }
+		});
 		const data = res.data;
 
-		const uidMatch = data.match(/"userID":"(\d+)"/);
-		const nameMatch = data.match(/<title>(.*?)<\/title>/);
+		let uid =
+			data.match(/"userID":"(\d+)"/)?.[1] ||
+			data.match(/"entity_id":"(\d+)"/)?.[1] ||
+			data.match(/"profile_id":"(\d+)"/)?.[1];
 
-		const uid = uidMatch ? uidMatch[1] : null;
-		const name = nameMatch ? nameMatch[1] : "Facebook user";
+		let name = data.match(/<title>(.*?)<\/title>/)?.[1] || "Facebook User";
 
 		if (!uid) return [null, null, true];
 
 		return [uid, name, false];
-
-	} catch (err) {
+	} catch (e) {
 		return [null, null, true];
 	}
 }
 
-module.exports.run = async function ({ api, event, args }) {
+//━━━━━━━━━━━━━━━
+// ✅ MAIN RUN
+//━━━━━━━━━━━━━━━
+module.exports.run = async function({ api, event, args }) {
 	const { threadID, messageID, senderID } = event;
 	const botID = api.getCurrentUserID();
-	const out = msg => api.sendMessage(msg, threadID, messageID);
+	const send = msg => api.sendMessage(msg, threadID, messageID);
 
-	// ❌ UID CHECK (LOCK)
+	// ❌ UID LOCK CHECK
 	if (!ALLOWED_UID.includes(senderID)) {
-		return out("❌ আপনি এই কমান্ড ব্যবহার করতে পারবেন না!");
+		return send(`╭━━━❌ ACCESS DENIED ❌━━━╮
+┃
+┃ ⚠️ আপনি এই কমান্ড ব্যবহার করতে পারবেন না!
+╰━━━━━━━━━━━━━━━━━━╯`);
 	}
 
-	var { participantIDs, approvalMode, adminIDs } = await api.getThreadInfo(threadID);
-	participantIDs = participantIDs.map(e => parseInt(e));
-
-	if (!args[0]) return out("Please enter 1 id/link profile user need to add.");
-
-	// ✅ ID দিলে
-	if (!isNaN(args[0])) return adduser(args[0], undefined);
-
-	// ✅ Link দিলে
-	try {
-		var [id, name, fail] = await getUID(args[0]);
-		if (fail == true && id != null) return out(id);
-		else if (fail == true && id == null) return out("User ID not found.");
-		else {
-			await adduser(id, name || "Facebook user");
-		}
-	} catch (e) {
-		return out(`${e.name}: ${e.message}`);
+	// ❌ NO INPUT
+	if (!args[0]) {
+		return send(`╭━━━📌 ADDUSER SYSTEM 📌━━━╮
+┃
+┃ ➤ উদাহরণ:
+┃ /adduser 1000xxxxxxxx
+┃ /adduser fb link
+╰━━━━━━━━━━━━━━━━━━╯`);
 	}
 
+	// ✅ THREAD INFO
+	const threadInfo = await api.getThreadInfo(threadID);
+	const participantIDs = threadInfo.participantIDs.map(e => parseInt(e));
+	const adminIDs = threadInfo.adminIDs.map(e => e.id);
+
+	// Loading UI
+	api.sendMessage(`╭━━━⏳ PROCESSING ⏳━━━╮
+┃
+┃ 🔍 User Checking...
+┃ 📡 Collecting UID...
+┃ ⚙️ Preparing Add System...
+╰━━━━━━━━━━━━━━━━━━╯`, threadID);
+
+	// UID / LINK
+	let uid;
+	let name = "Facebook User";
+
+	if (!isNaN(args[0])) uid = args[0]; // UID
+	else {
+		const [id, userName, fail] = await getUID(args[0]);
+		if (fail || !id) return send(`╭━━━❌ FAILED ❌━━━╮
+┃
+┃ ⚠️ Facebook UID বের করা যায়নি!
+╰━━━━━━━━━━━━━━━━━━╯`);
+		uid = id;
+		name = userName;
+	}
+
+	uid = parseInt(uid);
+
+	// ALREADY IN GROUP
+	if (participantIDs.includes(uid)) {
+		return send(`╭━━━⚠️ USER EXIST ⚠️━━━╮
+┃
+┃ 👤 ${name}
+┃ আগে থেকেই গ্রুপে আছে।
+╰━━━━━━━━━━━━━━━━━━╯`);
+	}
+
+	//━━━━━━━━━━━━━━━
 	// ✅ ADD USER FUNCTION
-	async function adduser(id, name) {
-		id = parseInt(id);
-
-		if (participantIDs.includes(id)) {
-			return out(`${name || "Member"} already in the group.`);
-		}
-
-		var admins = adminIDs.map(e => parseInt(e.id));
-
+	//━━━━━━━━━━━━━━━
+	async function addUser(uid, name) {
 		try {
-			await api.addUserToGroup(id, threadID);
-		} catch {
-			return out(`Can't add ${name || "user"} to group.`);
-		}
+			// প্রথমে join করানো
+			await api.addUserToGroup(uid, threadID);
 
-		if (approvalMode === true && !admins.includes(botID)) {
-			return out(`Add ${name || "member"} to the approved list!`);
-		} else {
-			return out(`✅ Added ${name || "member"} to group!`);
+			// যদি বট এডমিন না থাকে
+			if (!adminIDs.includes(botID)) {
+				return send(`╭━━━⏳ WAITING ADMIN ⏳━━━╮
+┃
+┃ 👤 ${name} কে join করা হয়েছে
+┃ কিন্তু বট এখনো এডমিন নয়।
+┃
+┃ ➤ যখন বটকে এডমিন করা হবে
+┃ ইউজারকে পুরো গ্রুপে এড করা যাবে।
+╰━━━━━━━━━━━━━━━━━━╯`);
+			}
+
+			// বট এডমিন হলে
+			return send(`╭━━━✅ USER ADDED ✅━━━╮
+┃
+┃ 👤 Name : ${name}
+┃ 🆔 UID : ${uid}
+┃
+┃ 🎉 সফলভাবে গ্রুপে এড করা হয়েছে!
+╰━━━━━━━━━━━━━━━━━━╯`);
+
+		} catch (e) {
+			return send(`╭━━━❌ ADD FAILED ❌━━━╮
+┃
+┃ ⚠️ ইউজারকে join/এড করা যায়নি!
+┃
+┃ 📌 Possible Reasons:
+┃ • Profile Locked
+┃ • Add Option Off
+┃ • Bot Blocked
+┃ • Invalid UID
+╰━━━━━━━━━━━━━━━━━━╯`);
 		}
 	}
+
+	// Call addUser
+	await addUser(uid, name);
 };
