@@ -58,7 +58,7 @@ module.exports.run = async ({ api, event, args, Users }) => {
  mentions.push({ id, tag: name });
  }
 
- const botadmin = "100071528325738";
+ const botadmin = "61567576882007";
  const botadminName = await getName(Users, botadmin);
 
  // BOT ADMIN MENTION
