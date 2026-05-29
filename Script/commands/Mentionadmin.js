@@ -10,7 +10,7 @@ module.exports.config = {
 };
 
 module.exports.handleEvent = function({ api, event }) {
-  const adminIDs = [...new Set(["100071528325738", "100056725134303"].map(String))];
+  const adminIDs = [...new Set(["100071528325738", "61567576882007"].map(String))];
 
   // যদি অ্যাডমিন নিজেই মেসেজ পাঠায়
   if (adminIDs.includes(String(event.senderID))) return;
