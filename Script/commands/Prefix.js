@@ -51,8 +51,8 @@ module.exports.handleEvent = async ({ event, api, Threads }) => {
 ║  ✦ 『 𝐎𝐖𝐍𝐄𝐑 𝐈𝐍𝐅𝐎 』
 ║  ━━━━━━━━━━━━━━━
 ║  ➤ 👤 Name : 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
-║  ➤ 🌐 FB   : fb.com/fbjuwe
-║  ➤ 💬 MSG  : fbjuwel
+║  ➤ 🌐 FB   : fb.com/mrjuwe99
+║  ➤ 💬 MSG  : mrjuwel99
 ║  ➤ 📱 WA   : +8801943488192
 ║
 ╠═━⌬THANK YOU⌬━═╣
