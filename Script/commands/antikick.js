@@ -3,7 +3,7 @@ const path = require("path");
 
 module.exports.config = {
   name: "antikick",
-  version: "2.0.1",
+  version: "3.1.0",
   hasPermssion: 1,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "Auto kick user after specific time",
@@ -16,6 +16,14 @@ const dataPath = path.join(__dirname, "cache", "antikick.json");
 
 if (!fs.existsSync(dataPath)) {
   fs.writeFileSync(dataPath, JSON.stringify([]));
+}
+
+function loadData() {
+  return JSON.parse(fs.readFileSync(dataPath));
+}
+
+function saveData(data) {
+  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
 }
 
 module.exports.run = async function ({
@@ -34,6 +42,7 @@ module.exports.run = async function ({
   } = event;
 
   // ================= BOT ADMIN ONLY =================
+
   const botAdmins = global.config.ADMINBOT || [];
 
   if (!botAdmins.includes(senderID)) {
@@ -42,12 +51,12 @@ module.exports.run = async function ({
 ║   ❌ ACCESS DENIED
 ╚══════════════╝
 
-🚫 শুধুমাত্র BOT ADMIN
-এই কমান্ড ব্যবহার করতে পারবে!`,
+🚫 শুধুমাত্র BOT ADMIN এই কমান্ড ব্যবহার করতে পারবে!`,
       threadID,
       messageID
     );
   }
+
   // ==================================================
 
   if (!args[0]) {
@@ -62,18 +71,18 @@ module.exports.run = async function ({
 antikick 10m
 
 ➤ Mention করে:
-@name antikick 10m
+/antikick @name 10m
 
 ➤ UID দিয়ে:
-antikick UID 10m
+/antikick UID 10m
 
 ⏰ টাইম ফরম্যাট:
 • m = মিনিট
 • h = ঘন্টা
 
 🧨 উদাহরণ:
-antikick 5m
-antikick 2h`,
+/antikick 5m
+/antikick 2h`,
       threadID,
       messageID
     );
@@ -81,21 +90,26 @@ antikick 2h`,
 
   let targetID;
 
-  // REPLY SYSTEM
+  // ================= REPLY SYSTEM =================
+
   if (type === "message_reply") {
     targetID = event.messageReply.senderID;
   }
 
-  // MENTION SYSTEM
+  // ================= MENTION SYSTEM =================
+
   else if (Object.keys(mentions).length > 0) {
     targetID = Object.keys(mentions)[0];
   }
 
-  // UID SYSTEM
+  // ================= UID SYSTEM =================
+
   else if (!isNaN(args[0])) {
     targetID = args[0];
     args.shift();
   }
+
+  // =================================================
 
   if (!targetID) {
     return api.sendMessage(
@@ -109,23 +123,46 @@ antikick 2h`,
 
   let timeArg;
 
-  // reply/mention
-  if (type === "message_reply" || Object.keys(mentions).length > 0) {
+  // ================= REPLY =================
+
+  if (type === "message_reply") {
     timeArg = args[0];
   }
 
-  // uid
+  // ================= MENTION =================
+
+  else if (Object.keys(mentions).length > 0) {
+    timeArg = args[args.length - 1];
+  }
+
+  // ================= UID =================
+
   else {
     timeArg = args[0];
   }
 
+  // ========================================
+
   if (!timeArg) {
     return api.sendMessage(
-`⚠️ টাইম দাও!
+`╔══════════════╗
+║ ❌ TIME MISSING
+╚══════════════╝
 
 ✔️ উদাহরণ:
-antikick 10m
-antikick 2h`,
+
+⏰ 10m ➜ 10 মিনিট
+⏰ 30m ➜ 30 মিনিট
+⏰ 1h ➜ 1 ঘন্টা
+⏰ 2h ➜ 2 ঘন্টা
+
+📌 টাইম লেখার নিয়ম:
+• m = মিনিট
+• h = ঘন্টা
+
+🧨 উদাহরণ:
+/antikick 10m
+/antikick 2h`,
       threadID,
       messageID
     );
@@ -135,11 +172,24 @@ antikick 2h`,
 
   if (!match) {
     return api.sendMessage(
-`❌ ভুল টাইম ফরম্যাট!
+`╔══════════════╗
+║ ❌ ভুল টাইম ফরম্যাট!
+╚══════════════╝
 
 ✔️ সঠিক উদাহরণ:
-10m = 10 মিনিট
-2h = 2 ঘন্টা`,
+
+⏰ 10m ➜ 10 মিনিট
+⏰ 30m ➜ 30 মিনিট
+⏰ 1h ➜ 1 ঘন্টা
+⏰ 2h ➜ 2 ঘন্টা
+
+📌 টাইম লেখার নিয়ম:
+• m = মিনিট
+• h = ঘন্টা
+
+🧨 উদাহরণ:
+/antikick 10m
+/antikick 2h`,
       threadID,
       messageID
     );
@@ -163,15 +213,30 @@ antikick 2h`,
     userName = user.name || "Unknown User";
   } catch (e) {}
 
-  // KICK TIME
-  const kickTime = new Date(Date.now() + delay);
+  const kickAt = Date.now() + delay;
+
+  const kickTime = new Date(kickAt);
 
   const formattedTime = kickTime.toLocaleString("en-BD", {
     timeZone: "Asia/Dhaka",
     hour12: true
   });
 
-  // START UI
+  // ================= SAVE DATA =================
+
+  const data = loadData();
+
+  data.push({
+    threadID,
+    targetID,
+    userName,
+    kickAt
+  });
+
+  saveData(data);
+
+  // ================= START UI =================
+
   api.sendMessage(
 `╔════════════════════╗
 ║    🛡️ ANTIKICK SYSTEM
@@ -183,18 +248,32 @@ antikick 2h`,
 ⏳ Duration: ${amount}${unit}
 🕒 Kick Time: ${formattedTime}
 
-⚠️ নির্দিষ্ট সময় পরে
-এই ইউজারকে অটো কিক করা হবে!`,
+⚠️ নির্দিষ্ট সময় পরে এই ইউজারকে অটো কিক করা হবে!`,
     threadID,
     messageID
   );
 
-  // TIMER
+  // ================= TIMER =================
+
   setTimeout(async () => {
 
     try {
 
       await api.removeUserFromGroup(targetID, threadID);
+
+      // REMOVE FROM JSON
+
+      let newData = loadData();
+
+      newData = newData.filter(
+        item =>
+          !(
+            item.threadID == threadID &&
+            item.targetID == targetID
+          )
+      );
+
+      saveData(newData);
 
       api.sendMessage(
 `╔════════════════╗
@@ -221,9 +300,7 @@ antikick 2h`,
 • User আগে থেকেই Leave দিয়েছে`,
         threadID
       );
-
     }
 
   }, delay);
-
 };
