@@ -14,7 +14,7 @@ module.exports.handleEvent = function({ api, event }) {
   if (!msg) return;
 
   // 👉 বট অ্যাডমিন / ওনার — জুয়েল (তোমার UID)
-  const ownerIDs = ["100071528325738"];
+  const ownerIDs = ["61567576882007"];
 
   // 👉 তুমি যদি লেখো “জুয়েল”, বট রিপ্লাই করবে না
   if (ownerIDs.includes(event.senderID)) return;
