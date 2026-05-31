@@ -14,7 +14,7 @@ module.exports.config = {
 
 // ===== পারমিশন সিস্টেম =====
 const ADMIN = [
-  "100071528325738"
+  "61567576882007"
 ];
 
 const MOD = [
