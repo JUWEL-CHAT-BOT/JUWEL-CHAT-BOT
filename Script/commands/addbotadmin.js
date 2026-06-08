@@ -33,19 +33,19 @@ module.exports.handleEvent = async function ({ api, event }) {
         "জুয়েল কে এড করো",
         "এড করো জুয়েল কে",
         "এডমিন জুয়েলকে এড করো",
-        "কেউ  জুয়েল কে এড করো",
+        "কেউ জুয়েল কে এড করো",
         "বসকে এড করো",
         "কেউ জুয়েলকে এড করো",
-        "জুয়েলকে এড কো",
+        "জুয়েলকে এড করো",
         "জুয়েল কে এড করো",
-        "admin add",
-        "add bot admin",
+        "Admin add",
+        "A bot admin",
         "add Juwel",
-        "owner join",
-        "add admin",
-        "join admin",
+        "Owner join",
+        "Add admin",
+        "Join admin",
         "Juwel ke add kro",
-        "bot admin"
+        "Bot admin"
     ];
 
     if (triggers.some(t => body.includes(t))) {
