@@ -4,94 +4,178 @@ const path = require("path");
 const { alldown } = require("shaon-videos-downloader");
 
 module.exports = {
-  config: {
-    name: "autodl",
-    version: "3.1.0",
-    hasPermssion: 0,
-    credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-    description: "Advanced Auto Video Downloader",
-    commandCategory: "media",
-    usages: "paste link",
-    cooldowns: 5
-  },
+config: {
+name: "autodl",
+version: "3.1.0",
+hasPermssion: 0,
+credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+description: "Advanced Auto Video Downloader",
+commandCategory: "media",
+usages: "paste link",
+cooldowns: 5
+},
 
-  run: async function () {},
+run: async function () {},
 
-  handleEvent: async function ({ api, event, Users }) {
-    try {
+handleEvent: async function ({ api, event, Users }) {
+try {
 
-      const body = event.body || "";
+const body = event.body || "";
 
-      if (!body.startsWith("https://")) return;
+if (!body.startsWith("https://")) return;
 
-      //━━━━━━━━━━ USER INFO ━━━━━━━━━━//
+//━━━━━━━━━━ USER INFO ━━━━━━━━━━//
 
-      const senderID = event.senderID;
+const senderID = event.senderID;
 
-      const userName =
-        global.data.userName.get(senderID) ||
-        "Unknown User";
+const userName =
+global.data.userName.get(senderID) ||
+"Unknown User";
 
-      const mention = [{
-        tag: userName,
-        id: senderID
-      }];
+const mention = [{
+tag: userName,
+id: senderID
+}];
 
-      const startTime = Date.now();
+const startTime = Date.now();
 
-      //━━━━━━━━━━ PLATFORM DETECT ━━━━━━━━━━//
+//━━━━━━━━━━ COOLDOWN FEATURE ━━━━━━━━━━//
 
-      let platform = "Unknown";
-      let emoji = "🎬";
+const COOLDOWN_TIME = 5 * 60 * 1000;
 
-      if (
-        body.includes("facebook.com") ||
-        body.includes("fb.watch")
-      ) {
-        platform = "Facebook";
-        emoji = "📘";
-      }
+const adminIDs = Array.isArray(global.config.ADMINBOT)
+? global.config.ADMINBOT.map(String)
+: [];
 
-      else if (body.includes("tiktok.com")) {
-        platform = "TikTok";
-        emoji = "🎵";
-      }
+const isAdmin = adminIDs.includes(String(senderID));
 
-      else if (
-        body.includes("youtube.com") ||
-        body.includes("youtu.be")
-      ) {
-        platform = "YouTube";
-        emoji = "▶️";
-      }
+const dbPath = path.join(
+__dirname,
+"cache",
+"autodl-count.json"
+);
 
-      else if (body.includes("instagram.com")) {
-        platform = "Instagram";
-        emoji = "📸";
-      }
+if (!fs.existsSync(dbPath)) {
+fs.writeFileSync(
+dbPath,
+JSON.stringify(
+{
+total: 0,
+users: {}
+},
+null,
+2
+)
+);
+}
 
-      else if (body.includes("likee.video")) {
-        platform = "Likee";
-        emoji = "❤️";
-      }
+const preDb = JSON.parse(fs.readFileSync(dbPath));
 
-      else if (body.includes("pinterest.com")) {
-        platform = "Pinterest";
-        emoji = "📌";
-      }
+if (!preDb.users[senderID]) {
+preDb.users[senderID] = {
+name: userName,
+totalDownload: 0,
+totalTime: 0,
+lastDownload: null,
+cooldownUntil: 0
+};
 
-      //━━━━━━━━━━ REACTION ━━━━━━━━━━//
+fs.writeFileSync(dbPath, JSON.stringify(preDb, null, 2));
+}
 
-      api.setMessageReaction(
-        "⏳",
-        event.messageID,
-        () => {},
-        true
-      );
+if (!isAdmin) {
+const now = Date.now();
+const cooldownUntil = preDb.users[senderID].cooldownUntil || 0;
 
-      //━━━━━━━━━━ LOADING MESSAGE ━━━━━━━━━━//
+if (now < cooldownUntil) {
+const remaining = cooldownUntil - now;
+const minutes = Math.floor(remaining / 60000);
+const seconds = Math.floor((remaining % 60000) / 1000);
 
-      const loading = await api.sendMessage(
+api.setMessageReaction(
+"⏰",
+event.messageID,
+() => {},
+true
+);
+
+return api.sendMessage(
+`┏━━━〔 ⏰ DOWNLOAD COOLDOWN ⏰ 〕━━━┓
+
+👤 USER : ${userName}
+
+━━━━━━━━━━━━━━━━━━
+
+❌ ৫ মিনিটের আগে আর ভিডিও
+ডাউনলোড দিতে পারবে না
+
+🕒 বাকি সময় :
+${minutes} মিনিট ${seconds} সেকেন্ড
+
+⌛ কুলডাউন শেষ হলে আবার
+ভিডিও ডাউনলোড দিতে পারবে
+
+┗━━━━━━━━━━━━━━━━━━┛`,
+event.threadID,
+event.messageID
+);
+}
+}
+
+//━━━━━━━━━━ PLATFORM DETECT ━━━━━━━━━━//
+
+let platform = "Unknown";
+let emoji = "🎬";
+
+if (
+body.includes("facebook.com") ||
+body.includes("fb.watch")
+) {
+platform = "Facebook";
+emoji = "📘";
+}
+
+else if (body.includes("tiktok.com")) {
+platform = "TikTok";
+emoji = "🎵";
+}
+
+else if (
+body.includes("youtube.com") ||
+body.includes("youtu.be")
+) {
+platform = "YouTube";
+emoji = "▶️";
+}
+
+else if (body.includes("instagram.com")) {
+platform = "Instagram";
+emoji = "📸";
+}
+
+else if (body.includes("likee.video")) {
+platform = "Likee";
+emoji = "❤️";
+}
+
+else if (body.includes("pinterest.com")) {
+platform = "Pinterest";
+emoji = "📌";
+}
+
+//━━━━━━━━━━ REACTION ━━━━━━━━━━//
+
+api.setMessageReaction(
+"⏳",
+event.messageID,
+() => {},
+true
+);
+
+//━━━━━━━━━━ LOADING MESSAGE ━━━━━━━━━━//
+
+const loading = await api.sendMessage(
+
 `┏━━━〔 ⚡ AUTO DOWNLOADER ⚡ 〕━━━┓
 
 ${emoji} PLATFORM : ${platform}
@@ -102,13 +186,14 @@ ${emoji} PLATFORM : ${platform}
 🔍 Detecting Link...
 
 ┗━━━━━━━━━━━━━━━━━━┛`,
-        event.threadID
-      );
+event.threadID
+);
 
-      //━━━━━━━━━━ LOADING STEP 2 ━━━━━━━━━━//
+//━━━━━━━━━━ LOADING STEP 2 ━━━━━━━━━━//
 
-      setTimeout(() => {
-        api.editMessage(
+setTimeout(() => {
+api.editMessage(
+
 `┏━━━〔 ⚡ AUTO DOWNLOADER ⚡ 〕━━━┓
 
 ${emoji} PLATFORM : ${platform}
@@ -119,32 +204,33 @@ ${emoji} PLATFORM : ${platform}
 📥 Fetching Video Info...
 
 ┗━━━━━━━━━━━━━━━━━━┛`,
-          loading.messageID
-        );
-      }, 1500);
+loading.messageID
+);
+}, 1500);
 
-      //━━━━━━━━━━ GET DATA ━━━━━━━━━━//
+//━━━━━━━━━━ GET DATA ━━━━━━━━━━//
 
-      const data = await alldown(body);
+const data = await alldown(body);
 
-      if (!data || !data.url) {
+if (!data || !data.url) {
 
-        api.setMessageReaction(
-          "❌",
-          event.messageID,
-          () => {},
-          true
-        );
+api.setMessageReaction(
+"❌",
+event.messageID,
+() => {},
+true
+);
 
-        return api.editMessage(
-          "❌ Unable To Download This Video!",
-          loading.messageID
-        );
-      }
+return api.editMessage(
+"❌ Unable To Download This Video!",
+loading.messageID
+);
+}
 
-      //━━━━━━━━━━ LOADING STEP 3 ━━━━━━━━━━//
+//━━━━━━━━━━ LOADING STEP 3 ━━━━━━━━━━//
 
-      api.editMessage(
+api.editMessage(
+
 `┏━━━〔 ⚡ AUTO DOWNLOADER ⚡ 〕━━━┓
 
 ${emoji} PLATFORM : ${platform}
@@ -155,133 +241,133 @@ ${emoji} PLATFORM : ${platform}
 🚀 Downloading Video...
 
 ┗━━━━━━━━━━━━━━━━━━┛`,
-        loading.messageID
-      );
+loading.messageID
+);
 
-      //━━━━━━━━━━ VIDEO INFO ━━━━━━━━━━//
+//━━━━━━━━━━ VIDEO INFO ━━━━━━━━━━//
 
-      let title =
-        data.title ||
-        data.caption ||
-        data.desc ||
-        data.video_title ||
-        `${platform} Video`;
+let title =
+data.title ||
+data.caption ||
+data.desc ||
+data.video_title ||
+`${platform} Video`;
 
-      let duration =
-        data.duration ||
-        data.length ||
-        "Unknown";
+let duration =
+data.duration ||
+data.length ||
+"Unknown";
 
-      let quality =
-        data.quality ||
-        data.resolution ||
-        "HD";
+let quality =
+data.quality ||
+data.resolution ||
+"HD";
 
-      //━━━━━━━━━━ CLEAN TITLE ━━━━━━━━━━//
+//━━━━━━━━━━ CLEAN TITLE ━━━━━━━━━━//
 
-      title = title
-        .replace(/\n/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+title = title
+.replace(/\n/g, " ")
+.replace(/\s+/g, " ")
+.trim();
 
-      //━━━━━━━━━━ FILE PATH ━━━━━━━━━━//
+//━━━━━━━━━━ FILE PATH ━━━━━━━━━━//
 
-      const fileName = `autodl_${senderID}.mp4`;
+const fileName = `autodl_${senderID}.mp4`;
 
-      const filePath = path.join(
-        __dirname,
-        "cache",
-        fileName
-      );
+const filePath = path.join(
+__dirname,
+"cache",
+fileName
+);
 
-      //━━━━━━━━━━ DOWNLOAD VIDEO ━━━━━━━━━━//
+//━━━━━━━━━━ DOWNLOAD VIDEO ━━━━━━━━━━//
 
-      const response = await axios({
-        url: data.url,
-        method: "GET",
-        responseType: "stream"
-      });
+const response = await axios({
+url: data.url,
+method: "GET",
+responseType: "stream"
+});
 
-      const writer = fs.createWriteStream(filePath);
+const writer = fs.createWriteStream(filePath);
 
-      response.data.pipe(writer);
+response.data.pipe(writer);
 
-      writer.on("finish", async () => {
+writer.on("finish", async () => {
 
-        //━━━━━━━━━━ FILE SIZE ━━━━━━━━━━//
+//━━━━━━━━━━ FILE SIZE ━━━━━━━━━━//
 
-        const stats = fs.statSync(filePath);
+const stats = fs.statSync(filePath);
 
-        const fileSize =
-          (stats.size / 1024 / 1024).toFixed(2) + " MB";
+const fileSize =
+(stats.size / 1024 / 1024).toFixed(2) + " MB";
 
-        //━━━━━━━━━━ DOWNLOAD TIME ━━━━━━━━━━//
+//━━━━━━━━━━ DOWNLOAD TIME ━━━━━━━━━━//
 
-        const endTime = Date.now();
+const endTime = Date.now();
 
-        const totalTime =
-          ((endTime - startTime) / 1000).toFixed(1);
+const totalTime =
+((endTime - startTime) / 1000).toFixed(1);
 
-        //━━━━━━━━━━ DATABASE ━━━━━━━━━━//
+//━━━━━━━━━━ DATABASE ━━━━━━━━━━//
 
-        const dbPath = path.join(
-          __dirname,
-          "cache",
-          "autodl-count.json"
-        );
+if (!fs.existsSync(dbPath)) {
 
-        if (!fs.existsSync(dbPath)) {
+fs.writeFileSync(
+dbPath,
 
-          fs.writeFileSync(
-            dbPath,
+JSON.stringify(
+{
+total: 0,
+users: {}
+},
+null,
+2
+)
+);
+}
 
-            JSON.stringify(
-              {
-                total: 0,
-                users: {}
-              },
-              null,
-              2
-            )
-          );
-        }
+const db = JSON.parse(
+fs.readFileSync(dbPath)
+);
 
-        const db = JSON.parse(
-          fs.readFileSync(dbPath)
-        );
+if (!db.users[senderID]) {
 
-        if (!db.users[senderID]) {
+db.users[senderID] = {
+name: userName,
+totalDownload: 0,
+totalTime: 0,
+lastDownload: null,
+cooldownUntil: 0
+};
+}
 
-          db.users[senderID] = {
-            name: userName,
-            totalDownload: 0,
-            totalTime: 0,
-            lastDownload: null
-          };
-        }
+db.total += 1;
 
-        db.total += 1;
+db.users[senderID].totalDownload += 1;
 
-        db.users[senderID].totalDownload += 1;
+db.users[senderID].totalTime += Number(totalTime);
 
-        db.users[senderID].totalTime += Number(totalTime);
+db.users[senderID].lastDownload =
+new Date().toLocaleString(
+"en-BD",
+{
+timeZone: "Asia/Dhaka"
+}
+);
 
-        db.users[senderID].lastDownload =
-          new Date().toLocaleString(
-            "en-BD",
-            {
-              timeZone: "Asia/Dhaka"
-            }
-          );
+if (!isAdmin) {
+db.users[senderID].cooldownUntil = Date.now() + COOLDOWN_TIME;
+}
 
-        fs.writeFileSync(
-          dbPath,
-          JSON.stringify(db, null, 2)
-        );
+fs.writeFileSync(
+dbPath,
+JSON.stringify(db, null, 2)
+);
 
-        //━━━━━━━━━━ FINAL LOADING ━━━━━━━━━━//
+//━━━━━━━━━━ FINAL LOADING ━━━━━━━━━━//
 
-        api.editMessage(
+api.editMessage(
+
 `┏━━━〔 ⚡ AUTO DOWNLOADER ⚡ 〕━━━┓
 
 ${emoji} PLATFORM : ${platform}
@@ -292,23 +378,24 @@ ${emoji} PLATFORM : ${platform}
 ✅ Upload Complete
 
 ┗━━━━━━━━━━━━━━━━━━┛`,
-          loading.messageID
-        );
+loading.messageID
+);
 
-        api.setMessageReaction(
-          "✅",
-          event.messageID,
-          () => {},
-          true
-        );
+api.setMessageReaction(
+"✅",
+event.messageID,
+() => {},
+true
+);
 
-        //━━━━━━━━━━ FINAL MESSAGE ━━━━━━━━━━//
+//━━━━━━━━━━ FINAL MESSAGE ━━━━━━━━━━//
 
-        return api.sendMessage(
-          {
-            body:
+return api.sendMessage(
+{
+body:
+
 `╔═══════════════✦══════════════╗
-        『 AUTO DOWNLOADER 』
+『 AUTO DOWNLOADER 』
 ╚═══════════════✦══════════════╝
 
 ╭━━━━━━━━━━━━━━━━━━╮
@@ -355,49 +442,50 @@ ${emoji} PLATFORM : ${platform}
 ⎯͢🩷ꤪ⁽𝐌ꤪ𝆠፝֟𝐑₎ꜛ⪼─⃞⤹𐙚
 𝐉𝆠፝֟🅤𝆠፝֟𝐖𝆠፝֟🅔𝆠፝֟𝐋༢ꜛ國🩷ꤪ🪽`,
 
-            mentions: mention,
-            attachment: fs.createReadStream(filePath)
-          },
+mentions: mention,
+attachment: fs.createReadStream(filePath)
+},
 
-          event.threadID,
+event.threadID,
 
-          () => {
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-            }
-          },
+() => {
+if (fs.existsSync(filePath)) {
+fs.unlinkSync(filePath);
+}
+},
 
-          event.messageID
-        );
-      });
+event.messageID
+);
+});
 
-      //━━━━━━━━━━ ERROR ━━━━━━━━━━//
+//━━━━━━━━━━ ERROR ━━━━━━━━━━//
 
-      writer.on("error", () => {
+writer.on("error", () => {
 
-        api.setMessageReaction(
-          "❌",
-          event.messageID,
-          () => {},
-          true
-        );
+api.setMessageReaction(
+"❌",
+event.messageID,
+() => {},
+true
+);
 
-        return api.sendMessage(
-          "❌ File Write Error!",
-          event.threadID,
-          event.messageID
-        );
-      });
+return api.sendMessage(
+"❌ File Write Error!",
+event.threadID,
+event.messageID
+);
+});
 
-    } catch (e) {
+} catch (e) {
 
-      console.log(e);
+console.log(e);
 
-      return api.sendMessage(
-        `❌ Error:\n${e.message}`,
-        event.threadID,
-        event.messageID
-      );
-    }
-  }
+return api.sendMessage(
+`❌ Error:\n${e.message}`,
+event.threadID,
+event.messageID
+);
+}
+
+}
 };
