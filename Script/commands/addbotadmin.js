@@ -1,68 +1,77 @@
 module.exports.config = {
-  name: "addbotadmin",
-  version: "6.0.0",
-  hasPermssion: 0,
-  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Add Bot Owner To Group",
-  commandCategory: "group",
-  usages: "addbotadmin",
-  cooldowns: 5
+    name: "addbotadmin",
+    version: "6.0.0",
+    hasPermssion: 0,
+    credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+    description: "Add Bot Owner To Group",
+    commandCategory: "group",
+    usages: "addbotadmin",
+    cooldowns: 5
 };
 
 const OWNER_UID = "61567576882007";
 
+// ───── BOT ADMIN CHECK ─────
+function isBotAdmin(userID) {
+    const botAdmins = global.config?.ADMINBOT || global.config?.adminBot || [];
+    return botAdmins.map(String).includes(String(userID));
+}
+
 module.exports.handleEvent = async function ({ api, event }) {
-  if (!event.body) return;
+    if (!event.body) return;
 
-  const body = event.body.toLowerCase().trim();
+    // বট অ্যাডমিন হলে trigger কাজ করবে না
+    if (isBotAdmin(event.senderID)) return;
 
-  const triggers = [
-    "বটের বসকে এড করো",
-    "বটের বসকে অ্যাড করো",
-    "বটের বসকে যোগ করো",
-    "বটের মালিককে এড করো",
-    "বটের মালিককে অ্যাড করো",
-    "বটের মালিককে যোগ করো",
-    "বটের অ্যাডমিনকে এড করো",
-    "বটের অ্যাডমিনকে অ্যাড করো",
-    "বসকে এড করো",
-    "বসকে অ্যাড করো",
-    "মালিককে এড করো",
-    "মালিককে অ্যাড করো",
-    "owner add",
-    "add bot owner",
-    "add bot admin",
-    "owner join",
-    "join owner",
-    "join admin",
-    "bot owner",
-    "bot admin"
-  ];
+    const body = event.body.toLowerCase().trim();
 
-  if (triggers.some(t => body.includes(t))) {
-    return module.exports.run({ api, event });
-  }
+    const triggers = [
+        "বটের বসকে এড করো",
+        "বটের বসকে কেউ করো",
+        "কেউ বটের বসকে এড করো",
+        "জুয়েল কে এড করো কেউ",
+        "জুয়েল কে এড করো",
+        "এড করো জুয়েল কে",
+        "এডমিন জুয়েলকে এড করো",
+        "কেউ  জুয়েল কে এড করো",
+        "বসকে এড করো",
+        "কেউ জুয়েলকে এড করো",
+        "জুয়েলকে এড কো",
+        "জুয়েল কে এড করো",
+        "admin add",
+        "add bot admin",
+        "add Juwel",
+        "owner join",
+        "add admin",
+        "join admin",
+        "Juwel ke add kro",
+        "bot admin"
+    ];
+
+    if (triggers.some(t => body.includes(t))) {
+        return module.exports.run({ api, event });
+    }
 };
 
 module.exports.run = async function ({ api, event }) {
-  try {
+    try {
 
-    const ownerInfo = await api.getUserInfo(OWNER_UID);
-    const ownerName =
-      ownerInfo[OWNER_UID]?.name ||
-      ownerInfo[OWNER_UID]?.firstName ||
-      "Facebook User";
+        const ownerInfo = await api.getUserInfo(OWNER_UID);
+        const ownerName =
+            ownerInfo[OWNER_UID]?.name ||
+            ownerInfo[OWNER_UID]?.firstName ||
+            "Facebook User";
 
-    const threadInfo = await api.getThreadInfo(event.threadID);
+        const threadInfo = await api.getThreadInfo(event.threadID);
 
-    if (
-      threadInfo.participantIDs.some(
-        id => String(id) === String(OWNER_UID)
-      )
-    ) {
-      return api.sendMessage(
+        if (
+            threadInfo.participantIDs.some(
+                id => String(id) === String(OWNER_UID)
+            )
+        ) {
+            return api.sendMessage(
 `╔══════════════════════╗
-       👑 OWNER STATUS 👑
+👑 OWNER STATUS 👑
 ╚══════════════════════╝
 
 ✅ বস এই গ্রুপে আগে থেকেই আছেন।
@@ -72,22 +81,22 @@ module.exports.run = async function ({ api, event }) {
 
 ━━━━━━━━━━━━━━━━━━
 
-🎉 কোনো Action প্রয়োজন নেই।
+🎉 কোনো Action প্রয়োজন নেই।
 
 ━━━━━━━━━━━━━━━━━━
 🤖 Add Bot Admin System
 ━━━━━━━━━━━━━━━━━━`,
-        event.threadID
-      );
-    }
+                event.threadID
+            );
+        }
 
-    const userInfo = await api.getUserInfo(event.senderID);
-    const userName =
-      userInfo[event.senderID]?.name || "Unknown User";
+        const userInfo = await api.getUserInfo(event.senderID);
+        const userName =
+            userInfo[event.senderID]?.name || "Unknown User";
 
-    api.sendMessage(
+        api.sendMessage(
 `╔══════════════════════╗
-       📋 ADD REQUEST
+📋 ADD REQUEST
 ╚══════════════════════╝
 
 👤 User : ${userName}
@@ -98,27 +107,27 @@ module.exports.run = async function ({ api, event }) {
 ━━━━━━━━━━━━━━━━━━
 🤖 Processing...
 ━━━━━━━━━━━━━━━━━━`,
-      event.threadID
-    );
-
-    await api.addUserToGroup(
-      OWNER_UID,
-      event.threadID
-    );
-
-    setTimeout(async () => {
-      try {
-        await api.changeAdminStatus(
-          event.threadID,
-          OWNER_UID,
-          true
+            event.threadID
         );
-      } catch (e) {}
-    }, 5000);
 
-    return api.sendMessage(
+        await api.addUserToGroup(
+            OWNER_UID,
+            event.threadID
+        );
+
+        setTimeout(async () => {
+            try {
+                await api.changeAdminStatus(
+                    event.threadID,
+                    OWNER_UID,
+                    true
+                );
+            } catch (e) {}
+        }, 5000);
+
+        return api.sendMessage(
 `╔══════════════════════╗
-        👑 OWNER ADDED 👑
+👑 OWNER ADDED 👑
 ╚══════════════════════╝
 
 ✅ সফলভাবে বসকে গ্রুপে যোগ করা হয়েছে।
@@ -141,30 +150,25 @@ module.exports.run = async function ({ api, event }) {
 ━━━━━━━━━━━━━━━━━━
 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
 ━━━━━━━━━━━━━━━━━━`,
-      event.threadID
-    );
+            event.threadID
+        );
 
-  } catch (err) {
+    } catch (err) {
 
-    try {
+        try {
 
-      const ownerInfo = await api.getUserInfo(
-        OWNER_UID
-      );
+            const ownerInfo = await api.getUserInfo(OWNER_UID);
+            const ownerName =
+                ownerInfo[OWNER_UID]?.name ||
+                ownerInfo[OWNER_UID]?.firstName ||
+                "Facebook User";
 
-      const ownerName =
-        ownerInfo[OWNER_UID]?.name ||
-        ownerInfo[OWNER_UID]?.firstName ||
-        "Facebook User";
+            const threadInfo = await api.getThreadInfo(event.threadID);
 
-      const threadInfo = await api.getThreadInfo(
-        event.threadID
-      );
-
-      let mentions = [];
-      let msg =
+            let mentions = [];
+            let msg =
 `╔══════════════════════╗
-    ⚠️ APPROVAL REQUIRED ⚠️
+⚠️ APPROVAL REQUIRED ⚠️
 ╚══════════════════════╝
 
 🤖 আমি বসকে গ্রুপে যোগ করার চেষ্টা করেছি।
@@ -185,42 +189,42 @@ Facebook Permission এর কারণে
 
 `;
 
-      let count = 1;
+            let count = 1;
 
-      for (const admin of threadInfo.adminIDs) {
-        msg += `@Admin${count} `;
-        mentions.push({
-          tag: `Admin${count}`,
-          id: admin.id
-        });
-        count++;
-      }
+            for (const admin of threadInfo.adminIDs) {
+                msg += `@Admin${count} `;
+                mentions.push({
+                    tag: `Admin${count}`,
+                    id: admin.id
+                });
+                count++;
+            }
 
-      msg += `
+            msg += `
 
 ━━━━━━━━━━━━━━━━━━
 🔔 Admin Attention Required
 ━━━━━━━━━━━━━━━━━━`;
 
-      return api.sendMessage(
-        {
-          body: msg,
-          mentions
-        },
-        event.threadID
-      );
+            return api.sendMessage(
+                {
+                    body: msg,
+                    mentions
+                },
+                event.threadID
+            );
 
-    } catch (e) {
+        } catch (e) {
 
-      return api.sendMessage(
+            return api.sendMessage(
 `❌ বসকে অটো অ্যাড করা যায়নি।
 
 🆔 UID : ${OWNER_UID}
 
 ⚠️ কোনো গ্রুপ অ্যাডমিন ম্যানুয়ালি
 Owner কে Add/Approve করুন।`,
-        event.threadID
-      );
+                event.threadID
+            );
+        }
     }
-  }
 };
