@@ -39,7 +39,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         "জুয়েলকে এড করো",
         "জুয়েল কে এড করো",
         "Admin add",
-        "A bot admin",
+        "Add bot admin",
         "add Juwel",
         "Owner join",
         "Add admin",
