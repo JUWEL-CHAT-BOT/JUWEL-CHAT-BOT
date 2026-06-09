@@ -1,6 +1,6 @@
 module.exports.config = {
   name: "fbkick",
-  version: "9.0.0",
+  version: "13.0.0",
   hasPermission: 2,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "Premium FB User Cleaner",
@@ -13,9 +13,8 @@ module.exports.run = async function ({ api, event }) {
 
   const { threadID, messageID, senderID } = event;
 
-  // ADMIN CHECK
+  // ✅ ADMIN CHECK
   if (!global.config.ADMINBOT.includes(senderID)) {
-
     return api.sendMessage(
 `╔━━❖ ❌ ACCESS DENIED ❖━━╗
 ┃
@@ -23,63 +22,84 @@ module.exports.run = async function ({ api, event }) {
 ┃ এই কমান্ড ব্যবহার করতে পারবে।
 ┃
 ╚━━━━━━━━━━━━━━━━━━╝`,
-      threadID,
-      messageID
+      threadID, messageID
     );
   }
 
-  // THREAD INFO
-  const threadInfo =
-    await api.getThreadInfo(threadID);
+  // ✅ THREAD INFO
+  const threadInfo = await api.getThreadInfo(threadID);
+  const botID = api.getCurrentUserID();
 
-  // BOT ADMIN CHECK
-  const botAdmin =
-    threadInfo.adminIDs.some(
-      item =>
-        item.id == api.getCurrentUserID()
-    );
+  // ✅ BOT ADMIN CHECK
+  const botAdmin = threadInfo.adminIDs.some(
+    item => item.id == botID
+  );
 
   if (!botAdmin) {
-
     return api.sendMessage(
 `╔━━❖ ⚠️ BOT ADMIN REQUIRED ❖━━╗
 ┃
 ┃ আগে আমাকে গ্রুপ এডমিন বানান।
 ┃
 ╚━━━━━━━━━━━━━━━━━━╝`,
-      threadID,
-      messageID
+      threadID, messageID
     );
   }
 
-  // FIND FB USERS
-  const fbUsers =
-    threadInfo.userInfo.filter(
-      user => user.gender === undefined
-    );
+  // ✅ DETECT BAD USERS
+  const badUsers = threadInfo.userInfo.filter(user => {
+    if (user.id == senderID) return false;
+    if (user.id == botID) return false;
+    const isAdmin = threadInfo.adminIDs.some(a => a.id == user.id);
+    if (isAdmin) return false;
 
-  // NO USER
-  if (fbUsers.length === 0) {
+    const noGender = user.gender === undefined || user.gender === null;
+    const noThumb = !user.thumbSrc || user.thumbSrc.includes("defaultUser");
+    const noName = !user.name || user.name.trim() === "";
 
+    return noGender || (noThumb && noName);
+  });
+
+  // ✅ NO BAD USER
+  if (badUsers.length === 0) {
     return api.sendMessage(
 `╔━━❖ ✅ GROUP CLEAN ❖━━╗
 ┃
-┃ কোনো Facebook User পাওয়া যায়নি 🌸
+┃ গ্রুপে কোনো নষ্ট আইডি নেই 🌸
+┃ গ্রুপ সম্পূর্ণ পরিষ্কার আছে।
 ┃
 ╚━━━━━━━━━━━━━━━━━━╝`,
-      threadID,
-      messageID
+      threadID, messageID
     );
   }
 
-  // START MESSAGE
-  api.sendMessage(
+  // ✅ SCAN RESULT — ১০ সেকেন্ড কাউন্টডাউন
+  await api.sendMessage(
+`╔━━❖ 🔍 SCAN COMPLETE ❖━━╗
+┃
+┃ গ্রুপে মোট ${badUsers.length} জন
+┃ সাসপেন্ড / ডিজেবল / META PP
+┃ লাগা নষ্ট আইডি পাওয়া গেছে! 😈
+┃
+┣━━━━━━━━━━━━━━━━━━
+┃ ⏳ ১০ সেকেন্ড পর অটো কিক
+┃    শুরু হবে...
+┃
+╚━━━━━━━━━━━━━━━━━━╝`,
+    threadID, messageID
+  );
+
+  // ✅ COUNTDOWN 10 SEC
+  await new Promise(r => setTimeout(r, 10000));
+
+  // ✅ START KICKING MESSAGE
+  await api.sendMessage(
 `╔━━❖ 🇧🇩 FB CLEANER ❖━━╗
 ┃
-┃ 👥 FB User Found : ${fbUsers.length}
+┃ 👥 নষ্ট আইডি : ${badUsers.length} জন
 ┃
-┃ ⚡ Cleaner Started...
-┃ 🛡️ Please Wait...
+┃ ⚡ কিক শুরু হচ্ছে...
+┃ 🛡️ একটু অপেক্ষা করুন...
 ┃
 ╚━━━━━━━━━━━━━━━━━━╝`,
     threadID
@@ -87,48 +107,43 @@ module.exports.run = async function ({ api, event }) {
 
   let success = 0;
   let failed = 0;
+  const failedList = [];
 
-  // REMOVE USERS
-  for (const user of fbUsers) {
-
+  // ✅ REMOVE USERS
+  for (const user of badUsers) {
     try {
-
-      await api.removeUserFromGroup(
-        user.id,
-        threadID
-      );
-
+      await api.removeUserFromGroup(user.id, threadID);
       success++;
-
     } catch (err) {
-
       failed++;
-
-      console.log(err);
+      failedList.push(user.name || user.id);
+      console.log(`❌ Kick failed [${user.id}]:`, err);
     }
-
-    // DELAY
-    await new Promise(resolve =>
-      setTimeout(resolve, 1000)
-    );
+    await new Promise(r => setTimeout(r, 1500));
   }
 
-  // FINAL RESULT
+  // ✅ FAILED LIST
+  let failedNames = failedList.length > 0
+    ? `┃\n┃ ⚠️ ফেল হওয়া আইডি:\n${failedList.map(n => `┃   • ${n}`).join("\n")}\n`
+    : "";
+
+  // ✅ FINAL RESULT
   return api.sendMessage(
-`╔━━❖ ✅ CLEAN COMPLETE ❖━━╗
+`╔━━❖ ✅ KICK COMPLETE ❖━━╗
 ┃
 ┣━━━━━━━━━━━━━━━━━━
-┃ 👥 Total FB Users : ${fbUsers.length}
+┃ 👥 মোট নষ্ট আইডি  : ${badUsers.length} জন
+┃ ✅ সফলভাবে কিক    : ${success} জন
+┃ ❌ কিক ফেল        : ${failed} জন
 ┃
-┃ ✅ Success Kick : ${success}
-┃ ❌ Failed Kick : ${failed}
+${failedNames}┣━━━━━━━━━━━━━━━━━━
+┃ 🔥 ${success} জন ফেসবুক ইউজার
+┃    নষ্ট আইডি কিক দেওয়া হয়েছে!
 ┃
-┣━━━━━━━━━━━━━━━━━━
-┃ 🛡️ Group Successfully Cleaned
+┃ 🛡️ গ্রুপ পরিষ্কার হয়ে গেছে
 ┃ 🇧🇩 Bangladesh Security System
 ┃
 ╚━━❖ POWERED BY BOT ❖━━╝`,
-    threadID,
-    messageID
+    threadID, messageID
   );
 };
