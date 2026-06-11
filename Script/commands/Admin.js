@@ -122,7 +122,7 @@ module.exports.run = async function ({ api, event }) {
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
-┃🌐 𝐅𝐦𝐚𝐢𝐥❯ mrjuwel315@gmail.com 
+┃🌐 𝐄𝐦𝐚𝐢𝐥❯ mrjuwel315@gmail.com 
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
@@ -133,7 +133,7 @@ module.exports.run = async function ({ api, event }) {
         attachment: fs.createReadStream(__dirname + "/cache/1.png")
     }, event.threadID, () => fs.unlinkSync(__dirname + "/cache/1.png"));
 
-    const imageURL = "https://i.imgur.com/HTBT28S.jpeg";
+    const imageURL = "https://i.imgur.com/Uk66RZ0.jpeg";
 
     return request(encodeURI(imageURL))
         .pipe(fs.createWriteStream(__dirname + "/cache/1.png"))
