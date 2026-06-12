@@ -1,4 +1,4 @@
-/install textoff.js const BOSS     = "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐";
+const BOSS     = "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐";
 const BOX_TOP  = "╔══════════════════════════════╗";
 const BOX_MID  = "╠══════════════════════════════╣";
 const BOX_BOT  = "╚══════════════════════════════╝";
