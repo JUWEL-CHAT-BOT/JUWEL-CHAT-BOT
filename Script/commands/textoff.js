@@ -1,173 +1,197 @@
-module.exports.config = {
-  name: "textoff",
-  version: "3.0.0",
-  hasPermssion: 1,
-  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Full Text Off System (Pro)",
-  commandCategory: "group",
-  usages: "textoff | textoff 30m | textoff 2h",
-  cooldowns: 3
-};
+/install textoff.js const BOSS     = "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐";
+const BOX_TOP  = "╔══════════════════════════════╗";
+const BOX_MID  = "╠══════════════════════════════╣";
+const BOX_BOT  = "╚══════════════════════════════╝";
+const LINE     = "┃";
+const THIN     = "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄";
 
-// ───── STORAGE ─────
-const textOff = {};
-const pendingKick = {};
+// ================= TIME HELPERS =================
 
-// ───── HELPERS ─────
 function msToHuman(ms) {
-  if (!ms) return "Permanent";
-  let s = Math.floor(ms / 1000);
-  let h = Math.floor(s / 3600);
-  let m = Math.floor((s % 3600) / 60);
-  let sec = s % 60;
+    if (ms <= 0) return "০ সেকেন্ড";
 
-  let out = [];
-  if (h) out.push(h + "h");
-  if (m) out.push(m + "m");
-  if (!h && sec) out.push(sec + "s");
-  return out.join(" ");
+    const totalSec = Math.round(ms / 1000);
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+
+    const parts = [];
+    if (h > 0) parts.push(`${h} ঘন্টা`);
+    if (m > 0) parts.push(`${m} মিনিট`);
+    if (s > 0 && h === 0) parts.push(`${s} সেকেন্ড`);
+
+    return parts.join(" ");
 }
 
-function parse(args) {
-  if (!args[0]) return { perma: true, ms: null, txt: "Permanent" };
-
-  let x = args[0].toLowerCase();
-  let m = x.match(/^(\d+)m$/);
-  let h = x.match(/^(\d+)h$/);
-
-  if (m) return { perma: false, ms: m[1] * 60000, txt: m[1] + " Minutes" };
-  if (h) return { perma: false, ms: h[1] * 3600000, txt: h[1] + " Hours" };
-
-  return { perma: true, ms: null, txt: "Permanent" };
+function clockStr(ts) {
+    const d = new Date(ts);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    const ss = String(d.getSeconds()).padStart(2, "0");
+    return `${hh}:${mm}:${ss}`;
 }
 
-// ───── RUN ─────
-module.exports.run = async function ({ api, event, args }) {
-  const { threadID, senderID } = event;
+function unlockLine(endsAt) {
+    if (!endsAt) return `${LINE} 🔒 পার্মানেন্ট লক করা আছে`;
 
-  let info = await api.getThreadInfo(threadID);
-  let admins = info.adminIDs.map(a => a.id);
+    const rem = msToHuman(endsAt - Date.now());
 
-  if (!admins.includes(senderID))
-    return api.sendMessage("⛔ Only admin can use this", threadID);
+    return `${LINE} ⏳ আর ${rem} পরে আনলক হবে\n` +
+           `${LINE} 🕐 আনলক সময়: ${clockStr(endsAt)}`;
+}
 
-  let t = parse(args);
-  let end = t.perma ? null : Date.now() + t.ms;
+// ================= NOTICE BUILDERS =================
 
-  textOff[threadID] = {
-    active: true,
-    end,
-    owner: senderID,
-    time: t.txt
-  };
+function buildTextOffNotice(endsAt, permanent) {
+    const timeLine = permanent
+        ? `${LINE} 🔒 পার্মানেন্ট টেক্সট অফ করা হয়েছে`
+        : unlockLine(endsAt);
 
-  await api.sendMessage(
-`╔══════════════╗
-🔇 TEXT OFF ON
-╠══════════════╣
-⏳ Time: ${t.txt}
-👑 Owner: Active
-╚══════════════╝`,
-    threadID
-  );
+    return `${BOX_TOP}\n` +
+`${LINE} 🔇 গ্রুপ টেক্সট অফ নোটিশ 🔇\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} 👑 @everyone\n` +
+`${LINE} ${BOSS}\n` +
+`${LINE} এই গ্রুপের টেক্সট অফ করে দিছে!\n` +
+`${BOX_MID}\n` +
+`${LINE} ❌ নিষিদ্ধ:\n` +
+`${LINE} • টেক্সট মেসেজ\n` +
+`${LINE} • ইমোজি / স্টিকার\n` +
+`${LINE} • ফটো / ভিডিও\n` +
+`${LINE} • লিংক / ফাইল\n` +
+`${LINE}\n` +
+`${LINE} 🥾 নিয়ম ভাঙলে কিক দেওয়া হবে!\n` +
+`${BOX_MID}\n` +
+`${timeLine}\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-  // AUTO UNLOCK
-  if (!t.perma) {
-    setTimeout(async () => {
-      delete textOff[threadID];
+function buildWarnNotice(uname, durationStr, endsAt) {
+    const timeLine = endsAt
+        ? `${LINE} ⏳ আর ${msToHuman(endsAt - Date.now())} বাকি আছে`
+        : `${LINE} 🔒 পার্মানেন্ট চলছে`;
 
-      let msg = await api.sendMessage(
-        "✅ TEXT ON RESTORED\nEveryone can chat now 🟢",
-        threadID
-      );
+    return `${BOX_TOP}\n` +
+`${LINE} ⚠️ সতর্কতা ⚠️\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} 👤 @${uname}\n` +
+`${LINE} ${BOSS}\n` +
+`${LINE} ${durationStr} এর জন্য টেক্সট অফ আছে!\n` +
+`${BOX_MID}\n` +
+`${timeLine}\n` +
+`${LINE}\n` +
+`${LINE} এখনই মেসেজ ডিলিট করো!\n` +
+`${LINE} না করলে কিক হবে!\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-      setTimeout(() => {
-        api.unsendMessage(msg.messageID);
-      }, 120000);
+function buildKickNotice(uname, durationStr) {
+    return `${BOX_TOP}\n` +
+`${LINE} 🥾 কিক নোটিশ 🥾\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} 👤 @${uname}\n` +
+`${LINE} ${BOSS}\n` +
+`${LINE} ${durationStr} এর নিয়ম ভাঙা হয়েছে\n` +
+`${LINE} রিমুভ করা হলো!\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-    }, t.ms);
-  }
-};
+function buildNoAdminNotice(uname) {
+    return `${BOX_TOP}\n` +
+`${LINE} ℹ️ বট নোটিশ ℹ️\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} 😔 আমি এডমিন না!\n` +
+`${LINE} তাই @${uname} কে কিক দিতে পারলাম না\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-// ───── EVENT LISTENER ─────
-module.exports.handleEvent = async function ({ api, event }) {
-  const { threadID, senderID, messageID } = event;
-  if (!textOff[threadID]?.active) return;
+function buildTextOnNotice() {
+    return `${BOX_TOP}\n` +
+`${LINE} ✅ টেক্সট আনলক নোটিশ ✅\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} 🎉 @everyone\n` +
+`${LINE} এখন সবাই মেসেজ করতে পারবে\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-  let info = await api.getThreadInfo(threadID);
-  let admins = info.adminIDs.map(a => a.id);
+function buildAdminOnlyNotice() {
+    return `${BOX_TOP}\n` +
+`${LINE} ⛔ অ্যাক্সেস নেই ⛔\n` +
+`${BOX_MID}\n` +
+`${LINE}\n` +
+`${LINE} শুধু এডমিন ব্যবহার করতে পারবে\n` +
+`${BOX_BOT}\n` +
+`${THIN}\n` +
+`🤖 Bot by ${BOSS}`;
+}
 
-  let botID = api.getCurrentUserID();
+// ================= ARG PARSER =================
 
-  // allowed users
-  if (
-    admins.includes(senderID) ||
-    senderID === botID ||
-    senderID === textOff[threadID].owner
-  ) return;
+function parseTime(args) {
+    if (!args[0]) return { perma: true, ms: null, txt: "পার্মানেন্ট" };
 
-  let user = await api.getUserInfo(senderID);
-  let name = user[senderID]?.name || "User";
+    const x = args[0].toLowerCase();
+    const m = x.match(/^(\d+)m$/);
+    const h = x.match(/^(\d+)h$/);
 
-  let warn = await api.sendMessage(
-`╔══════════════╗
-⚠️ WARNING
-╠══════════════╣
-👤 ${name}
-🚫 Text Off Active
-⏳ Delete message or kick in 10s
-╚══════════════╝`,
-    threadID,
-    messageID
-  );
+    if (m) return { perma: false, ms: m[1] * 60000, txt: `${m[1]} মিনিট` };
+    if (h) return { perma: false, ms: h[1] * 3600000, txt: `${h[1]} ঘন্টা` };
 
-  if (!pendingKick[threadID]) pendingKick[threadID] = {};
+    return { perma: true, ms: null, txt: "পার্মানেন্ট" };
+}
 
-  if (pendingKick[threadID][senderID]?.timer)
-    clearTimeout(pendingKick[threadID][senderID].timer);
+// ================= EXPORT =================
 
-  pendingKick[threadID][senderID] = {
-    warnID: warn.messageID,
-    timer: setTimeout(async () => {
+module.exports = {
+    config: {
+        name: "textoff",
+        version: "4.0.0",
+        hasPermssion: 1,
+        credits: BOSS,
+        description: "Text Off System",
+        commandCategory: "group",
+        usages: "textoff | textoff 30m | textoff 2h",
+        cooldowns: 3
+    },
 
-      let kickText =
-`╔══════════════╗
-🥾 KICKED
-╠══════════════╣
-👤 ${name}
-🚫 Rule Break
-╚══════════════╝`;
+    run: async function({ api, event, args }) {
+        const { threadID, senderID } = event;
 
-      try {
-        await api.editMessage(kickText, warn.messageID);
-      } catch {
-        await api.sendMessage(kickText, threadID);
-      }
+        const info = await api.getThreadInfo(threadID);
+        const admins = info.adminIDs.map(i => i.id);
 
-      setTimeout(() => {
-        api.removeUserFromGroup(senderID, threadID);
-      }, 2000);
+        if (!admins.includes(senderID))
+            return api.sendMessage(buildAdminOnlyNotice(senderID), threadID);
 
-      delete pendingKick[threadID][senderID];
+        const t = parseTime(args);
+        const end = t.perma ? null : Date.now() + t.ms;
 
-    }, 10000)
-  };
-};
+        const msg = await api.sendMessage(
+            buildTextOffNotice(end, t.perma),
+            threadID
+        );
 
-// ───── UNSEND DETECT ─────
-module.exports.onMessageUnsend = async function ({ api, event }) {
-  const { threadID, senderID, messageID } = event;
-
-  if (!pendingKick[threadID]?.[senderID]) return;
-
-  const data = pendingKick[threadID][senderID];
-
-  if (data.warnID) {
-    try {
-      await api.unsendMessage(data.warnID);
-    } catch {}
-  }
-
-  clearTimeout(data.timer);
-  delete pendingKick[threadID][senderID];
+        if (!t.perma) {
+            setTimeout(async () => {
+                try {
+                    await api.sendMessage(buildTextOnNotice(), threadID);
+                } catch {}
+            }, t.ms);
+        }
+    }
 };
