@@ -9,8 +9,8 @@ module.exports.config = {
         "log:thread-color",
         "log:thread-image"
     ],
-    version: "6.0.0",
-    credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+    version: "6.0.1",
+    credits: "M R | JUWEL",
     description: "Advanced Stylish Group Update System",
     envConfig: {
         sendNoti: true
@@ -33,70 +33,70 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
 
             rainbow: {
                 top: "🌈━━━━━━━━━━━━━━━━🌈",
-                title: "𝗥𝗔𝗜𝗡𝗕𝗢𝗪 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "RAINBOW UPDATE",
                 bottom: "🌈━━━━━━━━━━━━━━━━🌈",
                 icon: "🌈"
             },
 
             fire: {
                 top: "🔥━━━━━━━━━━━━━━━━🔥",
-                title: "𝗙𝗜𝗥𝗘 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "FIRE UPDATE",
                 bottom: "🔥━━━━━━━━━━━━━━━━🔥",
                 icon: "🔥"
             },
 
             galaxy: {
                 top: "🌌━━━━━━━━━━━━━━━━🌌",
-                title: "𝗚𝗔𝗟𝗔𝗫𝗬 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "GALAXY UPDATE",
                 bottom: "🌌━━━━━━━━━━━━━━━━🌌",
                 icon: "🌌"
             },
 
             cyber: {
                 top: "🤖━━━━━━━━━━━━━━━━🤖",
-                title: "𝗖𝗬𝗕𝗘𝗥 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "CYBER UPDATE",
                 bottom: "🤖━━━━━━━━━━━━━━━━🤖",
                 icon: "🤖"
             },
 
             king: {
                 top: "👑━━━━━━━━━━━━━━━━👑",
-                title: "𝗞𝗜𝗡𝗚 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "KING UPDATE",
                 bottom: "👑━━━━━━━━━━━━━━━━👑",
                 icon: "👑"
             },
 
             neon: {
                 top: "🪩━━━━━━━━━━━━━━━━🪩",
-                title: "𝗡𝗘𝗢𝗡 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "NEON UPDATE",
                 bottom: "🪩━━━━━━━━━━━━━━━━🪩",
                 icon: "🪩"
             },
 
             diamond: {
                 top: "💎━━━━━━━━━━━━━━━━💎",
-                title: "𝗗𝗜𝗔𝗠𝗢𝗡𝗗 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "DIAMOND UPDATE",
                 bottom: "💎━━━━━━━━━━━━━━━━💎",
                 icon: "💎"
             },
 
             anime: {
                 top: "🎌━━━━━━━━━━━━━━━━🎌",
-                title: "𝗔𝗡𝗜𝗠𝗘 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "ANIME UPDATE",
                 bottom: "🎌━━━━━━━━━━━━━━━━🎌",
                 icon: "🎌"
             },
 
             hacker: {
                 top: "💻━━━━━━━━━━━━━━━━💻",
-                title: "𝗛𝗔𝗖𝗞𝗘𝗥 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "HACKER UPDATE",
                 bottom: "💻━━━━━━━━━━━━━━━━💻",
                 icon: "💻"
             },
 
             thunder: {
                 top: "⚡━━━━━━━━━━━━━━━━⚡",
-                title: "𝗧𝗛𝗨𝗡𝗗𝗘𝗥 𝗨𝗣𝗗𝗔𝗧𝗘",
+                title: "THUNDER UPDATE",
                 bottom: "⚡━━━━━━━━━━━━━━━━⚡",
                 icon: "⚡"
             }
@@ -119,7 +119,22 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
 
     async function getUser(uid) {
 
-        const name = await Users.getNameUser(uid);
+        if (!uid) {
+            return {
+                name: "Unknown User",
+                mentions: []
+            };
+        }
+
+        let name = "Unknown User";
+
+        try {
+            name = await Users.getNameUser(uid);
+        } catch (e) {
+            name = "Unknown User";
+        }
+
+        if (!name) name = "Unknown User";
 
         return {
             name,
@@ -151,7 +166,7 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
 
         return api.sendMessage({
             body,
-            mentions
+            mentions: mentions.filter(Boolean)
         }, threadID);
     }
 
@@ -167,11 +182,18 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
 
             case "log:thread-admins": {
 
+                // Debug log - check console output to confirm field names if it still fails
+                console.log("[ADMIN UPDATE DEBUG]", JSON.stringify(event.logMessageData), "AUTHOR:", event.author, "SENDER:", event.senderID);
+
                 const target =
-                    event.logMessageData.TARGET_ID;
+                    event.logMessageData.TARGET_ID ||
+                    event.logMessageData.target_id;
 
                 const author =
                     event.author ||
+                    event.logMessageData.ADMINID ||
+                    event.logMessageData.MANAGER_FBID ||
+                    event.logMessageData.author ||
                     event.senderID;
 
                 const user =
@@ -180,12 +202,23 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
                 const admin =
                     await getUser(author);
 
+                const adminEvent =
+                    event.logMessageData.ADMIN_EVENT ||
+                    event.logMessageData.admin_event;
+
+                const isAdded =
+                    adminEvent === true ||
+                    adminEvent === "true" ||
+                    adminEvent === "add_admin";
+
+                const isRemoved =
+                    adminEvent === false ||
+                    adminEvent === "false" ||
+                    adminEvent === "remove_admin";
+
                 // ADD ADMIN
 
-                if (
-                    event.logMessageData.ADMIN_EVENT == "add_admin" ||
-                    event.logMessageData.admin_event == "add_admin"
-                ) {
+                if (isAdded) {
 
                     if (!info.adminIDs.some(
                         i => i.id == target
@@ -196,7 +229,7 @@ module.exports.run = async function ({ api, event, Threads, Users }) {
                         });
                     }
 
-                    return send(
+                    await send(
 
 `${theme.top}
 👑 ${theme.title}
@@ -210,7 +243,7 @@ ${user.name}
 ⚡ Added By :
 ${admin.name}
 
-🎉 তাকে Admin বানানো হয়েছে
+🎉 তাকে Admin বানানো হয়েছে
 🔥 Team Power Increased
 
 ${theme.bottom}`,
@@ -221,18 +254,20 @@ admin.mentions[0]
 ]
 
                     );
+
+                    break;
                 }
 
                 // REMOVE ADMIN
 
-                else {
+                if (isRemoved) {
 
                     info.adminIDs =
                         info.adminIDs.filter(
                             i => i.id != target
                         );
 
-                    return send(
+                    await send(
 
 `${theme.top}
 ❌ ${theme.title}
@@ -246,7 +281,7 @@ ${user.name}
 ⚡ Removed By :
 ${admin.name}
 
-💀 তার Admin Power Remove করা হয়েছে
+💀 তার Admin Power Remove করা হয়েছে
 
 ${theme.bottom}`,
 
@@ -256,7 +291,14 @@ admin.mentions[0]
 ]
 
                     );
+
+                    break;
                 }
+
+                // Fallback: unknown adminEvent value, still try to guess
+                console.log("[ADMIN UPDATE] Unhandled ADMIN_EVENT value:", adminEvent);
+
+                break;
             }
 
             // ===================================================
@@ -274,7 +316,7 @@ admin.mentions[0]
 
                 info.threadName = newName;
 
-                return send(
+                await send(
 
 `${theme.top}
 🏷️ ${theme.title}
@@ -293,6 +335,8 @@ ${newName}
 ${theme.bottom}`
 
                 );
+
+                break;
             }
 
             // ===================================================
@@ -317,7 +361,7 @@ ${theme.bottom}`
                 const user =
                     await getUser(uid);
 
-                return send(
+                await send(
 
 `${theme.top}
 🏷️ ${theme.title}
@@ -341,6 +385,8 @@ ${theme.bottom}`,
 [user.mentions[0]]
 
                 );
+
+                break;
             }
 
             // ===================================================
@@ -356,7 +402,7 @@ ${theme.bottom}`,
 
                 info.threadIcon = icon;
 
-                return send(
+                await send(
 
 `${theme.top}
 🎭 ${theme.title}
@@ -372,6 +418,8 @@ ${icon}
 ${theme.bottom}`
 
                 );
+
+                break;
             }
 
             // ===================================================
@@ -380,7 +428,7 @@ ${theme.bottom}`
 
             case "log:thread-color": {
 
-                return send(
+                await send(
 
 `${theme.top}
 🎨 ${theme.title}
@@ -394,6 +442,8 @@ ${theme.bottom}
 ${theme.bottom}`
 
                 );
+
+                break;
             }
 
             // ===================================================
@@ -402,7 +452,7 @@ ${theme.bottom}`
 
             case "log:thread-image": {
 
-                return send(
+                await send(
 
 `${theme.top}
 🖼️ ${theme.title}
@@ -416,6 +466,8 @@ ${theme.bottom}
 ${theme.bottom}`
 
                 );
+
+                break;
             }
 
             // ===================================================
@@ -436,7 +488,7 @@ ${theme.bottom}`
                             event.logMessageData.caller_id
                         );
 
-                    return send(
+                    await send(
 
 `${theme.top}
 📞 ${theme.title}
@@ -454,6 +506,8 @@ ${theme.bottom}`,
 [caller.mentions[0]]
 
                     );
+
+                    break;
                 }
 
                 // CALL END
@@ -483,7 +537,7 @@ ${theme.bottom}`,
                             duration % 60
                         ).padStart(2, '0');
 
-                    return send(
+                    await send(
 
 `${theme.top}
 📴 ${theme.title}
@@ -499,6 +553,8 @@ ${h}:${m}:${s}
 ${theme.bottom}`
 
                     );
+
+                    break;
                 }
 
                 // JOIN CALL
@@ -512,7 +568,7 @@ ${theme.bottom}`
                             event.logMessageData.joining_user
                         );
 
-                    return send(
+                    await send(
 
 `${theme.top}
 📞 ${theme.title}
@@ -530,6 +586,8 @@ ${theme.bottom}`,
 [user.mentions[0]]
 
                     );
+
+                    break;
                 }
 
                 break;
