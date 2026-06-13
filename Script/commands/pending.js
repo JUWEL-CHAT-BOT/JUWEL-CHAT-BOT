@@ -91,11 +91,23 @@ module.exports.handleReply = async function({ api, event, handleReply, getText }
         return api.sendMessage(getText("invaildNumber", num), threadID, messageID);
       }
 
-      try {
-        const groupID = handleReply.pending[index - 1].threadID;
+      const groupID = handleReply.pending[index - 1].threadID;
 
+      // ✅ গ্রুপটা প্রসেস হয়েছে ধরে নিচ্ছি, count আগেই বাড়িয়ে দিচ্ছি
+      // যাতে welcome message পাঠাতে সমস্যা হলেও approve count ঠিক দেখায়
+      count++;
+
+      try {
         // 🔥 NOTI BOX 1 (UNCHANGED)
-        await api.sendMessage(`চ্ঁলে্ঁ এ্ঁসে্ঁছি্ঁ ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐ এঁখঁনঁ তোঁমাঁদেঁরঁ সাঁথেঁ আঁড্ডাঁ দিঁবঁ..!😘`, groupID);
+        await api.sendMessage(`চ্ঁলে্ঁ এ্ঁসে্ঁছি্ঁ ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐ এঁখঁনঁ তোঁমাঁদেঁরঁ সাঁথেঁ আঁড্ডাঁ দিঁবঁ..!😘`, groupID);
+
+        // 🔥 বটের নিকনেম সেট করা
+        try {
+          await api.changeNickname("⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐", groupID, api.getCurrentUserID());
+        } catch (e) {}
+
+        // সামান্য delay দিয়ে rate-limit এড়ানো
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         // 🔥 NOTI BOX 2 (UNCHANGED)
         await api.sendMessage(`╭•┄┅═══❁🌺❁═══┅┄•╮
@@ -115,9 +127,10 @@ ${global.config.PREFIX}admin
 
 ❖⋆══════════════⋆❖
 𝐎𝐰𝐧𝐞𝐫➢ 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋`, groupID);
-
-        count++;
       } catch (e) {}
+
+      // পরের গ্রুপ প্রসেস করার আগে delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     return api.sendMessage(getText("approveSuccess", count), threadID, messageID);
