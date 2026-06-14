@@ -109,7 +109,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 🤖 Bot ব্লক করছে 📵
 বা privacy tight করে রাখছে
 
-📩 রিপোর্ট আইডি: 100071528325738`);
+📩 রিপোর্ট আইডি: 61567576882007`);
 
         api.sendMessage(msg, threadID);
 
