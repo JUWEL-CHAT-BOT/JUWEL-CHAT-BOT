@@ -12,7 +12,7 @@ if (!fs.existsSync(nicknameDataPath)) {
 
 module.exports.config = {
 	name: "setname",
-	version: "9.0.0",
+	version: "9.0.1",
 	hasPermssion: 0,
 	credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
 	description: "Advanced বাংলা Nickname System",
@@ -85,7 +85,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 
 ⚠️ একজন ইউজার অন্য একজনের nickname পরিবর্তন করার চেষ্টা করেছে।
 
-✅ আগের nickname আবার ফিরিয়ে দেওয়া হয়েছে।`,
+✅ আগের nickname আবার ফিরিয়ে দেওয়া হয়েছে।`,
 			threadID
 		);
 
@@ -107,6 +107,10 @@ module.exports.run = async function ({ api, event, args, Users }) {
 			"bal", "khanki", "magi", "choda",
 			"চোদ", "মাগী", "বাল", "খানকি"
 		];
+
+		// Helper: Unicode-aware length check (handles emoji, multi-byte, combining chars)
+		const getCharLength = (str) => Array.from(str).length;
+		const MAX_NAME_LENGTH = 50; // Facebook's actual safe limit
 
 		if (!args[0]) {
 
@@ -146,7 +150,7 @@ module.exports.run = async function ({ api, event, args, Users }) {
    ✅ নাম রিসেট সফল
 ╚════════════════╝
 
-👤 রিপ্লাই করা ইউজারের nickname remove করা হয়েছে।`,
+👤 রিপ্লাই করা ইউজারের nickname remove করা হয়েছে।`,
 					threadID,
 					event.messageID
 				);
@@ -169,7 +173,7 @@ module.exports.run = async function ({ api, event, args, Users }) {
    ✅ নাম রিসেট সফল
 ╚════════════════╝
 
-👥 Mention করা ইউজারদের nickname remove করা হয়েছে।`,
+👥 Mention করা ইউজারদের nickname remove করা হয়েছে।`,
 					threadID,
 					event.messageID
 				);
@@ -246,15 +250,15 @@ module.exports.run = async function ({ api, event, args, Users }) {
 				}
 			}
 
-			// NAME LIMIT
-			if (newName.length > 32) {
+			// NAME LIMIT (Unicode-aware)
+			if (getCharLength(newName) > MAX_NAME_LENGTH) {
 
 				return api.sendMessage(
 `╔════════════════╗
-   ⚠️ নাম অনেক বড়!
+   ⚠️ নাম অনেক বড়!
 ╚════════════════╝
 
-📛 সর্বোচ্চ ৩২ অক্ষরের নাম দিতে পারবেন।`,
+📛 সর্বোচ্চ ${MAX_NAME_LENGTH} অক্ষরের নাম দিতে পারবেন।`,
 					threadID,
 					event.messageID
 				);
@@ -274,7 +278,9 @@ module.exports.run = async function ({ api, event, args, Users }) {
 
 					success++;
 
-				} catch (e) {}
+				} catch (e) {
+					console.log("Nickname change failed for", uid, e.message);
+				}
 			}
 
 			return api.sendMessage(
@@ -285,13 +291,13 @@ module.exports.run = async function ({ api, event, args, Users }) {
 👥 মোট সদস্য:
 ${targetUsers.length}
 
-✅ সফল হয়েছে:
+✅ সফল হয়েছে:
 ${success}
 
 📛 নতুন নাম:
 ${newName}
 
-🎉 গ্রুপের সবার nickname পরিবর্তন করা হয়েছে।`,
+🎉 গ্রুপের সবার nickname পরিবর্তন করা হয়েছে।`,
 				threadID,
 				event.messageID
 			);
@@ -356,43 +362,67 @@ ${newName}
 			);
 		}
 
-		// NAME LIMIT
-		if (newName.length > 32) {
+		// NAME LIMIT (Unicode-aware)
+		if (getCharLength(newName) > MAX_NAME_LENGTH) {
 
 			return api.sendMessage(
 `╔════════════════╗
-   ⚠️ নাম অনেক বড়!
+   ⚠️ নাম অনেক বড়!
 ╚════════════════╝
 
-📛 সর্বোচ্চ ৩২ অক্ষরের নাম দিতে পারবেন।`,
+📛 সর্বোচ্চ ${MAX_NAME_LENGTH} অক্ষরের নাম দিতে পারবেন।`,
 				threadID,
 				event.messageID
 			);
 		}
 
 		// CHANGE NICKNAME
+		let changeErrors = [];
+
 		for (const uid of targetUsers) {
 
-			await api.changeNickname(
-				newName,
-				threadID,
-				uid
-			);
+			try {
 
-			// SAVE BACKUP
-			let data = JSON.parse(
-				fs.readFileSync(nicknameDataPath)
-			);
+				await api.changeNickname(
+					newName,
+					threadID,
+					uid
+				);
 
-			if (!data[threadID]) {
-				data[threadID] = {};
+				// SAVE BACKUP
+				let data = JSON.parse(
+					fs.readFileSync(nicknameDataPath)
+				);
+
+				if (!data[threadID]) {
+					data[threadID] = {};
+				}
+
+				data[threadID][uid] = newName;
+
+				fs.writeFileSync(
+					nicknameDataPath,
+					JSON.stringify(data, null, 2)
+				);
+
+			} catch (e) {
+				console.log("Nickname change failed for", uid, e.message);
+				changeErrors.push(uid);
 			}
+		}
 
-			data[threadID][uid] = newName;
+		// IF ALL FAILED
+		if (changeErrors.length === targetUsers.length) {
 
-			fs.writeFileSync(
-				nicknameDataPath,
-				JSON.stringify(data, null, 2)
+			return api.sendMessage(
+`╔════════════════╗
+      ❌ Error
+╚════════════════╝
+
+⚠️ nickname পরিবর্তন করা যায়নি।
+এই নামটি Facebook গ্রহণ করেনি, অন্য একটি নাম চেষ্টা করুন।`,
+				threadID,
+				event.messageID
 			);
 		}
 
@@ -429,10 +459,10 @@ ${newName}
 👥 মোট ইউজার:
 ${targetUsers.length}
 
-🎯 যাদের নাম পরিবর্তন হয়েছে:
+🎯 যাদের নাম পরিবর্তন হয়েছে:
 ${userNames.join("\n")}
 
-✅ সফলভাবে nickname পরিবর্তন করা হয়েছে`,
+✅ সফলভাবে nickname পরিবর্তন করা হয়েছে`,
 			threadID,
 			event.messageID
 		);
@@ -446,7 +476,7 @@ ${userNames.join("\n")}
       ❌ Error
 ╚════════════════╝
 
-⚠️ nickname পরিবর্তন করা যায়নি।`,
+⚠️ nickname পরিবর্তন করা যায়নি।`,
 			event.threadID,
 			event.messageID
 		);
