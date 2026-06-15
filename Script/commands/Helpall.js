@@ -45,7 +45,7 @@ ${allCommands.map(cmd => `┃ 🔹 ${cmd}`).join("\n")}
 `;
 
   const imgPath = __dirname + "/cache/helpallbg.jpg";
-  const bg = "https://i.imgur.com/i64Kpz3.jpeg";
+  const bg = "https://i.imgur.com/piIpRZ5.jpeg";
 
   try {
     const res = await axios({
