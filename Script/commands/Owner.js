@@ -18,7 +18,7 @@ module.exports.config = {
 };
 
 module.exports.run = async function ({ api, event }) {
- const imageUrl = "https://i.imgur.com/7C62OY1.jpeg";
+ const imageUrl = "https://i.imgur.com/iA23wiL.jpeg";
  const path = __dirname + "/cache/owner.png";
 
  request(imageUrl)
