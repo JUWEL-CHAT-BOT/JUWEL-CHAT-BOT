@@ -133,7 +133,7 @@ module.exports.run = async function ({ api, event }) {
         attachment: fs.createReadStream(__dirname + "/cache/1.png")
     }, event.threadID, () => fs.unlinkSync(__dirname + "/cache/1.png"));
 
-    const imageURL = "https://i.imgur.com/Uk66RZ0.jpeg";
+    const imageURL = "https://i.imgur.com/C7JxBBW.jpeg";
 
     return request(encodeURI(imageURL))
         .pipe(fs.createWriteStream(__dirname + "/cache/1.png"))
