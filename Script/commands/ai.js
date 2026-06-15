@@ -1,127 +1,104 @@
 const axios = require("axios");
+const fs = require("fs");
+
+const apiUrl = "https://api.nixhost.top/aryan/gemini";
+const dbPath = __dirname + "/gemini_db.json";
+
+function loadDB() {
+  if (!fs.existsSync(dbPath)) fs.writeFileSync(dbPath, "{}");
+  return JSON.parse(fs.readFileSync(dbPath, "utf8"));
+}
+
+function saveDB(data) {
+  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+}
 
 module.exports.config = {
- name: "ai",
- version: "2.0",
- hasPermssion: 0,
- credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
- description: "Premium AI Chat with Auto Reply",
- commandCategory: "ai",
- usages: "[question]",
- cooldowns: 3
+  name: "gemini",
+  version: "1.0",
+  hasPermssion: 0,
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  description: "Gemini AI Chat (UI + reply system)",
+  commandCategory: "ai",
+  usages: "[question]",
+  cooldowns: 5,
+  aliases: ["ai", "gem"]
 };
 
-// 🔗 API BASE
-const mahmud = async () => {
- const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
- return base.data.mahmud;
+module.exports.run = async function({ api, event, args }) {
+  const { threadID, messageID, senderID } = event;
+  const content = args.join(" ");
+
+  if (!content) {
+    return api.sendMessage("❌ কিছু জিজ্ঞেস করো বেবি ❤️", threadID, messageID);
+  }
+
+  return askAI(api, threadID, messageID, senderID, content);
 };
 
-// ✨ UI STYLE
-function formatReply(text) {
- return `╭──『 🤖 AI 』──╮\n${text}\n╰──────────────╯`;
+// Reply handler
+module.exports.handleEvent = async function({ api, event }) {
+  const { threadID, messageID, senderID, messageReply, body } = event;
+
+  if (!messageReply || !body) return;
+
+  const db = loadDB();
+  if (!db[messageReply.messageID]) return;
+
+  return askAI(api, threadID, messageID, senderID, body);
+};
+
+async function askAI(api, threadID, messageID, senderID, content) {
+
+  api.sendMessage("🔎 প্রশ্ন খুঁজতেছি...\n⏳ অপেক্ষা করো বেবি...", threadID, async (err, info) => {
+    try {
+
+      const res = await axios.get(apiUrl, {
+        params: { prompt: content, q: content }
+      });
+
+      const answer =
+        res.data.answer ||
+        res.data.response ||
+        res.data.result ||
+        res.data.message ||
+        JSON.stringify(res.data);
+
+      // UI DESIGN
+      const ui = `
+╭─❍
+│ 🤖 AI ASSISTANT
+╰───────────────⧕
+
+📝 𝗬𝗼𝘂𝗿 𝗤𝘂𝗲𝘀𝘁𝗶𝗼𝗻:
+╭─────────────
+${content}
+╰─────────────
+
+💬 𝗔𝗜 𝗥𝗲𝗽𝗹𝘆:
+╭─────────────
+${answer}
+╰─────────────
+
+╭─────────────
+│ ❤️ Gemini AI Chat
+│ 👑 Credits: 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
+╰─────────────
+`;
+
+      api.editMessage(ui, info.messageID);
+
+      // Save for reply tracking
+      const db = loadDB();
+      db[info.messageID] = {
+        threadID,
+        senderID,
+        prompt: content
+      };
+      saveDB(db);
+
+    } catch (e) {
+      api.editMessage("❌ Error: " + e.message, info.messageID);
+    }
+  }, messageID);
 }
-
-// ⚡ Typing Effect
-async function sendTyping(api, threadID) {
- return new Promise(resolve => {
- api.sendTypingIndicator(threadID, true);
- setTimeout(() => {
- api.sendTypingIndicator(threadID, false);
- resolve();
- }, 1500);
- });
-}
-
-// 🚀 RUN COMMAND
-module.exports.run = async function ({ api, event, args }) {
- try {
- const query = args.join(" ");
- if (!query) {
- return api.sendMessage("⚠️ কিছু লিখো! Example: /ai তুমি কে?", event.threadID, event.messageID);
- }
-
- await sendTyping(api, event.threadID);
-
- const baseUrl = await mahmud();
- const res = await axios.post(`${baseUrl}/api/ai`, { question: query });
-
- const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
-
- return api.sendMessage(reply, event.threadID, (err, info) => {
- if (!err) {
- global.client.handleReply.set(info.messageID, {
- name: module.exports.config.name,
- author: event.senderID
- });
- }
- }, event.messageID);
-
- } catch (err) {
- return api.sendMessage("× API Error: " + err.message, event.threadID);
- }
-};
-
-// 🔁 REPLY CONTINUE CHAT
-module.exports.handleReply = async function ({ api, event, handleReply, args }) {
- if (event.senderID != handleReply.author) return;
-
- const prompt = args.join(" ");
- if (!prompt) return;
-
- await sendTyping(api, event.threadID);
-
- try {
- const baseUrl = await mahmud();
- const res = await axios.post(`${baseUrl}/api/ai`, { question: prompt });
-
- const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
-
- return api.sendMessage(reply, event.threadID, (err, info) => {
- if (!err) {
- global.client.handleReply.set(info.messageID, {
- name: module.exports.config.name,
- author: event.senderID
- });
- }
- }, event.messageID);
-
- } catch (err) {
- return api.sendMessage("× API Error: " + err.message, event.threadID);
- }
-};
-
-// 🤖 AUTO CHAT (mention দিলে)
-module.exports.handleEvent = async function ({ api, event }) {
- try {
- if (!event.body) return;
-
- // bot UID
- const botID = api.getCurrentUserID();
-
- // mention check
- if (!event.mentions || !event.mentions[botID]) return;
-
- const msg = event.body.replace(/@\S+/g, "").trim();
- if (!msg) return;
-
- await sendTyping(api, event.threadID);
-
- const baseUrl = await mahmud();
- const res = await axios.post(`${baseUrl}/api/ai`, { question: msg });
-
- const reply = formatReply(res.data.response || "× কোনো উত্তর পাওয়া যায়নি!");
-
- return api.sendMessage(reply, event.threadID, (err, info) => {
- if (!err) {
- global.client.handleReply.set(info.messageID, {
- name: module.exports.config.name,
- author: event.senderID
- });
- }
- });
-
- } catch (e) {
- console.log("AutoChat Error:", e.message);
- }
-};
