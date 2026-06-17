@@ -1,14 +1,12 @@
 module.exports.config = {
   name: "guardian",
-  eventType: ["log:thread-admins", "log:unsubscribe"],
+  eventType: ["log:thread-admins", "log:unsubscribe", "log:thread-name"],
   version: "4.0.0",
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "Owner Protection System"
 };
 
 const OWNER_UID = "61567576882007";
-
-// রিপোর্ট কোথায় যাবে
 const BOT_ADMIN_UID = "61567576882007";
 
 module.exports.run = async function ({ api, event }) {
@@ -28,17 +26,17 @@ module.exports.run = async function ({ api, event }) {
     // OWNER ADMIN REMOVE
     // ==========================
     if (event.logMessageType === "log:thread-admins") {
-
-      const targetID = event.logMessageData.TARGET_ID;
+      console.log("Admin Event:", JSON.stringify(event, null, 2));
+      
+      const targetID = event.logMessageData?.TARGET_ID || event.logMessageData?.target_id;
       const actorID = event.author;
+      
+      const isAdminRemove = event.logMessageData?.ADMIN_EVENT === "remove_admin" || 
+                           event.logMessageData?.admin_event === "remove_admin" ||
+                           (event.logMessageData?.type === "remove_admin");
 
-      if (
-        targetID == OWNER_UID &&
-        event.logMessageData.ADMIN_EVENT == "remove_admin"
-      ) {
-
+      if (targetID == OWNER_UID && isAdminRemove) {
         const name = await getUserName(actorID);
-
         await api.changeAdminStatus(threadID, OWNER_UID, true).catch(() => {});
 
         const groupWarn =
@@ -80,8 +78,7 @@ module.exports.run = async function ({ api, event }) {
 
 📍 Thread ID : ${threadID}
 
-⚠️ Action :
-Owner Admin Remove
+⚠️ Action : Owner Admin Remove
 
 ✅ Owner Re-Admin Success
 
@@ -96,22 +93,59 @@ Owner Admin Remove
     }
 
     // ==========================
-    // OWNER KICK
+    // OWNER KICK OR LEAVE - UPDATED
     // ==========================
     if (event.logMessageType === "log:unsubscribe") {
-
-      const leftID = event.logMessageData.leftParticipantFbId;
+      const leftID = event.logMessageData?.leftParticipantFbId || event.logMessageData?.participant_id;
       const actorID = event.author;
 
-      if (
-        leftID == OWNER_UID &&
-        actorID != OWNER_UID
-      ) {
+      // 🔥 NEW: চেক করুন Owner নিজে লিভ নিয়েছে কিনা
+      const isOwnerSelfLeave = (leftID == OWNER_UID && actorID == OWNER_UID);
+      
+      // 🔥 NEW: চেক করুন অন্য কেউ Owner কে কিক করেছে কিনা
+      const isOwnerKicked = (leftID == OWNER_UID && actorID != OWNER_UID);
 
+      if (isOwnerSelfLeave) {
+        // 🟢 Owner নিজে লিভ নিলে - শুধু নোটিফিকেশন
+        console.log(`⚠️ Owner নিজে লিভ নিয়েছে: ${threadID}`);
+        
+        await api.addUserToGroup(OWNER_UID, threadID).catch(() => {});
+        setTimeout(async () => {
+          await api.changeAdminStatus(threadID, OWNER_UID, true).catch(() => {});
+        }, 1500);
+
+        const selfLeaveMsg =
+`╔══════════════════════╗
+║      🛡️ OWNER GUARDIAN
+╚══════════════════════╝
+
+👑 জুয়েল বস নিজে গ্রুপ ছেড়েছেন!
+
+🔄 কিন্তু বটের নিরাপত্তা ব্যবস্থা
+তাকে পুনরায় গ্রুপে যোগ দিয়েছে।
+
+✅ তাকে আবার Admin করা হয়েছে।
+
+💡 মনে রাখবেন: Owner ছাড়া
+এই গ্রুপ চলতে পারে না!
+
+━━━━━━━━━━━━━━━━━━
+⚖️ OWNER PROTECTION SYSTEM
+🛡️ GUARDIAN SECURITY ACTIVE
+━━━━━━━━━━━━━━━━━━`;
+
+        await api.sendMessage(selfLeaveMsg, threadID);
+
+        await api.sendMessage(
+          `👑 Owner নিজে লিভ নিয়েছে!\n📍 Thread: ${threadID}\n✅ পুনরায় যোগ করেছি`,
+          BOT_ADMIN_UID
+        ).catch(() => {});
+
+      } else if (isOwnerKicked) {
+        // 🔴 কেউ Owner কে কিক করলে - পুরোনো সিস্টেম
         const name = await getUserName(actorID);
 
         await api.addUserToGroup(OWNER_UID, threadID).catch(() => {});
-
         setTimeout(async () => {
           await api.changeAdminStatus(threadID, OWNER_UID, true).catch(() => {});
         }, 1500);
@@ -159,8 +193,7 @@ Owner Admin Remove
 
 📍 Thread ID : ${threadID}
 
-⚠️ Action :
-Owner Kick
+⚠️ Action : Owner Kick
 
 ✅ Owner Re-Added
 ✅ Owner Re-Admin
