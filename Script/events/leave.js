@@ -27,6 +27,10 @@ module.exports.run = async function ({ api, event, Users }) {
     // ❌ Self leave ignore
     if (leftID == authorID) return;
 
+    // 🔥 আপনার নিজের আইডি চেক - আপনি কিক হলে কোড কাজ করবে না
+    const YOUR_FB_ID = "61567576882007"; // ← এখানে আপনার FB আইডি দিন
+    if (leftID == YOUR_FB_ID) return;
+
     // ⏱️ Cooldown 20s
     if (cooldown.has(threadID)) return;
     cooldown.set(threadID, true);
