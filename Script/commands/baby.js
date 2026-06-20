@@ -206,7 +206,10 @@ module.exports.handleEvent = async function ({ api, event }) {
     const body = event.body ? event.body.toLowerCase() : "";
 
     // Bengali trigger words with English and Bengali equivalents
-    const triggerWords = ["Riya", "রিয়া", "bbz", "kolixa", "রিয়া আছো", "Riya", "babu", "রিয়া কেমন আছো", "বিবি", "জান", "কলিজা", "বাবু", "বিবিজেড"];
+    const triggerWords = ["Riya", "রিয়া", "riya", "bbz", "kolixa", "রিয়া আছো", "Riya", "babu", "রিয়া কেমন আছো", "বিবি", "জান", "কলিজা", "বাবু", "বিবিজেড"];
+
+    // Added "Riya", "riya", "রিয়া" to allTriggerWords to handle them with additional text
+    const allTriggerWords = ["xan", "suna", "jantus", "bby", "baby", "bbz", "kolixa", "kolija", "jan", "babu", "বেবি", "বিবি", "জান", "কলিজা", "বাবু", "বিবিজেড", "Riya", "riya", "রিয়া"];
 
     if (triggerWords.includes(body.trim().toLowerCase()) || triggerWords.includes(body.trim())) {
       const babyReplies = [
@@ -269,11 +272,12 @@ module.exports.handleEvent = async function ({ api, event }) {
         "কলিজা": kolijaReplies,
         "রিয়া": janReplies,
         "Riya": janReplies,
+        "riya": janReplies,
         "babu": babuReplies,
         "বাবু": babuReplies
       };
 
-      const replies = triggerReplies[body.trim().toLowerCase()];
+      const replies = triggerReplies[body.trim().toLowerCase()] || triggerReplies[body.trim()];
       const replyText = replies ? randomFromArray(replies) : "Hmm.. বলো কি বলবে? 🤔";
 
       await api.sendMessage(replyText, event.threadID, (error, info) => {
@@ -390,7 +394,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 
     // Handle command with new trigger words including Bengali  
     const args = body.split(' ');
-    const allTriggerWords = ["xan", "suna", "jantus", "bby", "baby", "bbz", "kolixa", "kolija", "jan", "babu", "বেবি", "বিবি", "জান", "কলিজা", "বাবু", "বিবিজেড"];
+    // We already have allTriggerWords defined above
 
     // Check for single trigger word
     for (const trigger of allTriggerWords) {
@@ -507,6 +511,28 @@ module.exports.handleEvent = async function ({ api, event }) {
             `বাবু বাবু ${userName}! তোমাকে দেখলে আমার মন খুশি হয়! 😍🎉`,
             `${userName} আমার বাবু, তুমি আমার জীবনের আলো! 🌟💖`,
             `বাবু ${userName}, তুমি আমার চোখের মণি 👁️💎`
+          ],
+          // Added for Riya/রিয়া
+          "Riya": [
+            `রিয়া কি রিয়া? 😍 ${userName}, তুমি আমার রিয়া জান 💕`,
+            `${userName} রিয়া, তুমি আমার প্রাণের রিয়া! 🥰💖`,
+            `রিয়া রিয়া ${userName}! তোমাকে দেখলে আমার মন ভরে যায়! 😍🌹`,
+            `${userName} আমার রিয়া, তুমি আমার জীবনের সূর্য! 🌞💖`,
+            `রিয়া ${userName}, তুমি আমার হৃদয়ের রানি 👸💕`
+          ],
+          "riya": [
+            `রিয়া কি রিয়া? 😍 ${userName}, তুমি আমার রিয়া জান 💕`,
+            `${userName} রিয়া, তুমি আমার প্রাণের রিয়া! 🥰💖`,
+            `রিয়া রিয়া ${userName}! তোমাকে দেখলে আমার মন ভরে যায়! 😍🌹`,
+            `${userName} আমার রিয়া, তুমি আমার জীবনের সূর্য! 🌞💖`,
+            `রিয়া ${userName}, তুমি আমার হৃদয়ের রানি 👸💕`
+          ],
+          "রিয়া": [
+            `রিয়া কি রিয়া? 😍 ${userName}, তুমি আমার রিয়া জান 💕`,
+            `${userName} রিয়া, তুমি আমার প্রাণের রিয়া! 🥰💖`,
+            `রিয়া রিয়া ${userName}! তোমাকে দেখলে আমার মন ভরে যায়! 😍🌹`,
+            `${userName} আমার রিয়া, তুমি আমার জীবনের সূর্য! 🌞💖`,
+            `রিয়া ${userName}, তুমি আমার হৃদয়ের রানি 👸💕`
           ]
         };
         const reply = randomFromArray(funnyTriggers[trigger] || babyUniversalReplies);
@@ -555,7 +581,7 @@ module.exports.handleEvent = async function ({ api, event }) {
     }
 
     // "bby"/"baby"/"bbz"/"kolixa"/"kolija"/"jan"/"babu"/"বেবি"/"Riya"/"জান"/"কলিজা"/"রিয়া" at start
-    if (body.startsWith("bby ") || body.startsWith("baby ") || body.startsWith("bbz ") || body.startsWith("kolixa ") || body.startsWith("kolija ") || body.startsWith("jan ") || body.startsWith("babu ") || body.startsWith("বেবি ") || body.startsWith("বিবি ") || body.startsWith("জান ") || body.startsWith("কলিজা ") || body.startsWith("বাবু ")) {
+    if (body.startsWith("bby ") || body.startsWith("baby ") || body.startsWith("bbz ") || body.startsWith("kolixa ") || body.startsWith("kolija ") || body.startsWith("jan ") || body.startsWith("babu ") || body.startsWith("বেবি ") || body.startsWith("বিবি ") || body.startsWith("জান ") || body.startsWith("কলিজা ") || body.startsWith("বাবু ") || body.startsWith("Riya ") || body.startsWith("riya ") || body.startsWith("রিয়া ")) {
       const arr = body.replace(/^\S+\s*/, "");
       const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
         timeout: 15000,
