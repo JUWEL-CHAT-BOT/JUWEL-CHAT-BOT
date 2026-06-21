@@ -13,7 +13,7 @@ const baseApiUrl = async () => {
 module.exports.config = {
   name: "baby",
   version: "6.9.9",
-  credits: "MR JUWEL",
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   cooldowns: 0,
   hasPermssion: 0,
   description: "better than all sim simi",
