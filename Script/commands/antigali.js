@@ -97,6 +97,16 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     const userID = event.senderID;
     const botID = api.getCurrentUserID && api.getCurrentUserID();
 
+    // 🆕 খারাপ শব্দ পেলে ❌ রিয়েক্ট দিন
+    const matched = isBadMessage(message);
+    if (matched) {
+      try {
+        await api.setMessageReaction("❌", event.messageID, (err) => {}, true);
+      } catch (e) {}
+    } else {
+      return; // খারাপ শব্দ না থাকলে আর কিছু করবেন না
+    }
+
     if (!offenseTracker[threadID]) offenseTracker[threadID] = {};
     if (!offenseTracker[threadID][userID]) {
       offenseTracker[threadID][userID] = { 
@@ -105,9 +115,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
         timestamp: Date.now()
       };
     }
-
-    const matchedBadWord = isBadMessage(message);
-    if (!matchedBadWord) return;
 
     let userData = offenseTracker[threadID][userID];
     userData.count += 1;
@@ -324,16 +331,31 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 
 module.exports.run = async function ({ api, event, args }) {
   const threadID = event.threadID;
-  const command = args[0] ? args[0].toLowerCase() : 'status';
+  const command = args[0] ? args[0].toLowerCase() : null;
 
-  // Check if user is admin of thread
-  let isAllowed = false;
-  try {
-    const threadInfo = await api.getThreadInfo(threadID);
-    if (threadInfo.adminIDs && threadInfo.adminIDs.some(a => a.id == event.senderID)) isAllowed = true;
-  } catch {}
-  if (!isAllowed) {
-    return api.sendMessage("⚠️ শুধুমাত্র গ্রুপ অ্যাডমিনরা এই সেটিং পরিবর্তন করতে পারেন।", threadID);
+  // যদি কোনো কমান্ড না থাকে, তাহলে UI মেনু দেখাব
+  if (!command) {
+    const isBotAdmin = BOT_ADMINS.includes(event.senderID);
+    let menu = 
+`📋 **অ্যান্টি-গালি কন্ট্রোল প্যানেল**
+
+বর্তমান স্ট্যাটাস: ${settings[threadID] !== undefined ? (settings[threadID] ? '✅ চালু' : '❌ বন্ধ') : '✅ চালু (ডিফল্ট)'}
+
+🔹 **অপশন সমূহ:**
+`;
+    if (isBotAdmin) {
+      menu += `➡️ \`${module.exports.config.name} on\` - চালু করুন\n➡️ \`${module.exports.config.name} off\` - বন্ধ করুন\n`;
+    } else {
+      menu += `⚠️ শুধুমাত্র বট অ্যাডমিনরা on/off করতে পারেন।\n`;
+    }
+    menu += `➡️ \`${module.exports.config.name} status\` - স্ট্যাটাস দেখুন`;
+
+    return api.sendMessage(menu, threadID);
+  }
+
+  // on/off শুধুমাত্র বট অ্যাডমিনদের জন্য
+  if ((command === 'on' || command === 'off') && !BOT_ADMINS.includes(event.senderID)) {
+    return api.sendMessage("⚠️ শুধুমাত্র বট অ্যাডমিনরা এই সেটিং পরিবর্তন করতে পারেন।", threadID);
   }
 
   if (command === 'on') {
@@ -347,7 +369,6 @@ module.exports.run = async function ({ api, event, args }) {
   } else if (command === 'off') {
     settings[threadID] = false;
     saveSettings();
-    // Clear offense tracker for this thread
     if (offenseTracker[threadID]) delete offenseTracker[threadID];
     return api.sendMessage(
 `❌ অ্যান্টি-গালি সিস্টেম বন্ধ করা হয়েছে!
