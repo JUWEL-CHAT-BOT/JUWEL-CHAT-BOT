@@ -24,19 +24,39 @@ function saveSettings() {
   fs.writeFileSync(path, JSON.stringify(settings, null, 2), 'utf8');
 }
 
+// 🔥 বিস্তৃত গালি তালিকা (বাদ দেওয়া শব্দগুলো বাদ দিয়ে)
 const badWords = [
-  "fuck","fucking","motherfucker","mother fucker","abal","fucker",
-  "Sawya","sawya","Voda","voda","Juwel ke chudi","MG","chdi",
-  "tok fuck","tui magi","magi","Magi","mang","tok chudi","bokacoda","xodi","Abal choda","Bokacoda",
-  "toke🖕🖕🖕","🖕🖕🖕","Pompom","pompom","Toke🖕","bollocks","cdi",
-  "xoda","chup magi","Tui magi","tui magi","tor heda","Tor heda","hada",
-  "Chup magi","Head","Toke🖕🖕","🖕","🖕🖕","মাদারচোদ","চুদি","মাগি",
-  "কার বাল","সাউয়া বেডি","নিছের বাল","চোকাচোদা","চুদবো","চুদানির পোলা",
-  "মাং","মাংগের বেডি","মাংগের গুপ","সাউয়ার বট","ভোদা","তোর মার ভোদা","সাউয়ার কথা","বোকাচোদা বট","বট বোকাচোদা","সাউয়া","জুয়েল কে চুূদি","জুয়েল বোকাচোদা","তোর সাউয়া","তোর মায়ের সাউয়া","তোর বোনের সাউয়া","তোর সাউয়া মাগি","তোর সাউয়া","মাংগের বেডি","মাংগের গুপ","বালের গুপ",
-  "গিটার বাজাও","বোকাচুদা","আবাল","তুই বোকাচোদা","তুই বুকাচুদা","তুই বোকাচুদা","বোকাচুদা","তুই আবাল","জাও গিটার বাজাও","হাত মারবে","হাত মারবো","হাত মারো",
-  "হাত মাড়ি","হাত মারতে জাবে","গিটার বাজাবো","পুটকি","রেন্ডির ছেলে",
-  "রেন্ডি মেয়ে","রেন্ডি","এডমিন এর বাল","তুই মাগি","তোর চুদি","চোদার টাইম নাই","তোর মতো মাগি কে","তোর মতো মাগি","তোক চুূদি মাগি","তুই ১২ ভাতারী মাগি"," তুই হাত মাড়া মাগি","হাত মার","হাত মারো","হাত মাড়া মাগি","হাত মাড়া মাগি তুই"," তোর মা মাগি","তোর বোন মাগি","তোর মা মাগি বোকাচোদা","তোর বোন মাগি","বোকাচোদা","তোর মাকে চুদি মাদারচোদ","তোর মাকে চুদি","তোর মাকে আমি চুদি","তোর বোনকে আমি চুদি","তোর বোনকে চুদি","সাউয়ার গুপ","মাংগের গুপ",
-  "আবাল নাকি","জুয়েল চোকাচোদা","বোকাচোদা জুয়েল","জুয়েল কে চুদি"
+  // ইংরেজি বেসিক
+  "fuck","fucking","motherfucker","mother fucker","fucker","bollocks","shit","asshole",
+  "bastard","dick","cock","pussy","whore","slut","bitch","cunt","fuck off","suck",
+  "blow job","hand job","cum","semen","masturbate","wank","piss","pissing","turd",
+  "douche","douchebag","jackass","dumbass","retard","moron","idiot","stupid",
+  
+  // ইংরেজি স্ল্যাং
+  "chut","gand","bhosdi","benchod","madarchod","randi","kutta","harami","lodu",
+  "chodu","bhak","tatti","gaand","lauda","lund","choot","chutmarani",
+  
+  // বাংলা মূল (বাদ: বেডি, বট, গুপ, হেড, head, টাইম নাই, ভাতারি মাগি)
+  "আবাল","সাউয়া","ভোদা","মাগি","চুদি","বোকাচোদা","বোকাচুদা","মাদারচোদ","চুদা",
+  "শালা","বোকা","গাধা","হরামি","খানকি","পুটকি","গুদ","রেন্ডি","হাত মার",
+  "গিটার বাজাও","হাত মাড়া","চুদবো","চুদানির পোলা","মাং","মাংগের বেডি","বালের",
+  "সাউয়ার বট","সাউয়ার কথা","তোর মার ভোদা","তোর সাউয়া","তোর মায়ের সাউয়া",
+  "তোর বোনের সাউয়া","তোর সাউয়া মাগি","জুয়েল কে চুদি","জুয়েল চোকাচোদা",
+  "এডমিন এর বাল","চোদার","তোর মতো মাগি","তোক চুদি","তুই ১২",
+  "তুই হাত মাড়া মাগি","তোর মা মাগি","তোর বোন মাগি","তোর মাকে চুদি","তোর বোনকে চুদি",
+  
+  // বাংলা মিক্স (বাদ: বেডি, বট, গুপ, হেড, head, টাইম নাই, ভাতারি মাগি)
+  "মাদারচোদ","কার বাল","নিছের বাল","চোকাচোদা","রেন্ডির ছেলে","রেন্ডি মেয়ে",
+  "পম্পম","Pompom","আবাল নাকি","জুয়েল বোকাচোদা","তুই বোকাচোদা","তুই বুকাচুদা",
+  "জাও গিটার বাজাও","হাত মারবে","হাত মারবো","হাত মারো","হাত মারতে জাবে",
+  "গিটার বাজাবো","তুই ১২ ভাতারী মাগি","তুই হাত মাড়া","হাত মাড়ি",
+  
+  // স্পেশাল ক্যারেক্টার
+  "🖕","🖕🖕","🖕🖕🖕","Toke🖕","Toke🖕🖕","toke 🖕","🖕 fuck","fuck 🖕",
+  
+  // আরও কিছু
+  "bokacoda","xodi","xoda","cdi","chdi","MG","chup magi","Chup magi","tok chudi",
+  "tok fuck","Sawya","sawya","Voda","voda","Juwel ke chudi","abal","fucker"
 ];
 
 const BOT_ADMINS = ["61567576882007"];
@@ -75,10 +95,10 @@ function isBadMessage(message) {
 
 module.exports.config = {
   name: "antigali",
-  version: "3.5.0",
+  version: "3.6.0",
   hasPermssion: 0,
   credits: "MR JUWEL",
-  description: "বাংলা Anti-Gali সিস্টেম (অন/অফ করতে পারেন)",
+  description: "বাংলা+ইংরেজি Anti-Gali সিস্টেম (UI সহ)",
   commandCategory: "moderation",
   usages: "[on/off/status]",
   cooldowns: 0
@@ -89,22 +109,20 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     if (!event.body) return;
     const threadID = event.threadID;
 
-    // Check if system is enabled for this thread (default: true)
     const isEnabled = settings[threadID] !== undefined ? settings[threadID] : true;
-    if (!isEnabled) return; // System off for this thread
+    if (!isEnabled) return;
 
     const message = event.body.toLowerCase();
     const userID = event.senderID;
     const botID = api.getCurrentUserID && api.getCurrentUserID();
 
-    // 🆕 খারাপ শব্দ পেলে ❌ রিয়েক্ট দিন
     const matched = isBadMessage(message);
     if (matched) {
       try {
         await api.setMessageReaction("❌", event.messageID, (err) => {}, true);
       } catch (e) {}
     } else {
-      return; // খারাপ শব্দ না থাকলে আর কিছু করবেন না
+      return;
     }
 
     if (!offenseTracker[threadID]) offenseTracker[threadID] = {};
@@ -151,7 +169,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       }
     };
 
-    // 📌 ফ্রেম
     const frameBase = (n, extra = '') => (
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
@@ -333,37 +350,71 @@ module.exports.run = async function ({ api, event, args }) {
   const threadID = event.threadID;
   const command = args[0] ? args[0].toLowerCase() : null;
 
-  // যদি কোনো কমান্ড না থাকে, তাহলে UI মেনু দেখাব
+  // UI মেনু
   if (!command) {
     const isBotAdmin = BOT_ADMINS.includes(event.senderID);
     let menu = 
-`📋 **অ্যান্টি-গালি কন্ট্রোল প্যানেল**
-
-বর্তমান স্ট্যাটাস: ${settings[threadID] !== undefined ? (settings[threadID] ? '✅ চালু' : '❌ বন্ধ') : '✅ চালু (ডিফল্ট)'}
-
-🔹 **অপশন সমূহ:**
-`;
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║        📋 অ্যান্টি-গালি কন্ট্রোল প্যানেল         ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  📌 বর্তমান স্ট্যাটাস: ${settings[threadID] !== undefined ? (settings[threadID] ? '✅ চালু' : '❌ বন্ধ') : '✅ চালু (ডিফল্ট)'}   ║
+║                                                    ║
+║  🔹 অপশন সমূহ:                                     ║`;
     if (isBotAdmin) {
-      menu += `➡️ \`${module.exports.config.name} on\` - চালু করুন\n➡️ \`${module.exports.config.name} off\` - বন্ধ করুন\n`;
+      menu += `
+║  ➡️ ${module.exports.config.name} on  → চালু      ║
+║  ➡️ ${module.exports.config.name} off → বন্ধ      ║`;
     } else {
-      menu += `⚠️ শুধুমাত্র বট অ্যাডমিনরা on/off করতে পারেন।\n`;
+      menu += `
+║  ⚠️ শুধুমাত্র বট অ্যাডমিনরা on/off করতে পারেন     ║`;
     }
-    menu += `➡️ \`${module.exports.config.name} status\` - স্ট্যাটাস দেখুন`;
-
+    menu += `
+║  ➡️ ${module.exports.config.name} status → স্ট্যাটাস ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`;
     return api.sendMessage(menu, threadID);
   }
 
-  // on/off শুধুমাত্র বট অ্যাডমিনদের জন্য
+  // on/off শুধুমাত্র বট অ্যাডমিন
   if ((command === 'on' || command === 'off') && !BOT_ADMINS.includes(event.senderID)) {
-    return api.sendMessage("⚠️ শুধুমাত্র বট অ্যাডমিনরা এই সেটিং পরিবর্তন করতে পারেন।", threadID);
+    return api.sendMessage(
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║            ⛔ অ্যাক্সেস অস্বীকৃত!                  ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  ⚠️ শুধুমাত্র বট অ্যাডমিনরা এই কমান্ড ব্যবহার     ║
+║     করতে পারেন।                                   ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`,
+      threadID
+    );
   }
 
   if (command === 'on') {
     settings[threadID] = true;
     saveSettings();
     return api.sendMessage(
-`✅ অ্যান্টি-গালি সিস্টেম চালু করা হয়েছে!
-📌 এই গ্রুপে এখন থেকে খারাপ কথা ব্যবহার করলে ব্যবস্থা নেওয়া হবে।`,
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║            ✅ সিস্টেম চালু হয়েছে!                 ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  📌 এই গ্রুপে এখন থেকে খারাপ কথা ব্যবহার করলে     ║
+║     ব্যবস্থা নেওয়া হবে।                          ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`,
       threadID
     );
   } else if (command === 'off') {
@@ -371,28 +422,57 @@ module.exports.run = async function ({ api, event, args }) {
     saveSettings();
     if (offenseTracker[threadID]) delete offenseTracker[threadID];
     return api.sendMessage(
-`❌ অ্যান্টি-গালি সিস্টেম বন্ধ করা হয়েছে!
-📌 এই গ্রুপে এখন থেকে কোনো খারাপ কথা চেক করা হবে না।`,
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║            ❌ সিস্টেম বন্ধ করা হয়েছে!             ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  📌 এই গ্রুপে এখন থেকে কোনো খারাপ কথা চেক করা    ║
+║     হবে না।                                       ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`,
       threadID
     );
   } else if (command === 'status') {
     const status = settings[threadID] !== undefined ? settings[threadID] : true;
     const statusText = status ? '✅ চালু' : '❌ বন্ধ';
     return api.sendMessage(
-`📊 অ্যান্টি-গালি স্ট্যাটাস:
-🆔 গ্রুপ আইডি: ${threadID}
-📌 বর্তমান অবস্থা: ${statusText}
-
-📋 কমান্ড:
-${module.exports.config.name} on  → চালু
-${module.exports.config.name} off → বন্ধ
-${module.exports.config.name} status → বর্তমান অবস্থা দেখুন`,
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║            📊 সিস্টেম স্ট্যাটাস                    ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  🆔 গ্রুপ আইডি : ${threadID}                       ║
+║  📌 বর্তমান অবস্থা : ${statusText}                 ║
+║                                                    ║
+║  📋 কমান্ড সমূহ:                                   ║
+║  ➡️ ${module.exports.config.name} on  → চালু      ║
+║  ➡️ ${module.exports.config.name} off → বন্ধ      ║
+║  ➡️ ${module.exports.config.name} status → স্ট্যাটাস ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`,
       threadID
     );
   } else {
     return api.sendMessage(
-`⚠️ ভুল কমান্ড! ব্যবহার করুন:
-${module.exports.config.name} on/off/status`,
+`╔══════════════════════════════════════════════════╗
+║                                                    ║
+║            ⚠️ ভুল কমান্ড!                          ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║                                                    ║
+║  📌 ব্যবহার করুন:                                  ║
+║  ${module.exports.config.name} on/off/status       ║
+║                                                    ║
+╠══════════════════════════════════════════════════╣
+║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
+╚══════════════════════════════════════════════════╝`,
       threadID
     );
   }
