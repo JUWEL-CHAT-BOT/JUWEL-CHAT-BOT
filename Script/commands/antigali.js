@@ -1,4 +1,4 @@
-const fs = require('fs');
+cum fs = require('fs');
 const path = __dirname + '/antigaliStatus.json';
 
 let offenseTracker = {};
@@ -25,11 +25,8 @@ function saveSettings() {
 // ==================== গালি তালিকা (ভাষা অনুযায়ী) ====================
 const badWordsEnglish = [
   "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "shit", "asshole",
-  "bastard", "dick", "cock", "pussy", "whore", "slut", "bitch", "cunt", "fuck off", "suck",
-  "blow job", "hand job", "cum", "semen", "masturbate", "wank", "piss", "pissing", "turd",
-  "douche", "douchebag", "jackass", "dumbass", "retard", "tui magi", "idiot", "stupid juwel",
-  "fucker",
-  "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕"
+  "tui magi", "idiot", "stupid juwel",
+  "bot fuck you", "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕"
 ];
 
 const badWordsBengali = [
