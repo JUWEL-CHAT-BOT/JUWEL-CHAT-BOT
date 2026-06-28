@@ -22,7 +22,7 @@ function saveSettings() {
   fs.writeFileSync(path, JSON.stringify(settings, null, 2), 'utf8');
 }
 
-// ==================== গালি তালিকা (ভাষা অনুযায়ী আলাদা) ====================
+// ==================== গালি তালিকা (ভাষা অনুযায়ী) ====================
 const badWordsEnglish = [
   "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "shit", "asshole",
   "bastard", "dick", "cock", "pussy", "whore", "slut", "bitch", "cunt", "fuck off", "suck",
@@ -50,35 +50,29 @@ const badWordsBengali = [
   "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "Hol", "hol", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi",
 ];
 
-// ==================== কনটেক্সট চেক (ফিচার ১১) ====================
-// যদি বার্তায় গালির শব্দ থাকে কিন্তু তা আত্ম-অভিব্যক্তি হয় (যেমন "I fucking love you"),
-// তাহলে তা উপেক্ষা করব। নিচের প্যাটার্নগুলো ব্যবহার করছি।
+// ==================== কনটেক্সট চেক ====================
 const contextPatterns = [
-  // আত্ম-অভিব্যক্তি (ব্যক্তিগত অনুভূতি)
   { regex: /\b(i|im|i'm|i am|me|my|mine|myself)\s+fuck(ing)?\s+(love|like|enjoy|want|need|hate|miss|care)/i, safe: true },
   { regex: /\b(i|im|i'm|i am)\s+(love|like|enjoy|want|need|hate|miss|care)\s+fuck(ing)?/i, safe: true },
-  // প্রশ্ন বা সাধারণ উক্তি
-  { regex: /\b(what|why|how|when|where|who)\s+the\s+fuck/i, safe: false }, // এগুলো অপমান নয়, কিন্তু আমরা চাইলে উপেক্ষা করতে পারি। এখানে false রাখছি যেন ধরা পড়ে।
+  { regex: /\b(what|why|how|when|where|who)\s+the\s+fuck/i, safe: false },
 ];
 
 function isContextualSafe(message) {
   const lower = message.toLowerCase();
   for (let pattern of contextPatterns) {
     if (pattern.regex.test(lower)) {
-      return pattern.safe; // true হলে গালি নয় (সেইফ)
+      return pattern.safe;
     }
   }
-  // ডিফল্ট false মানে গালি হিসেবে ধরবে (যেহেতু ইতিমধ্যে badWord ম্যাচ হয়েছে)
   return false;
 }
 
-// ==================== গালি চেক (ভাষা সহ) ====================
+// ==================== গালি চেক ====================
 function checkBadMessage(message) {
   const lower = message.toLowerCase();
   let foundType = null;
   let foundWord = null;
 
-  // প্রথমে ইংরেজি চেক
   for (let word of badWordsEnglish) {
     if (lower.includes(word.toLowerCase())) {
       foundType = 'ইংরেজি';
@@ -86,7 +80,6 @@ function checkBadMessage(message) {
       break;
     }
   }
-  // না পেলে বাংলা
   if (!foundType) {
     for (let word of badWordsBengali) {
       if (lower.includes(word.toLowerCase())) {
@@ -99,7 +92,6 @@ function checkBadMessage(message) {
 
   if (!foundType) return { hasBad: false };
 
-  // কনটেক্সট চেক (ফিচার ১১) – যদি সেইফ হয়, তাহলে গালি নয়
   if (isContextualSafe(message)) {
     return { hasBad: false, reason: 'আত্ম-অভিব্যক্তি' };
   }
@@ -109,51 +101,67 @@ function checkBadMessage(message) {
 
 const BOT_ADMINS = ["61591542717221"];
 
+// ==================== কনফিগ ====================
 module.exports.config = {
   name: "antigali",
-  version: "3.8.0",
+  version: "3.8.1",
   hasPermssion: 0,
-  credits: "MR JUWEL (ফিচার ১১ ও ১২ সংযোজিত)",
+  credits: "MR JUWEL (ফিক্সড ভার্সন)",
   description: "বাংলা+ইংরেজি Anti-Gali (UI সহ) – কনটেক্সট অ্যাওয়ারেনেস ও ভাষাভিত্তিক কাউন্ট",
   commandCategory: "moderation",
   usages: "[on/off/status]",
   cooldowns: 0
 };
 
+// ==================== ইভেন্ট হ্যান্ডলার ====================
 module.exports.handleEvent = async function ({ api, event, Threads }) {
   try {
     if (!event.body) return;
     const threadID = event.threadID;
 
+    // সিস্টেম চালু আছে কিনা
     const isEnabled = settings[threadID] !== undefined ? settings[threadID] : true;
     if (!isEnabled) return;
 
     const message = event.body;
     const userID = event.senderID;
-    const botID = api.getCurrentUserID();
+    if (!userID) return; // সুরক্ষা
 
-    const { hasBad, type, word, reason } = checkBadMessage(message);
-    if (!hasBad) {
-      // যদি কনটেক্সটের কারণে উপেক্ষা করা হয়, আমরা কিছু করব না (কিন্তু লগ রাখতে চাইলে এখানে করতে পারেন)
-      return;
+    // বটের আইডি বের করা (ফাংশন অথবা প্রপার্টি)
+    let botID = null;
+    try {
+      if (typeof api.getCurrentUserID === 'function') {
+        botID = api.getCurrentUserID();
+      } else if (api.getCurrentUserID !== undefined) {
+        botID = api.getCurrentUserID;
+      } else {
+        botID = null;
+      }
+    } catch (e) {
+      botID = null;
     }
 
-    // ========== রিঅ্যাক্ট ==========
-    api.setMessageReaction("❌", event.messageID).catch(() => {});
+    // গালি চেক
+    const { hasBad, type, word, reason } = checkBadMessage(message);
+    if (!hasBad) return;
 
-    // ========== অফেন্স ট্র্যাকার (ভাষা আলাদা – ফিচার ১২) ==========
+    // ========== রিঅ্যাক্ট (❌) – আলাদা ট্রাই-ক্যাচ ==========
+    if (event.messageID) {
+      try {
+        await api.setMessageReaction("❌", event.messageID);
+      } catch (e) {
+        console.warn("Reaction failed:", e.message);
+      }
+    }
+
+    // ========== অফেন্স ট্র্যাকার ==========
     if (!offenseTracker[threadID]) offenseTracker[threadID] = {};
     if (!offenseTracker[threadID][userID]) {
-      offenseTracker[threadID][userID] = {
-        enCount: 0,    // ইংরেজি গালির কাউন্ট
-        bnCount: 0,    // বাংলা গালির কাউন্ট
-        total: 0,
-        lastUpdated: Date.now()
-      };
+      offenseTracker[threadID][userID] = { enCount: 0, bnCount: 0, total: 0, lastUpdated: Date.now() };
     }
     let userData = offenseTracker[threadID][userID];
-    // কাউন্ট বাড়ানো
-    if (type === 'ইংরেজি') userData.enCount += 1;
+
+    if (type === 'ইংরেজி') userData.enCount += 1;
     else if (type === 'বাংলা') userData.bnCount += 1;
     userData.total += 1;
     userData.lastUpdated = Date.now();
@@ -162,7 +170,7 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     const enCount = userData.enCount;
     const bnCount = userData.bnCount;
 
-    // ========== প্যারালেল ফেচ ==========
+    // ========== ইউজার ও গ্রুপ ইনফো (প্যারালেল) ==========
     let userInfo = {};
     let threadInfo = {};
     try {
@@ -173,20 +181,22 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       userInfo = uInfo;
       threadInfo = tInfo;
     } catch (e) {
-      console.error("Parallel fetch error:", e);
+      console.error("Info fetch error:", e);
     }
 
-    const userName = userInfo[userID]?.name || "অজানা ব্যবহারকারী";
+    const userName = userInfo[userID]?.name || "অজানা";
     const groupName = threadInfo.threadName || "Unknown";
-    const adminIDs = threadInfo.adminIDs || [];
+    const adminIDs = Array.isArray(threadInfo.adminIDs) ? threadInfo.adminIDs : [];
+
     const isAdminInThread = (uid) => {
+      if (!uid) return false;
       return adminIDs.some(item => {
         const id = typeof item === "string" ? item : item.id;
         return String(id) === String(uid);
       });
     };
 
-    // ========== সতর্কবার্তা ফ্রেম (ভাষার কাউন্ট দেখানো) ==========
+    // ========== সতর্কবার্তা ফ্রেম ==========
     const frameBase = (n, extra = '') =>
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
@@ -227,39 +237,42 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 ⚠️ সতর্কতা: ${totalCount} (ইংরেজি ${enCount}, বাংলা ${bnCount})
 💬 অশালীন বার্তা: "${message}"`;
 
-    // ========== মেসেজ প্যারালেল ==========
+    // ========== মেসেজ পাঠানো (সতর্কতা ও অ্যালার্ট) ==========
     const sendPromises = [];
+
     if (totalCount === 1) {
-      sendPromises.push(api.sendMessage(frameBase(1, '📌 ১ম সতর্কতা! সাবধান!'), threadID));
+      sendPromises.push(api.sendMessage(frameBase(1, '📌 ১ম সতর্কতা! সাবধান!'), threadID).catch(() => {}));
     } else if (totalCount === 2) {
-      sendPromises.push(api.sendMessage(frameBase(2, '⚠️ শেষ সতর্কতা! পরবর্তী বার কিক!'), threadID));
+      sendPromises.push(api.sendMessage(frameBase(2, '⚠️ শেষ সতর্কতা! পরবর্তী বার কিক!'), threadID).catch(() => {}));
     }
 
+    // অ্যাডমিনদের অ্যালার্ট
     for (const admin of adminIDs) {
       const adminID = typeof admin === "string" ? admin : admin.id;
       if (adminID) {
         sendPromises.push(api.sendMessage(alertMsg, adminID).catch(() => {}));
       }
     }
+    // বট অ্যাডমিনদের অ্যালার্ট
     for (const ownerID of BOT_ADMINS) {
       sendPromises.push(api.sendMessage(alertMsg, ownerID).catch(() => {}));
     }
-    Promise.allSettled(sendPromises).catch(() => {});
 
-    // ========== মেসেজ ডিলিট ==========
+    await Promise.allSettled(sendPromises).catch(() => {});
+
+    // ========== মেসেজ ডিলিট (৬০ সেকেন্ড পর) ==========
     if (event.messageID) {
       setTimeout(() => {
         api.unsendMessage(event.messageID).catch(() => {});
       }, 60000);
     }
 
-    // ========== ৩ স্ট্রাইকে কিক (মোট কাউন্ট অনুযায়ী) ==========
+    // ========== ৩ স্ট্রাইকে কিক ==========
     if (totalCount === 3) {
       const botIsAdmin = botID ? isAdminInThread(botID) : false;
 
       if (!botIsAdmin) {
-        // কাউন্ট রিসেট করব না, শুধু জানাব
-        api.sendMessage(
+        await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
 ║            ⚠️ অপারেশন বন্ধ!                        ║
@@ -281,7 +294,7 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       }
 
       if (isAdminInThread(userID)) {
-        api.sendMessage(
+        await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
 ║            ⚠️ অপারেশন বন্ধ!                        ║
@@ -302,6 +315,7 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
         return;
       }
 
+      // কিক করার চেষ্টা
       try {
         await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
@@ -323,12 +337,11 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
           threadID
         );
         await api.removeUserFromGroup(userID, threadID);
-        // কিক করার পর কাউন্ট রিসেট
         userData.total = 0; userData.enCount = 0; userData.bnCount = 0;
-      } catch {
-        // ব্যর্থ হলে কাউন্ট ২-এ নামিয়ে রাখি
-        userData.total = 2; // কিন্তু ভাষাভিত্তিক কাউন্ট অপরিবর্তিত রাখি (বোঝা যায় ৩য় বার ব্যর্থ)
-        api.sendMessage(
+      } catch (kickErr) {
+        // কিক ব্যর্থ হলে কাউন্ট ২-এ নামিয়ে রাখি (পরবর্তী বার আবার চেষ্টা করবে)
+        userData.total = 2;
+        await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
 ║            ❌ ব্যর্থ হয়েছে!                       ║
@@ -346,7 +359,7 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       }
     }
 
-    // ========== ১ ঘন্টা পর রিসেট (মোট কাউন্ট শূন্য) ==========
+    // ========== ১ ঘন্টা পর রিসেট ==========
     setTimeout(() => {
       if (offenseTracker[threadID] && offenseTracker[threadID][userID]) {
         if (Date.now() - offenseTracker[threadID][userID].lastUpdated > 3600000) {
@@ -358,11 +371,15 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     }, 3600000);
 
   } catch (error) {
-    console.error("AntiGali error:", error);
-    api.sendMessage("⚠️ অ্যান্টি-গালি সিস্টেমে ত্রুটি!", event.threadID).catch(() => {});
+    console.error("❌ AntiGali CRASH:", error);
+    // শুধুমাত্র একবার মেসেজ পাঠাব, যাতে বারবার না আসে
+    try {
+      await api.sendMessage("⚠️ অ্যান্টি-গালি সিস্টেমে ত্রুটি! লগ চেক করুন।", event.threadID);
+    } catch (_) {}
   }
 };
 
+// ==================== রান কমান্ড ====================
 module.exports.run = async function ({ api, event, args }) {
   const threadID = event.threadID;
   const command = args[0] ? args[0].toLowerCase() : null;
