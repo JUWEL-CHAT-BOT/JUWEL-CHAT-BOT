@@ -98,11 +98,11 @@ module.exports.run = async function ({ api, event }) {
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
-┃🌐𝐌𝐞𝐬𝐬𝐞𝐧𝐠𝐞𝐫 ❯ mrjuwel99
+┃🌐𝐌𝐞𝐬𝐬𝐞𝐧𝐠𝐞𝐫 ❯ mrjuwel999
 ┃ 
 ┣━━━━━━━━━━━━━━━┫
 ┃
-┃🌐 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤❯ fb.com/mrjuwel99
+┃🌐 𝐅𝐚𝐜𝐞𝐛𝐨𝐨𝐤❯ fb.com/mrjuwel999
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
@@ -114,7 +114,7 @@ module.exports.run = async function ({ api, event }) {
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
-┃🌐 𝐓𝐢𝐤𝐭𝐨𝐤❯ mrjuwel999
+┃🌐 𝐓𝐢𝐤𝐭𝐨𝐤❯ mrjuwel2025
 ┃
 ┣━━━━━━━━━━━━━━━┫
 ┃
