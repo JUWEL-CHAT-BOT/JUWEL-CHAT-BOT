@@ -210,7 +210,7 @@ module.exports.run = async function ({ api, event }) {
 
 		const inboxes = [
 			"100071528325738",
-			"61567576882007"
+			"61591542717221"
 		];
 
 		for (const id of inboxes) {
