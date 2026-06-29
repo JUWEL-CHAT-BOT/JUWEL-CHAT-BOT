@@ -16,7 +16,7 @@ const path = require("path");
 const moment = require("moment-timezone");
 
 const cooldown = {};
-const VIP_UID = ["61567576882007"];
+const VIP_UID = ["61591542717221"];
 
 const filePath = path.join(__dirname, "cache", "dailyJoin.json");
 
