@@ -57,7 +57,7 @@ function buildTextOffNotice(endsAt, permanent) {
 `${LINE} • ফটো / ভিডিও\n` +
 `${LINE} • লিংক / ফাইল\n` +
 `${LINE}\n` +
-`${LINE} ⚠️ শুধুমাত্র বট অ্যাডমিন মেসেজ করতে পারবেন\n` +
+`${LINE} ⚠️ শুধুমাত্র গ্রুপ অ্যাডমিন ও বট অ্যাডমিন মেসেজ করতে পারবেন\n` +
 `${LINE}    অন্য কেউ মেসেজ করলে সতর্ক করা হবে!\n` +
 `${BOX_MID}\n` +
 `${timeLine}\n` +
@@ -178,11 +178,16 @@ async function handleMessageEvent(api, event) {
         return;
     }
 
-    // বট অ্যাডমিন চেক
+    // **ছাড়পত্র: গ্রুপ অ্যাডমিন ও বট অ্যাডমিন**
+    const threadInfo = await api.getThreadInfo(threadID);
+    const groupAdmins = threadInfo.adminIDs.map(i => i.id);
     const botAdmins = global.config?.ADMINBOT || [];
-    if (botAdmins.includes(senderID)) return;
+    
+    if (groupAdmins.includes(senderID) || botAdmins.includes(senderID)) {
+        return; // এরা মেসেজ করতে পারবে
+    }
 
-    // যদি এই ইউজারের জন্য আগে থেকে কোনো ওয়ার্নিং সক্রিয় থাকে, তাহলে ইগনোর করি (একসাথে একাধিক ওয়ার্নিং না)
+    // যদি এই ইউজারের জন্য আগে থেকে কোনো ওয়ার্নিং সক্রিয় থাকে, তাহলে ইগনোর করি
     if (global.textOffWarn[threadID] && global.textOffWarn[threadID][senderID]) {
         return;
     }
@@ -200,10 +205,9 @@ async function handleMessageEvent(api, event) {
     if (!global.textOffWarn[threadID]) global.textOffWarn[threadID] = {};
     global.textOffWarn[threadID][senderID] = {
         warnMsgId: sentWarn.messageID,
-        userMsgId: messageID, // ইউজারের যে মেসেজ ডিলিট করা হয়েছে (রেকর্ড রাখলাম)
+        userMsgId: messageID,
         timer: setTimeout(async () => {
             // ১৫ সেকেন্ড শেষ – ইউজার ডিলিট করেনি
-            // ওয়ার্নিং মেসেজ এডিট করে কিক নোটিশ
             const kickMsg = buildKickNotice(name, durationStr);
             try {
                 await api.editMessage(kickMsg, sentWarn.messageID);
@@ -214,15 +218,13 @@ async function handleMessageEvent(api, event) {
                 try {
                     await api.removeUserFromGroup(senderID, threadID);
                 } catch (e) {
-                    // বট অ্যাডমিন না থাকলে
                     const noAdminMsg = buildNoAdminNotice(senderID);
                     await api.sendMessage(noAdminMsg, threadID);
                 }
-                // স্টেট ক্লিয়ার
                 delete global.textOffWarn[threadID][senderID];
             }, 2000);
 
-        }, 15000) // ১৫ সেকেন্ড টাইমার
+        }, 15000)
     };
 }
 
@@ -231,8 +233,8 @@ async function handleMessageEvent(api, event) {
 module.exports = {
     config: {
         name: "textoff",
-        version: "4.1.0",
-        hasPermssion: 2,
+        version: "4.2.0",
+        hasPermssion: 2, // শুধু বট অ্যাডমিন
         credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
         description: "Text Off System with Edit & Delete",
         commandCategory: "group",
@@ -256,16 +258,14 @@ module.exports = {
             try { await api.deleteMessage(global.textOff[threadID].noticeMsgId); } catch (e) {}
         }
 
-        // নতুন লক নোটিশ পাঠান
         const noticeMsg = await api.sendMessage(buildTextOffNotice(end, t.perma), threadID);
 
-        // স্টেট সেভ
         global.textOff[threadID] = {
             locked: true,
             perma: t.perma,
             endTime: end,
             setBy: senderID,
-            noticeMsgId: noticeMsg.messageID // নোটিশ আইডি সংরক্ষণ
+            noticeMsgId: noticeMsg.messageID
         };
 
         // টাইমড লক – আনলক
@@ -273,14 +273,11 @@ module.exports = {
             setTimeout(async () => {
                 try {
                     if (global.textOff[threadID] && global.textOff[threadID].locked) {
-                        // লক নোটিশ ডিলিট
                         if (global.textOff[threadID].noticeMsgId) {
                             try { await api.deleteMessage(global.textOff[threadID].noticeMsgId); } catch (e) {}
                         }
                         delete global.textOff[threadID];
-                        // আনলক নোটিশ পাঠান
                         const unlockMsg = await api.sendMessage(buildTextOnNotice(), threadID);
-                        // ১ মিনিট পর আনলক নোটিশ ডিলিট
                         setTimeout(async () => {
                             try { await api.deleteMessage(unlockMsg.messageID); } catch (e) {}
                         }, 60000);
@@ -290,27 +287,22 @@ module.exports = {
         }
     },
 
-    // ইভেন্ট হ্যান্ডলার – মেসেজ ও "ডিলিট" কমান্ড চেক
     handleEvent: async function({ api, event }) {
         const { threadID, senderID, body } = event;
 
-        // যদি ইউজার "ডিলিট" টাইপ করে এবং তার জন্য সক্রিয় ওয়ার্নিং থাকে
+        // "ডিলিট" কমান্ড হ্যান্ডল
         if (body && body.trim().toLowerCase() === "ডিলিট") {
             if (global.textOffWarn[threadID] && global.textOffWarn[threadID][senderID]) {
                 const warnData = global.textOffWarn[threadID][senderID];
-                // টাইমার ক্যান্সেল
                 clearTimeout(warnData.timer);
-                // ওয়ার্নিং মেসেজ ডিলিট
                 try { await api.deleteMessage(warnData.warnMsgId); } catch (e) {}
-                // ইউজারের "ডিলিট" কমান্ড মেসেজটিও ডিলিট (ঐচ্ছিক)
                 try { await api.deleteMessage(event.messageID); } catch (e) {}
-                // স্টেট ক্লিয়ার
                 delete global.textOffWarn[threadID][senderID];
                 return;
             }
         }
 
-        // বাকি মেসেজের জন্য হ্যান্ডলার
+        // বাকি মেসেজ হ্যান্ডল
         if (event.type === "message") {
             await handleMessageEvent(api, event);
         }
