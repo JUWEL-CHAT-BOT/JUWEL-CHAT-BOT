@@ -1,4 +1,4 @@
-cum fs = require('fs');
+const fs = require('fs');
 const path = __dirname + '/antigaliStatus.json';
 
 let offenseTracker = {};
@@ -43,28 +43,11 @@ const badWordsBengali = [
   "গিটার বাজাবো", "তুই ১২ ভাতারী মাগি", "তুই হাত মাড়া", "হাত মাড়ি", "জান চুদতে দিবে", "জান চুদতে দিবে", "বট কে চুদি", "বট চুদি", "সাউয়ার বট", "ভোদার বট", "মাংগের বট", "বট তোর বস কে চুদি", "বট তোকে চুদি", "বট তোরে চুদি", "সাউয়ার বট চুদি", "ভোদার বট চুদি",
   "chut", "gand", "bhosdi", "benchod", "madarchod", "randi", "kutta bacsa", "magi", "Magi", "MC Bot", "MC bot", "Mc Bot", "Mc Bot", "Vodar Bot", "Sawyar Bot", "sawyar bot", "Vodar bot", " bot tor booske chudi", "Bot tor boos ke chudi",
   "xodi", "Xodi", "cdi", "Cdi", "Mang", "mang", "tor mar Voda", "tor mare cdi", "Tor mare chodi", " Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
-  "bokacoda", "xodi", "xoda", "cdi", "Bici"," boci", "72 Lack", "cudte", " Cudte", "chdi", "MG", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
-  "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "Hol", "hol", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi",
+  "bokacoda", "xodi", "xoda", "cdi", "Bici","boci", "72 Lack", "cudte", " Cudte", "chdi", "MG", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
+  "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi",
 ];
 
-// ==================== কনটেক্সট চেক ====================
-const contextPatterns = [
-  { regex: /\b(i|im|i'm|i am|me|my|mine|myself)\s+fuck(ing)?\s+(love|like|enjoy|want|need|hate|miss|care)/i, safe: true },
-  { regex: /\b(i|im|i'm|i am)\s+(love|like|enjoy|want|need|hate|miss|care)\s+fuck(ing)?/i, safe: true },
-  { regex: /\b(what|why|how|when|where|who)\s+the\s+fuck/i, safe: false },
-];
-
-function isContextualSafe(message) {
-  const lower = message.toLowerCase();
-  for (let pattern of contextPatterns) {
-    if (pattern.regex.test(lower)) {
-      return pattern.safe;
-    }
-  }
-  return false;
-}
-
-// ==================== গালি চেক ====================
+// ==================== গালি চেক (কনটেক্সট চেক বাদ) ====================
 function checkBadMessage(message) {
   const lower = message.toLowerCase();
   let foundType = null;
@@ -89,10 +72,7 @@ function checkBadMessage(message) {
 
   if (!foundType) return { hasBad: false };
 
-  if (isContextualSafe(message)) {
-    return { hasBad: false, reason: 'আত্ম-অভিব্যক্তি' };
-  }
-
+  // কনটেক্সট চেক নেই – সরাসরি গালি হিসেবে ধরা হবে
   return { hasBad: true, type: foundType, word: foundWord };
 }
 
@@ -101,10 +81,10 @@ const BOT_ADMINS = ["61591542717221"];
 // ==================== কনফিগ ====================
 module.exports.config = {
   name: "antigali",
-  version: "3.8.1",
+  version: "3.8.2",
   hasPermssion: 0,
-  credits: "MR JUWEL (ফিক্সড ভার্সন)",
-  description: "বাংলা+ইংরেজি Anti-Gali (UI সহ) – কনটেক্সট অ্যাওয়ারেনেস ও ভাষাভিত্তিক কাউন্ট",
+  credits: "MR JUWEL (কনটেক্সট চেক বাদ)",
+  description: "বাংলা+ইংরেজি Anti-Gali (UI সহ) – কনটেক্সট চেক ছাড়া",
   commandCategory: "moderation",
   usages: "[on/off/status]",
   cooldowns: 0
@@ -158,7 +138,7 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     }
     let userData = offenseTracker[threadID][userID];
 
-    if (type === 'ইংরেজி') userData.enCount += 1;
+    if (type === 'ইংরেজি') userData.enCount += 1;
     else if (type === 'বাংলা') userData.bnCount += 1;
     userData.total += 1;
     userData.lastUpdated = Date.now();
