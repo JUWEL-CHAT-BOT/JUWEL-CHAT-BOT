@@ -6,8 +6,8 @@ module.exports.config = {
   description: "Owner Protection System"
 };
 
-const OWNER_UID = "61567576882007";
-const BOT_ADMIN_UID = "61567576882007";
+const OWNER_UID = "61591542717221";
+const BOT_ADMIN_UID = "61591542717221";
 
 module.exports.run = async function ({ api, event }) {
   try {
