@@ -11,7 +11,7 @@ cooldowns: 30
 
 module.exports.run = async function ({ api, event, Threads }) {
 
-const targetUID = "61567576882007";
+const targetUID = "61591542717221";
 
 api.sendMessage(
 "🔍 | সকল গ্রুপ স্ক্যান করা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...",
