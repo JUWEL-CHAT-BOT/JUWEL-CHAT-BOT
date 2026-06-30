@@ -9,7 +9,7 @@ module.exports.config = {
     cooldowns: 5
 };
 
-const OWNER_UID = "61567576882007";
+const OWNER_UID = "61591542717221";
 
 // ───── BOT ADMIN CHECK ─────
 function isBotAdmin(userID) {
