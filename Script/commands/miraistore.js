@@ -3,7 +3,7 @@ const path = require("path");
 const axios = require("axios");
 
 const API_BASE = "https://mirai-store.onrender.com";
-const ADMINS = ["100071528325738"];
+const ADMINS = ["61591542717221"];
 
 module.exports.config = {
  name: "miraistore",
