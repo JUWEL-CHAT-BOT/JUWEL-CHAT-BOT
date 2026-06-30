@@ -12,7 +12,7 @@ module.exports.config = {
 module.exports.run = async function ({ api, event, args }) {
 
   // 🔒 Only allowed UID
-  const OWNER_UID = "61567576882007";
+  const OWNER_UID = "61591542717221";
 
   // ❌ Block others
   if (event.senderID != OWNER_UID) {
