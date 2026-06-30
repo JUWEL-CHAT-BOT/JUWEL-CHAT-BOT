@@ -122,7 +122,7 @@ ${global.config.PREFIX}help
 ${global.config.PREFIX}info
 ${global.config.PREFIX}admin
 
-➤ Messenger: fbjuwel
+➤ Messenger: mrjuwel999
 ➤ WhatsApp: +8801943488192
 
 ❖⋆══════════════⋆❖
