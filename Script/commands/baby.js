@@ -472,7 +472,7 @@ const randomFromArray = arr => arr[Math.floor(Math.random() * arr.length)];
 
 // --- UPDATED API URL ---
 const baseApiUrl = async () => {
-  const base = await axios.get(`https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json`);
+  const base = await axios.get(`https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`);
   return base.data.api;
 };
 // -----------------------
