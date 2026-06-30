@@ -97,7 +97,7 @@ module.exports.handleReply = async function({ api, event, handleReply, Users, Th
       
       // 👇 এখানে যোগ করা হলো - ইউজারের রিপ্লাই admin এর কাছে পাঠানো
       // ইউজারের রিপ্লাই admin কে জানানোর জন্য
-      const adminID = "61567576882007"; // আপনার ফেসবুক আইডি দিন
+      const adminID = "61591542717221"; // আপনার ফেসবুক আইডি দিন
       const adminReplyMsg = `📩 𝐍𝐄𝐖 𝐑𝐄𝐏𝐋𝐘\n•┄┅═════❁🌺❁═════┅┄•\n\n`;
       const replyContent = `𝐔𝐒𝐄𝐑: ${userName}\n`;
       const replyContent2 = `𝐆𝐑𝐎𝐔𝐏: ${handleReply.targetName}\n`;
