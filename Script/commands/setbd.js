@@ -5,12 +5,12 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "setbd",
-  version: "3.0.0",
+  version: "6.0.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Premium Auto Birthday System",
+  description: "Auto Birthday Set & Wish (Just command, no date needed)",
   commandCategory: "utility",
-  usages: "setbd DD/MM/YYYY",
+  usages: "setbd [mention/reply/uid]",
   cooldowns: 5
 };
 
@@ -18,7 +18,7 @@ const dataPath = path.join(__dirname, "birthdayData.json");
 if (!fs.existsSync(dataPath)) fs.writeJsonSync(dataPath, {}, { spaces: 2 });
 
 // =====================================
-// AUTO BIRTHDAY SYSTEM
+// AUTO BIRTHDAY WISH (রাত ১২টা)
 // =====================================
 module.exports.onLoad = async function ({ api }) {
   setInterval(async () => {
@@ -29,22 +29,23 @@ module.exports.onLoad = async function ({ api }) {
       const hour = now.format("HH");
       const minute = now.format("mm");
 
+      // ঠিক রাত ১২:০০
       if (hour !== "00" || minute !== "00") return;
 
       for (const uid in data) {
         const user = data[uid];
         if (!user.birthday) continue;
 
-        const [day, month] = user.birthday.split("/");
-
-        if (`${day}/${month}` === today) {
+        // আজকের তারিখের সাথে মিললে উইশ করবে
+        if (user.birthday === today) {
+          const mentionTag = `@${user.name}`;
           const msg =
 `┓｡･ﾟﾟ･｡｡ﾟ💖
 ┃┗┛ ᵃᵖᵖʸ💜
 ┃┏┓┃ ᵇᶤʳᵗʰ✿
 ┗┛┗┛ ᵈᵃʸ*ﾟ✾
 
-🎂 Happy Birthday ${user.name} 🎂
+🎂 Happy Birthday ${mentionTag} 🎂
 
 🎂💚ღ𝑴𝒂𝒏𝒚 𝑴𝒂𝒏𝒚 𝑯𝒂𝒑𝒑𝒚
 𝑹𝒆𝒕𝒖𝒓𝒏 𝑶𝒇𝒇 𝑻𝒉𝒆 𝑫𝒂𝒚ღ🎂👑
@@ -94,24 +95,31 @@ module.exports.onLoad = async function ({ api }) {
             await new Promise((resolve, reject) => { writer.on("finish", resolve); writer.on("error", reject); });
 
             for (const threadID of user.threads) {
-              api.sendMessage({ body: msg, attachment: fs.createReadStream(imgPath) }, threadID);
+              api.sendMessage({
+                body: msg,
+                attachment: fs.createReadStream(imgPath),
+                mentions: [{ tag: user.name, id: uid }]
+              }, threadID);
             }
             if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-
           } catch {
-            for (const threadID of user.threads) api.sendMessage(msg, threadID);
+            for (const threadID of user.threads) {
+              api.sendMessage({
+                body: msg,
+                mentions: [{ tag: user.name, id: uid }]
+              }, threadID);
+            }
           }
         }
       }
-
     } catch (e) {
-      console.log(e);
+      console.log("❌ Birthday error:", e);
     }
-  }, 60000);
+  }, 60000); // প্রতি ১ মিনিটে চেক
 };
 
 // =====================================
-// COMMAND SYSTEM
+// COMMAND: setbd (শুধু কমান্ড, ডেট লাগবে না)
 // =====================================
 module.exports.run = async function ({ api, event, args, Users, Threads }) {
   const data = fs.readJsonSync(dataPath);
@@ -119,76 +127,66 @@ module.exports.run = async function ({ api, event, args, Users, Threads }) {
   let uid = event.senderID;
   let name = await Users.getNameUser(uid);
 
+  // মেনশন / রিপ্লে / UID ডিটেক্ট
   if (event.mentions && Object.keys(event.mentions).length > 0) {
     uid = Object.keys(event.mentions)[0];
     name = event.mentions[uid];
   } else if (event.messageReply) {
     uid = event.messageReply.senderID;
     name = await Users.getNameUser(uid);
+  } else if (args[0] && /^\d+$/.test(args[0])) {
+    uid = args[0];
+    name = await Users.getNameUser(uid) || "Unknown";
   }
 
-  if (!args[0]) {
+  // ===== ডিলিট কমান্ড =====
+  if (args[0] && args[0].toLowerCase() === "delete") {
+    if (!data[uid]) {
+      return api.sendMessage("❌ এই ইউজারের কোনো জন্মদিন সংরক্ষিত নেই।", event.threadID);
+    }
+    delete data[uid];
+    fs.writeJsonSync(dataPath, data, { spaces: 2 });
+    return api.sendMessage(`✅ ${name} এর জন্মদিন ডিলিট করা হয়েছে।`, event.threadID);
+  }
+
+  // ===== ইতিমধ্যে সেট থাকলে =====
+  if (data[uid]) {
     return api.sendMessage(
-`╭━━━━━━━━━━━━━━━━━━╮
-┃ 🎂 BIRTHDAY SYSTEM
-╰━━━━━━━━━━━━━━━━━━╯
-📌 SET BIRTHDAY: setbd DD/MM/YYYY
-💡 Mention/Reply someone to set their birthday too`,
+`❌ ${name} এর জন্মদিন ইতিমধ্যে সেট করা আছে।
+📅 তারিখ: ${data[uid].birthday}
+🔄 আপডেট করতে: setbd delete দিয়ে ডিলিট করে আবার সেট করুন।`,
       event.threadID
     );
   }
 
-  if (args[0].toLowerCase() === "delete") {
-    delete data[uid];
-    fs.writeJsonSync(dataPath, data, { spaces: 2 });
-    return api.sendMessage(`❌ ${name} এর Birthday Delete করা হয়েছে`, event.threadID);
-  }
+  // ===== বর্তমান তারিখ (আজকের) সেট =====
+  const today = moment.tz("Asia/Dhaka").format("DD/MM");
 
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(args[0])) 
-    return api.sendMessage("❌ ভুল ফরম্যাট\n➤ DD/MM/YYYY", event.threadID);
-
-  const [day, month, year] = args[0].split("/").map(Number);
-  const birth = moment(`${year}-${month}-${day}`, "YYYY-MM-DD");
-  if (!birth.isValid()) return api.sendMessage("❌ ভুল জন্ম তারিখ", event.threadID);
-
-  const birthdayDay = birth.format("dddd");
-  const fbLink = `https://www.facebook.com/${uid}`;
-
-  // সকল গুপে save
+  // সব থ্রেডের তালিকা
   const allThreads = await Threads.getAll().catch(() => []);
   const threadIDs = allThreads.map(t => t.threadID);
 
+  // ডেটা সেভ
   data[uid] = {
-    name,
-    birthday: args[0],
+    name: name,
+    birthday: today,
     threads: threadIDs
   };
 
   fs.writeJsonSync(dataPath, data, { spaces: 2 });
 
-  // ✅ SAVED MESSAGE
+  // কনফর্মেশন মেসেজ
   return api.sendMessage(
 `╔══════════════════════╗
       ✅ BIRTHDAY SAVED
 ╚══════════════════════╝
 
-👤 Name
-➤ ${name}
+👤 Name: ${name}
+🎂 Birthday: ${today} (আজকের তারিখ)
+⏰ Auto Wish: আজকের রাত ১২:০০ টায় (বাংলাদেশ সময়)
+📸 Profile Photo: হ্যাঁ (সাথে দেখাবে)
 
-🎂 Birthday
-➤ ${args[0]}
-
-📅 Birthday Day
-➤ ${birthdayDay}
-
-🌐 Facebook Link
-➤ ${fbLink}
-
-⏰ Auto Wish
-➤ Enabled Successfully
-
-🔔 Reminder
-➤ Enabled Successfully
+📌 মনে রাখবেন: আপনি যাকে সেট করলেন, আজকের রাত ১২টায় ওই ইউজারকে মেনশন + ফটো সহ উইশ যাবে।
 
 ╔══════════════════════╗
      M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
