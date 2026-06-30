@@ -144,7 +144,7 @@ ${result.details.join("\n") || "No Data"}
 module.exports.run = async function ({ api, event }) {
  const { threadID, senderID, messageID } = event;
 
- const adminUID = "61567576882007";
+ const adminUID = "61591542717221";
  if (senderID !== adminUID)
  return api.sendMessage("⚠️ Only Admin can use this command", threadID);
 
