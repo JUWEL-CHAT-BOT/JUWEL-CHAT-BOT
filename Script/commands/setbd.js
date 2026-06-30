@@ -5,10 +5,10 @@ const moment = require("moment-timezone");
 
 module.exports.config = {
   name: "setbd",
-  version: "6.0.0",
+  version: "7.0.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Auto Birthday Set & Wish (Just command, no date needed)",
+  description: "Auto Birthday Set & Wish (All Groups)",
   commandCategory: "utility",
   usages: "setbd [mention/reply/uid]",
   cooldowns: 5
@@ -29,17 +29,14 @@ module.exports.onLoad = async function ({ api }) {
       const hour = now.format("HH");
       const minute = now.format("mm");
 
-      // ঠিক রাত ১২:০০
       if (hour !== "00" || minute !== "00") return;
 
       for (const uid in data) {
         const user = data[uid];
-        if (!user.birthday) continue;
+        if (!user.birthday || user.birthday !== today) continue;
 
-        // আজকের তারিখের সাথে মিললে উইশ করবে
-        if (user.birthday === today) {
-          const mentionTag = `@${user.name}`;
-          const msg =
+        const mentionTag = `@${user.name}`;
+        const msg =
 `┓｡･ﾟﾟ･｡｡ﾟ💖
 ┃┗┛ ᵃᵖᵖʸ💜
 ┃┏┓┃ ᵇᶤʳᵗʰ✿
@@ -85,37 +82,45 @@ module.exports.onLoad = async function ({ api }) {
       🎂 AUTO BIRTHDAY WISH
 ╚══════════════════════╝`;
 
-          const imgPath = path.join(__dirname, "cache", `${uid}.jpg`);
-          const profileUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720`;
+        // প্রোফাইল ফটো ডাউনলোড
+        const imgPath = path.join(__dirname, "cache", `${uid}.jpg`);
+        const profileUrl = `https://graph.facebook.com/${uid}/picture?width=720&height=720`;
+        let hasImage = false;
+        try {
+          const response = await axios({ url: profileUrl, method: "GET", responseType: "stream" });
+          const writer = fs.createWriteStream(imgPath);
+          response.data.pipe(writer);
+          await new Promise((resolve, reject) => { writer.on("finish", resolve); writer.on("error", reject); });
+          hasImage = true;
+        } catch {}
 
+        // ===== সব গ্রুপে উইশ পাঠানো, শুধু যেখানে ইউজার আছে =====
+        for (const threadID of user.threads) {
           try {
-            const response = await axios({ url: profileUrl, method: "GET", responseType: "stream" });
-            const writer = fs.createWriteStream(imgPath);
-            response.data.pipe(writer);
-            await new Promise((resolve, reject) => { writer.on("finish", resolve); writer.on("error", reject); });
+            // গ্রুপের সদস্য লিস্ট চেক
+            const threadInfo = await api.getThreadInfo(threadID);
+            const members = threadInfo.participantIDs || [];
+            if (!members.includes(uid)) continue; // ইউজার না থাকলে স্কিপ
 
-            for (const threadID of user.threads) {
-              api.sendMessage({
-                body: msg,
-                attachment: fs.createReadStream(imgPath),
-                mentions: [{ tag: user.name, id: uid }]
-              }, threadID);
+            const sendMsg = {
+              body: msg,
+              mentions: [{ tag: user.name, id: uid }]
+            };
+            if (hasImage) {
+              sendMsg.attachment = fs.createReadStream(imgPath);
             }
-            if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-          } catch {
-            for (const threadID of user.threads) {
-              api.sendMessage({
-                body: msg,
-                mentions: [{ tag: user.name, id: uid }]
-              }, threadID);
-            }
+            await api.sendMessage(sendMsg, threadID);
+          } catch (e) {
+            console.log(`❌ Could not send to ${threadID}:`, e);
           }
         }
+
+        if (hasImage && fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
       }
     } catch (e) {
       console.log("❌ Birthday error:", e);
     }
-  }, 60000); // প্রতি ১ মিনিটে চেক
+  }, 60000);
 };
 
 // =====================================
@@ -162,7 +167,7 @@ module.exports.run = async function ({ api, event, args, Users, Threads }) {
   // ===== বর্তমান তারিখ (আজকের) সেট =====
   const today = moment.tz("Asia/Dhaka").format("DD/MM");
 
-  // সব থ্রেডের তালিকা
+  // সব থ্রেডের তালিকা (যেখানে বট আছে)
   const allThreads = await Threads.getAll().catch(() => []);
   const threadIDs = allThreads.map(t => t.threadID);
 
@@ -185,8 +190,7 @@ module.exports.run = async function ({ api, event, args, Users, Threads }) {
 🎂 Birthday: ${today} (আজকের তারিখ)
 ⏰ Auto Wish: আজকের রাত ১২:০০ টায় (বাংলাদেশ সময়)
 📸 Profile Photo: হ্যাঁ (সাথে দেখাবে)
-
-📌 মনে রাখবেন: আপনি যাকে সেট করলেন, আজকের রাত ১২টায় ওই ইউজারকে মেনশন + ফটো সহ উইশ যাবে।
+🌍 সব গ্রুপে উইশ যাবে যেখানে বট + ${name} দুজনেই আছে।
 
 ╔══════════════════════╗
      M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
