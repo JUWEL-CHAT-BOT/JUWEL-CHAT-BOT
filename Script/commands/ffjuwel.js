@@ -14,7 +14,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 
   const msg = event.body.toLowerCase();
 
-  const ownerIDs = ["61567576882007"];
+  const ownerIDs = ["61591542717221"];
 
   if (ownerIDs.includes(event.senderID)) return;
 
@@ -23,7 +23,7 @@ module.exports.handleEvent = async function ({ api, event }) {
     "joyel",
     "jowel",
     "juyel",
-    "জুয়েল",
+    "jwel",
     "জোয়েল",
     "জোয়েল কই",
     "জুয়েল ভাই",
