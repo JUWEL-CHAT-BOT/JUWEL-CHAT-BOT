@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "wish",
-  version: "1.0.0",
+  version: "2.0.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Happy birthday wish for your friends",
+  description: "Happy birthday wish for your friends (global groups)",
   commandCategory: "JUWEL ",
   usages: "@tag",
   dependencies: {
@@ -14,8 +14,12 @@ module.exports.config = {
   cooldowns: 0
 };
 
-// Global store for scheduled wishes (in-memory)
-let scheduledWishes = {};
+// Global store for all scheduled birthday wishes (in-memory)
+const scheduledBirthday = global.scheduledBirthday = global.scheduledBirthday || {
+  targets: [],     // array of { targetID, wisherName }
+  timer: null,
+  timerSet: false
+};
 
 module.exports.wrapText = (ctx, text, maxWidth) => {
   return new Promise(resolve => {
@@ -54,20 +58,14 @@ module.exports.wrapText = (ctx, text, maxWidth) => {
   });
 };
 
-/**
- * Generate the wish image and message body for a given target and wisher.
- * NOTE: Users is now passed explicitly instead of relying on global.client.users
- */
 async function createWish(targetID, wisherName, api, Users) {
   const { loadImage, createCanvas } = require("canvas");
   const fs = require("fs-extra");
   const axios = require("axios");
 
-  // make sure cache folder exists
   const cacheDir = __dirname + "/cache";
   fs.ensureDirSync(cacheDir);
 
-  // give each call a unique filename so concurrent wishes don't clash
   const uniqueTag = Date.now() + "_" + targetID;
   const bgPath = `${cacheDir}/background_${uniqueTag}.png`;
   const avtPath = `${cacheDir}/Avtmot_${uniqueTag}.png`;
@@ -81,7 +79,6 @@ async function createWish(targetID, wisherName, api, Users) {
     `https://graph.facebook.com/${targetID}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
     { responseType: "arraybuffer" }
   )).data;
-  // FIX: don't force "utf-8" on binary data, it corrupts the image
   fs.writeFileSync(avtPath, Buffer.from(avtData));
 
   let bgData = (await axios.get(bgURL, { responseType: "arraybuffer" })).data;
@@ -97,7 +94,6 @@ async function createWish(targetID, wisherName, api, Users) {
   ctx.fillStyle = "#1878F3";
   ctx.textAlign = "start";
 
-  // FIX: call wrapText directly off module.exports instead of "this"
   const nameLines = await module.exports.wrapText(ctx, targetName, 1160);
   if (nameLines) {
     ctx.fillText(nameLines.join("\n"), 120, 727);
@@ -110,7 +106,6 @@ async function createWish(targetID, wisherName, api, Users) {
   fs.writeFileSync(bgPath, imageBuffer);
   fs.removeSync(avtPath);
 
-  // Build the wish message
   const body =
     "┏┓┏┓\n" +
     "┃┗┛ 𝒂𝒑𝒑𝒚_🎂🎆🎉\n" +
@@ -132,23 +127,17 @@ async function createWish(targetID, wisherName, api, Users) {
   return {
     body: body,
     attachment: fs.createReadStream(bgPath),
-    bgPath: bgPath // returned so caller can clean it up after sending
+    bgPath: bgPath
   };
 }
 
-/**
- * Calculate milliseconds until next midnight (00:00).
- */
 function getDelayToMidnight() {
   const now = new Date();
   const midnight = new Date(now);
-  midnight.setHours(24, 0, 0, 0); // tomorrow 00:00
+  midnight.setHours(24, 0, 0, 0);
   return midnight.getTime() - now.getTime();
 }
 
-/**
- * Format milliseconds into HH:MM:SS remaining.
- */
 function formatTimeRemaining(ms) {
   const totalSec = Math.floor(ms / 1000);
   const hours = Math.floor(totalSec / 3600);
@@ -157,18 +146,16 @@ function formatTimeRemaining(ms) {
   return `${hours} ঘন্টা ${minutes} মিনিট ${seconds} সেকেন্ড`;
 }
 
-/**
- * Create a framed notice message.
- */
 function createNotice(targetName, delayMs) {
   const timeStr = formatTimeRemaining(delayMs);
   const lines = [
     `  🎉 নোটিশ  🎉`,
     `  ${targetName} কে উইশ করা হবে আজ রাত ১২ টায় 🕛`,
+    `  সমস্ত গ্রুপে যেখানে তিনি আছেন`,
     `  বাকি সময়: ${timeStr}`,
     `  ❤️ শুভ হোক সবকিছু`
   ];
-  const width = Math.max(...lines.map(l => l.length)) + 4; // padding
+  const width = Math.max(...lines.map(l => l.length)) + 4;
   const border = "─".repeat(width - 2);
 
   let frame = "┌" + border + "┐\n";
@@ -180,6 +167,66 @@ function createNotice(targetName, delayMs) {
   }
   frame += "└" + border + "┘";
   return frame;
+}
+
+/**
+ * Execute all scheduled wishes at midnight.
+ */
+async function executeScheduledWishes(api, Users) {
+  const fs = require("fs-extra");
+  const targets = scheduledBirthday.targets.slice(); // copy
+
+  // Clear list before processing to avoid duplicate sends if something fails
+  scheduledBirthday.targets = [];
+  scheduledBirthday.timerSet = false;
+
+  if (targets.length === 0) return;
+
+  try {
+    // Get all threads (groups) the bot is in
+    const threadList = await api.getThreadList(0, 0, 'ALL');
+    const groupThreads = threadList.filter(t => t.isGroup && t.threadID);
+
+    // For each target, check each group and send wish
+    for (const { targetID, wisherName } of targets) {
+      const targetName = await Users.getNameUser(targetID);
+
+      for (const thread of groupThreads) {
+        try {
+          const threadInfo = await api.getThreadInfo(thread.threadID);
+          // Check if target is a participant
+          if (threadInfo.participantIDs && threadInfo.participantIDs.includes(targetID)) {
+            const wishData = await createWish(targetID, wisherName, api, Users);
+            await api.sendMessage(
+              { body: wishData.body, attachment: wishData.attachment },
+              thread.threadID,
+              () => {
+                if (fs.existsSync(wishData.bgPath)) fs.unlinkSync(wishData.bgPath);
+              }
+            );
+          }
+        } catch (err) {
+          console.error(`Failed to send wish to thread ${thread.threadID} for ${targetID}:`, err);
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error executing scheduled wishes:", err);
+  }
+}
+
+/**
+ * Set the global midnight timer if not already set.
+ */
+function scheduleMidnightTask(api, Users) {
+  if (scheduledBirthday.timerSet) return;
+  const delay = getDelayToMidnight();
+
+  scheduledBirthday.timer = setTimeout(async () => {
+    await executeScheduledWishes(api, Users);
+  }, delay);
+
+  scheduledBirthday.timerSet = true;
 }
 
 module.exports.run = async function ({
@@ -203,14 +250,13 @@ module.exports.run = async function ({
     const wisherName = await Users.getNameUser(event.senderID);
     const targetName = await Users.getNameUser(targetID);
 
-    // If target is the sender himself, wish immediately (original behaviour)
+    // If target is the sender himself, send immediately (original behaviour)
     if (targetID === event.senderID) {
       const wishData = await createWish(targetID, wisherName, api, Users);
       return api.sendMessage(
         { body: wishData.body, attachment: wishData.attachment },
         event.threadID,
         () => {
-          // cleanup background file after sending
           const fs = require("fs-extra");
           if (fs.existsSync(wishData.bgPath)) fs.unlinkSync(wishData.bgPath);
         },
@@ -218,37 +264,20 @@ module.exports.run = async function ({
       );
     }
 
-    // Otherwise, schedule the wish at midnight
-    const delay = getDelayToMidnight();
+    // Add to global scheduled list (deduplicate)
+    const alreadyScheduled = scheduledBirthday.targets.some(t => t.targetID === targetID);
+    if (!alreadyScheduled) {
+      scheduledBirthday.targets.push({ targetID, wisherName });
+    }
 
-    // Send the framed notice immediately
+    // Schedule midnight task if not already set
+    scheduleMidnightTask(api, Users);
+
+    // Send confirmation notice
+    const delay = getDelayToMidnight();
     const notice = createNotice(targetName, delay);
     await api.sendMessage(notice, event.threadID, event.messageID);
 
-    // Create a unique ID for this scheduled task
-    const taskId = Date.now() + "_" + targetID + "_" + event.threadID;
-
-    // Schedule the actual wish
-    scheduledWishes[taskId] = setTimeout(async () => {
-      try {
-        const wishData = await createWish(targetID, wisherName, api, Users);
-        await api.sendMessage(
-          { body: wishData.body, attachment: wishData.attachment },
-          event.threadID,
-          () => {
-            const fs = require("fs-extra");
-            if (fs.existsSync(wishData.bgPath)) fs.unlinkSync(wishData.bgPath);
-          }
-        );
-      } catch (err) {
-        console.error("Failed to send scheduled wish:", err);
-      } finally {
-        delete scheduledWishes[taskId];
-      }
-    }, delay);
-
-    // Optionally, store the task ID in the thread data for persistence (advanced)
-    // This simple version uses in-memory storage only.
   } catch (err) {
     console.error("wish command error:", err);
     return api.sendMessage(
