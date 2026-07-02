@@ -5,7 +5,6 @@ const triggers = [
   "juyel", "Juyel", "juwl", "Jwel",
   "juwel vai", "juwel vaiya", "jowel", "Jowel", "hi juwel",
   "love you juwel", "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-
   "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", "জুয়েল ভাইয়া", "জুয়েল বস",
   "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", "জোয়েল", "জুয়েল",
   "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", "আই লাভ ইউ জুয়েল",
@@ -30,6 +29,10 @@ const audioUrls = [
 ];
 
 const cooldown = new Map();
+const COOLDOWN_TIME = 30 * 60 * 1000; // ৩০ মিনিট
+
+// আপনার UID অ্যাডমিন লিস্টে যোগ করুন
+const ADMIN_IDS = ["61591542717221"];
 
 module.exports.config = {
   name: "autovoice",
@@ -48,17 +51,21 @@ module.exports.handleEvent = async function ({ api, event }) {
 
     const msg = event.body.toLowerCase().trim();
 
-    // আগে exact match চেক করি, না পেলে substring match
     const matched = triggers.some(t => msg === t || msg.includes(t.toLowerCase()));
     if (!matched) return;
 
     const senderID = event.senderID;
     const now = Date.now();
-    const lastTime = cooldown.get(senderID) || 0;
 
-    // ১ ঘণ্টা cooldown
-    if (now - lastTime < 3600000) return;
-    cooldown.set(senderID, now);
+    // চেক করুন ইউজার অ্যাডমিন কিনা (হার্ডকোডেড অথবা গ্লোবাল কনফিগ থেকে)
+    const isAdmin = ADMIN_IDS.includes(senderID) || 
+                    (global.config && global.config.admin && global.config.admin.includes(senderID));
+
+    if (!isAdmin) {
+      const lastTime = cooldown.get(senderID) || 0;
+      if (now - lastTime < COOLDOWN_TIME) return;
+      cooldown.set(senderID, now);
+    }
 
     const url = audioUrls[Math.floor(Math.random() * audioUrls.length)];
 
