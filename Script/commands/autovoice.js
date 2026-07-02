@@ -1,13 +1,13 @@
 const axios = require("axios");
 
 const triggers = [
-  "juwel", "jewel", "juwel boss", "jewel boss", "mr juwel", "boss juwel",
-  "where is juwel", "where are you juwel", "juwel bro", "juwel bhai",
-  "juwel vai", "juwel vaiya", "hey juwel", "hello juwel", "hi juwel",
-  "love you juwel", "miss you juwel",
+  "Juwel", "jewel", "juwel", "jewel boss", "mr juwel", "boss juwel",
+  "juyel", "Juyel", "juwl", "Jwel",
+  "juwel vai", "juwel vaiya", "jowel", "Jowel", "hi juwel",
+  "love you juwel", "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
 
-  "জুয়েল", "জোয়েল", "জুয়েল ভাই", "জুয়েল ভাইয়া", "জুয়েল বস",
-  "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", "জুয়েল আছো", "জুয়েল আছেন",
+  "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", "জুয়েল ভাইয়া", "জুয়েল বস",
+  "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", "জোয়েল", "জুয়েল",
   "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", "আই লাভ ইউ জুয়েল",
   "মিস ইউ জুয়েল", "হ্যালো জুয়েল", "হাই জুয়েল"
 ];
