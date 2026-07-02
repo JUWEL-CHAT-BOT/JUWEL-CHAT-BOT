@@ -38,7 +38,7 @@ module.exports.handleEvent = async function ({ api, event }) {
     "jowel",
     "Juyel",
     "juyel",
-    "জুয়েল কই তুমি"
+    "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐"
   ];
 
   if (!triggers.some(word => msg.includes(word))) return;
