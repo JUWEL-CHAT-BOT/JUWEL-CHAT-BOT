@@ -10,68 +10,35 @@ module.exports.config = {
 };
 
 module.exports.run = async function ({ api, event }) {
-  const { threadID, messageID } = event;
+  const { threadID, messageID, senderID } = event;
+  
+  // শুধুমাত্র এই ইউজার আইডি চালাতে পারবে
+  const allowedUser = "61591542717221";
+  
+  if (senderID !== allowedUser) {
+    return api.sendMessage(
+      "❌ আপনাকে এই কমান্ড ব্যবহার করার অনুমতি দেওয়া হয়নি! শুধুমাত্র বটের মালিক এই কমান্ড চালাতে পারবেন।",
+      threadID,
+      messageID
+    );
+  }
 
-  let percent = 0;
-
-  const bar = (p) => {
-    const total = 10;
-    const filled = Math.round((p / 100) * total);
-    return "█".repeat(filled) + "░".repeat(total - filled);
-  };
-
-  let msg = await api.sendMessage(
+  // রিস্টার্ট মেসেজ পাঠান
+  await api.sendMessage(
 `╔════════════════════╗
-   ⚡ 𝗙𝗔𝗦𝗧 𝗥𝗘𝗦𝗧𝗔𝗥𝗧
+   🔄 𝗦𝗬𝗦𝗧𝗘𝗠 𝗥𝗘𝗦𝗧𝗔𝗥𝗧
 ╚════════════════════╝
 
-🔄 𝗦𝗧𝗔𝗧𝗨𝗦: 𝗦𝗧𝗔𝗥𝗧𝗜𝗡𝗚...
-📊 𝗣𝗥𝗢𝗚𝗥𝗘𝗦𝗦: 0%
-[░░░░░░░░░░]
+⏳ 𝗕𝗢𝗧 𝗜𝗦 𝗥𝗘𝗦𝗧𝗔𝗥𝗧𝗜𝗡𝗚...
+⚡ 𝗣𝗟𝗘𝗔𝗦𝗘 𝗪𝗔𝗜𝗧 𝗔 𝗠𝗢𝗠𝗘𝗡𝗧
 
 ━━━━━━━━━━━━━━━━━━`,
     threadID,
     messageID
   );
 
-  const interval = setInterval(() => {
-    percent += Math.floor(Math.random() * 35) + 15;
-
-    if (percent >= 100) percent = 100;
-
-    api.editMessage(
-`╔════════════════════╗
-   ⚡ 𝗙𝗔𝗦𝗧 𝗥𝗘𝗦𝗧𝗔𝗥𝗧
-╚════════════════════╝
-
-🔄 𝗦𝗧𝗔𝗧𝗨𝗦: 𝗥𝗨𝗡𝗡𝗜𝗡𝗚...
-📊 𝗣𝗥𝗢𝗚𝗥𝗘𝗦𝗦: ${percent}%
-[${bar(percent)}]
-
-━━━━━━━━━━━━━━━━━━`,
-      msg.messageID
-    );
-
-    if (percent === 100) {
-      clearInterval(interval);
-
-      setTimeout(() => {
-        api.editMessage(
-`╔════════════════════╗
-   ✅ 𝗥𝗘𝗦𝗧𝗔𝗥𝗧 𝗖𝗢𝗠𝗣𝗟𝗘𝗧𝗘
-╚════════════════════╝
-
-🤖 𝗕𝗢𝗧 𝗢𝗡𝗟𝗜𝗡𝗘 𝗔𝗚𝗔𝗜𝗡 ⚡
-🚀 𝗥𝗘𝗔𝗗𝗬 𝗧𝗢 𝗨𝗦𝗘
-
-━━━━━━━━━━━━━━━━━━`,
-          msg.messageID
-        );
-
-        setTimeout(() => {
-          process.exit(2);
-        }, 1000);
-      }, 500);
-    }
-  }, 500);
+  // সরাসরি রিস্টার্ট করুন (কোনো লোডশেডিং/এনিমেশন ছাড়া)
+  setTimeout(() => {
+    process.exit(2); // বট রিস্টার্ট করুন
+  }, 1000);
 };
