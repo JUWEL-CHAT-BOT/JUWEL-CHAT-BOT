@@ -2,19 +2,19 @@
   "name": "shahadat-chat-bot",
   "version": "2.0.0",
   "description": "Made By SHAHADAT SAHU",
-  "main": "Main.js",
+  "main": "Juwel.js",
   "engines": {
     "node": "20.x",
     "npm": ">=10.0.0 <13.0.0"
   },
   "scripts": {
-    "start": "node Sahu.js",
+    "start": "node Juwel.js",
     "login": "node login",
     "test": "node --trace-warnings --use_strict --async-stack-traces mirai"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/shahadat-sahu/SHAHADAT-CHAT-BOT.git"
+    "url": "https://github.com/JUWEL-CHAT-BOT/JUWEL-CHAT-BOT.git"
   },
   "keywords": [
     "bot",
@@ -30,9 +30,9 @@
   "author": "SHAHADAT SAHU",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/shahadat-sahu/SHAHADAT-CHAT-BOT/issues"
+    "url": "https://github.com/JUWEL-CHAT-BOT/JUWEL-CHAT-BOT/issues"
   },
-  "homepage": "https://github.com/shahadat-sahu/SHAHADAT-CHAT-BOT/issues",
+  "homepage": "https://github.com/JUWEL-CHAT-BOT/JUWEL-CHAT-BOT#readme",
   "dependencies": {
     "@distube/ytdl-core": "^4.13.2",
     "@miraipr0ject/assets": "^1.0.9",
