@@ -14,6 +14,7 @@ module.exports.config = {
 const fs = require("fs-extra");
 const path = require("path");
 const moment = require("moment-timezone");
+const axios = require("axios");
 
 const cooldown = {};
 const VIP_UID = ["61591542717221"];
@@ -39,6 +40,28 @@ function saveData(data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
+/* ================= GET USER AVATAR ================= */
+async function getUserAvatar(uid) {
+  try {
+    const response = await axios.get(`https://graph.facebook.com/${uid}/picture?width=500&height=500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, {
+      responseType: 'stream'
+    });
+    return response.data;
+  } catch (e) {
+    return null;
+  }
+}
+
+/* ================= GET USER INFO ================= */
+async function getUserInfo(api, uid) {
+  try {
+    const info = await api.getUserInfo(uid);
+    return info[uid];
+  } catch (e) {
+    return null;
+  }
+}
+
 /* ================= MAIN EVENT ================= */
 module.exports.run = async function ({ api, event, Users }) {
   try {
@@ -51,6 +74,7 @@ module.exports.run = async function ({ api, event, Users }) {
 
     const threadInfo = await api.getThreadInfo(threadID);
     const totalMembers = threadInfo.participantIDs.length;
+    const allMembers = threadInfo.participantIDs;
 
     let data = loadData();
 
@@ -112,24 +136,65 @@ module.exports.run = async function ({ api, event, Users }) {
     const names = addedUsers.map(u => u.fullName);
     const count = addedUsers.length;
 
-    const adderName = await Users.getNameUser(author);
-    mentions.push({ tag: adderName, id: author });
+    /* ================= FIND WHO ADDED ================= */
+    let adderName = "";
+    let adderID = "";
+    let isViaLink = false;
 
+    // Check if the adder is in the group
+    if (allMembers.includes(author)) {
+      try {
+        const adderInfo = await getUserInfo(api, author);
+        if (adderInfo) {
+          adderName = adderInfo.name;
+          adderID = author;
+        } else {
+          adderName = "Unknown User";
+          adderID = author;
+        }
+      } catch (e) {
+        adderName = "Unknown User";
+        adderID = author;
+      }
+    } else {
+      // User not in group - might be via link or left
+      isViaLink = true;
+      adderName = "🌐 Joined via Group Link";
+      adderID = "link";
+    }
+
+    // Check if any added user is VIP
     const isVIP = addedUsers.some(u => VIP_UID.includes(u.userFbId));
 
     /* ================= DAILY COUNT ================= */
     data[threadID].count += count;
     saveData(data);
 
+    /* ================= GET USER AVATAR ================= */
+    const firstUser = addedUsers[0];
+    const avatarStream = await getUserAvatar(firstUser.userFbId);
+
     /* ================= VIP FRAME ================= */
     if (isVIP) {
+      const vipUser = addedUsers.find(u => VIP_UID.includes(u.userFbId));
+      const vipAvatar = await getUserAvatar(vipUser.userFbId);
+      
+      // VIP mentions
+      const vipMentions = [
+        { tag: vipUser.fullName, id: vipUser.userFbId }
+      ];
+      
+      if (!isViaLink) {
+        vipMentions.push({ tag: adderName, id: adderID });
+      }
+
       return api.sendMessage({
         body:
 `╔═══👑═══════════════👑═══╗
     💎 𝐖𝐄𝐋𝐂𝐎𝐌𝐄 🅙𝐔🅦𝐄🅛 🅑𝐎𝐒🅢 💎
 ╚═══👑═══════════════👑═══╝
 
-    👑 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋 👑
+    👑 ${vipUser.fullName} 👑
 
 ━━━━━━━━━━━━━━━━━━━━
 
@@ -142,18 +207,24 @@ module.exports.run = async function ({ api, event, Users }) {
 আশা করি এই গ্রুপে আপনি অনেক সম্মান পাবেন
 সবার থেকে অনেক ভালোবাসা পাবেন
 
-👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 
 ━━━━━━━━━━━━━━━━━━━━
 
     💎 𝐖𝐄𝐋𝐂𝐎𝐌𝐄 𝐉𝐔𝐖𝐄𝐋 𝐁𝐎𝐒𝐒 💎`,
-        mentions
+        mentions: vipMentions,
+        attachment: vipAvatar
       }, threadID);
     }
 
     /* ================= BIG JOIN ================= */
     if (count >= 5) {
+      const bigMentions = [...mentions];
+      if (!isViaLink) {
+        bigMentions.push({ tag: adderName, id: adderID });
+      }
+
       return api.sendMessage({
         body:
 `┌───🎊────────🎊───┐
@@ -166,19 +237,24 @@ module.exports.run = async function ({ api, event, Users }) {
 🌸 সবাইকে জানাই স্বাগতম
 🌸 আমাদের পরিবারে আপনাদের পেয়ে আনন্দিত
 
-👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 📊 𝐓𝐨𝐝𝐚𝐲 : ${data[threadID].count}
 ━━━━━━━━━━━━━━━━━━━━
 
 💝 𝐇𝐀𝐏𝐏𝐘 𝐓𝐎 𝐇𝐀𝐕𝐄 𝐘𝐎𝐔 💝`,
-        mentions
+        mentions: bigMentions,
+        attachment: avatarStream
       }, threadID);
     }
 
     /* ================= FRAME SYSTEM ================= */
 
     let msg = "";
+    const frameMentions = [...mentions];
+    if (!isViaLink) {
+      frameMentions.push({ tag: adderName, id: adderID });
+    }
 
     if (frame === 1) {
       msg = `┌───🌸────────🌸───┐
@@ -191,7 +267,7 @@ module.exports.run = async function ({ api, event, Users }) {
 💗 আমাদের পরিবারের নতুন সদস্য
 💗 আপনাকে পেয়ে আমরা গর্বিত
 
-➕ 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `➕ 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -207,7 +283,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🎭 আপনার আগমন জাদুর মতো
 🎭 নতুন সম্পর্কের শুরু
 
-👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -223,7 +299,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🌺 স্বাগতম জানাই আপনাকে
 🌺 আপনার সাথে নতুন সম্পর্ক শুরু হলো
 
-💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 💫 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -239,7 +315,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🌷 আপনার আগমনে আলো ছড়িয়েছে
 🌷 এ গ্রুপ এখন আরও রঙিন
 
-💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 💫 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -255,7 +331,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🌟 নতুন শুরু, নতুন সম্পর্ক
 🌟 এই গ্রুপকে আপনার দ্বিতীয় বাড়ি ভাবুন
 
-🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 🌸 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -271,7 +347,7 @@ module.exports.run = async function ({ api, event, Users }) {
 💫 আপনাকে স্বাগতম জানাচ্ছি
 💫 আশা করি এখানে ভালো লাগবে
 
-➕ 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `➕ 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -287,7 +363,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🌺 আমাদের সাথে থাকার জন্য ধন্যবাদ
 🌺 এখানে সবাই আপনাকে পছন্দ করবে
 
-💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `💫 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 💫 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -303,7 +379,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🌹 নতুন বন্ধু পেয়ে ভালো লাগলো
 🌹 আপনি এখানে উষ্ণ অভ্যর্থনা পাবেন
 
-🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 🌸 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -319,7 +395,7 @@ module.exports.run = async function ({ api, event, Users }) {
 🎉 এই গ্রুপ এখন আপনার
 🎉 সবাই আপনার সাথে বন্ধুত্ব করতে চায়
 
-👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `👤 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 👥 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
@@ -335,17 +411,25 @@ module.exports.run = async function ({ api, event, Users }) {
 ✨ আপনাকে পেয়ে আমরা সত্যিই আনন্দিত
 ✨ এখানে আপনার প্রতিটি মুহূর্ত সুন্দর হোক
 
-🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}
+${isViaLink ? '🌐 𝐉𝐨𝐢𝐧𝐞𝐝 𝐯𝐢𝐚 : 𝐆𝐫𝐨𝐮𝐩 𝐋𝐢𝐧𝐤' : `🌸 𝐀𝐝𝐝𝐞𝐝 𝐁𝐲 : ${adderName}`}
 🌸 𝐓𝐨𝐭𝐚𝐥 : ${totalMembers}
 ━━━━━━━━━━━━━━━━━━━━`;
     }
 
     return api.sendMessage({
       body: msg,
-      mentions
+      mentions: frameMentions,
+      attachment: avatarStream
     }, threadID);
 
   } catch (e) {
     console.log("JoinNoti Error:", e);
+    // Error handling - send basic message if something fails
+    try {
+      const { threadID } = event;
+      api.sendMessage("⚠️ নতুন সদস্য join করেছেন কিন্তু বিজ্ঞপ্তি পাঠাতে সমস্যা হয়েছে।", threadID);
+    } catch (err) {
+      console.log("Final Error:", err);
+    }
   }
 };
