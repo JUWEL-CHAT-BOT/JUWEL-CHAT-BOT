@@ -19,7 +19,7 @@ module.exports.run = async ({ api, event, args, client, Users, Threads, __GLOBAL
   const request = global.nodemodule["request"];
   const fs = global.nodemodule["fs-extra"];
   
-  const hi = ["নে🥵দেখ👀xxx🫣আর হাত মার🍆💦🥵🤌😫"];
+  const hi = ["নে🥵দেখ👀xxx🫣আর হাত মার🍆💦🥵乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐🤌😫"];
   const know = hi[Math.floor(Math.random() * hi.length)];
   
   const videoLinks = [
