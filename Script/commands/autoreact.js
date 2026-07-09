@@ -42,57 +42,60 @@ module.exports.handleEvent = function({ api, event }) {
   if (!autoreactEnabled) return;
   if (!event.body) return;
   
-  // বট নিজের মেসেজে রিঅ্যাক্ট করবে না (এটা যোগ করলাম)
+  // বট নিজের মেসেজে রিঅ্যাক্ট করবে না
   if (event.senderID === api.getCurrentUserID()) return;
 
-  const msg = event.body.toLowerCase();
+  const msg = event.body.toLowerCase().trim();
   const { messageID } = event;
 
+  // শব্দগুলিকে স্পেস দিয়ে আলাদা করা
+  const words = msg.split(/\s+/);
+  
   // ---------- রিঅ্যাক্ট লিস্ট (ওয়ার্ড + ইমোজি) ----------
   const reactions = [
     // ১. শুভেচ্ছা / সালাম
     {
-      keywords: ["সালাম", "আসসালামু আলাইকুম", "ওয়ালাইকুম আসসালাম", "হ্যালো", "হাই", "নমস্কার", "আদাব", "কেমন আছ", "কী অবস্থা", "hello", "hi", "salam", "good morning", "good afternoon", "good evening", "how are you", "howdy"],
+      keywords: ["সালাম", "আসসালামু", "ওয়ালাইকুম", "হ্যালো", "হাই", "নমস্কার", "আদাব", "hello", "hi", "salam", "goodmorning", "goodafternoon", "goodevening", "howareyou", "howdy"],
       reaction: "🫡"
     },
     // ২. খাবার / পানীয়
     {
-      keywords: ["খাও", "খাইছ", "খাবার", "খিচুরি", "ভাত", "মাছ", "মাংস", "তরকারি", "জল", "পানি", "চা", "কফি", "দুধ", "রুটি", "ডিম", "eat", "food", "rice", "fish", "meat", "curry", "water", "tea", "coffee", "milk", "bread", "egg", "hungry", "lunch", "dinner", "breakfast"],
+      keywords: ["খিচুরি", "ভাত", "মাছ", "মাংস", "তরকারি", "জল", "পানি", "চা", "কফি", "দুধ", "রুটি", "ডিম", "eat", "food", "rice", "fish", "meat", "curry", "water", "tea", "coffee", "milk", "bread", "egg", "hungry", "lunch", "dinner", "breakfast"],
       reaction: "🍽️"
     },
     // ৩. ভালোবাসা / প্রেম
     {
-      keywords: ["ভালোবাস", "প্রেম", "লাভ", "মায়া", "আদর", "হৃদয়", "love", "labyu", "i love", "ilove", "mahal", "krishna", "ram", "baby", "babe", "kiss", "crush", "kilig", "😍", "🥰"],
+      keywords: ["ভালোবাসা", "ভালোবাসি", "প্রেম", "লাভ", "মায়া", "আদর", "হৃদয়", "love", "labyu", "ilove", "mahal", "krishna", "ram", "baby", "babe", "kiss", "crush", "kilig"],
       reaction: "🫶"
     },
     // ৪. দুঃখ / কষ্ট
     {
-      keywords: ["দুঃখ", "কষ্ট", "ব্যথা", "পেইন", "কান্না", "মৃত্যু", "হতাশ", "ডিপ্রেশন", "sad", "pain", "cry", "depress", "stress", "sakit", "saket", "mamatay", "ayaw ko na", "😭", "😢", "😞", "😔"],
+      keywords: ["দুঃখ", "কষ্ট", "ব্যথা", "পেইন", "কান্না", "মৃত্যু", "হতাশা", "ডিপ্রেশন", "sad", "pain", "cry", "depress", "stress", "sakit", "saket", "mamatay"],
       reaction: "🥹"
     },
     // ৫. হাসি / মজা
     {
-      keywords: ["হাসি", "মজা", "মজার", "হা হা", "ঠাট্টা", "পাগল", "laugh", "funny", "lol", "haha", "hehe", "joke", "crazy", "🤣", "😂"],
+      keywords: ["হাসি", "মজা", "ঠাট্টা", "পাগল", "laugh", "funny", "lol", "haha", "hehe", "joke", "crazy"],
       reaction: "😂"
     },
     // ৬. আশ্চর্য / অবাক
     {
-      keywords: ["অবাক", "আশ্চর্য", "সত্যি", "কি বল", "নাহ", "wow", "really", "seriously", "😮", "🤯", "😲"],
+      keywords: ["অবাক", "আশ্চর্য", "সত্যি", "wow", "really", "seriously"],
       reaction: "😳"
     },
     // ৭. ঘুম / বিশ্রাম
     {
-      keywords: ["ঘুম", "ঘুমাও", "বিশ্রাম", "ক্লান্ত", "নিদ্রা", "sleep", "sleepy", "tired", "rest", "good night", "night", "nyt"],
+      keywords: ["ঘুম", "ঘুমাও", "বিশ্রাম", "ক্লান্ত", "নিদ্রা", "sleep", "sleepy", "tired", "rest", "goodnight", "night", "nyt"],
       reaction: "😴"
     },
     // ৮. ধন্যবাদ / শুভকামনা
     {
-      keywords: ["ধন্যবাদ", "শুকরিয়া", "জাজাকাল্লাহ", "আল্লাহ হাফেজ", "বিদায়", "bye", "thank", "thanks", "thank you", "thank u", "bless", "goodbye"],
+      keywords: ["ধন্যবাদ", "শুকরিয়া", "জাজাকাল্লাহ", "আল্লাহহাফেজ", "বিদায়", "bye", "thank", "thanks", "thankyou", "bless", "goodbye"],
       reaction: "🥰"
     },
     // ৯. রাগ / ক্ষোভ
     {
-      keywords: ["রাগ", "ক্ষোভ", "বিরক্ত", "গোস্বা", "চিৎকার", "গালি", "angry", "mad", "upset", "furious", "hate", "🤬", "😡"],
+      keywords: ["রাগ", "ক্ষোভ", "বিরক্ত", "গোস্বা", "চিৎকার", "গালি", "angry", "mad", "upset", "furious", "hate"],
       reaction: "😡"
     },
     // ১০. খেলা / খেলাধুলা
@@ -102,7 +105,7 @@ module.exports.handleEvent = function({ api, event }) {
     },
     // ১১. গান / সঙ্গীত
     {
-      keywords: ["গান", "সঙ্গীত", "বাজনা", "কণ্ঠ", "টিউন", "song", "music", "sing", "melody", "tune", "🎶", "🎵"],
+      keywords: ["গান", "সঙ্গীত", "বাজনা", "কণ্ঠ", "টিউন", "song", "music", "sing", "melody", "tune"],
       reaction: "🎵"
     },
     // ১২. বই / পড়া
@@ -142,7 +145,7 @@ module.exports.handleEvent = function({ api, event }) {
     },
     // ১৯. অর্থ / টাকা
     {
-      keywords: ["টাকা", "অর্থ", "দাম", "ব্যয়", "টাকার", "money", "cash", "price", "cost", "expensive", "cheap", "currency"],
+      keywords: ["টাকা", "অর্থ", "দাম", "ব্যয়", "money", "cash", "price", "cost", "expensive", "cheap", "currency"],
       reaction: "💰"
     },
     // ২০. প্রাণী / পশু
@@ -152,12 +155,27 @@ module.exports.handleEvent = function({ api, event }) {
     }
   ];
 
-  // লুপ চালিয়ে দেখি কোন ওয়ার্ড মিলছে
+  // প্রতিটি শব্দ চেক করা
+  for (let word of words) {
+    // ইমোজি চেক করা (ইমোজি থাকলে সেটা আলাদা)
+    if (word.match(/[\u{1F000}-\u{1FFFF}]/u)) {
+      continue; // ইমোজি স্কিপ
+    }
+    
+    for (let item of reactions) {
+      if (item.keywords.some(keyword => word === keyword)) {
+        // পুরো শব্দ মিললে রিঅ্যাক্ট করবে
+        api.setMessageReaction(item.reaction, messageID, (err) => {}, true);
+        return; // একটি মেসেজে শুধু প্রথম ম্যাচটাই রিঅ্যাক্ট করবে
+      }
+    }
+  }
+  
+  // যদি কোনো শব্দ না মেলে, পুরো মেসেজ চেক করা (বাক্যাংশের জন্য)
   for (let item of reactions) {
-    if (item.keywords.some(word => msg.includes(word))) {
-      // আসল সিনট্যাক্স: (reaction, messageID, callback, force)
+    if (item.keywords.some(keyword => msg.includes(keyword))) {
       api.setMessageReaction(item.reaction, messageID, (err) => {}, true);
-      break; // একটি মেসেজে শুধু প্রথম ম্যাচটাই রিঅ্যাক্ট করবে
+      return;
     }
   }
 };
