@@ -24,7 +24,7 @@ function saveSettings() {
 
 // ==================== গালি তালিকা (ভাষা অনুযায়ী) ====================
 const badWordsEnglish = [
-  "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "shit", "asshole",
+  "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "shit", "asshole", "Sawya", "sawya",
   "tui magi", "idiot", "stupid juwel",
   "bot fuck you", "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕"
 ];
