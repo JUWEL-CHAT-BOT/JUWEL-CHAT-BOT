@@ -460,7 +460,7 @@ const botReplies = [
   "─‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎ - মা𝆠፝֟নুষ আপন সাজে, ত𝆠፝֟বে কেউই আপন হ-𝆠፝֟য় না বার-বা𝆠፝֟র প্রমা𝆠፝֟ন পাচ্ছি: তবুও আ𝆠፝֟মার শি-ক্ষা হয় না𝆠፝֟! -:›❯🦋😌‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎🩵💌🌻  \n\n     \n\n              乛 ꜛᏯ࿐🖤🥀✅",
   "───⤹📰⤸🩵🌷🥢\n\n╰──‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎ ⊹⎯͢জীবনে অসাধারণ কাউকে খুঁজোনা, সাধারণ কাউকে খুজো যে তোমাকে অসাধারণ করে রাখবে-❯•⊰𝟑⤹💜🌼⤸🍓🌷‎‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌‌✧              ˖°",
   "☁️🌷།國།⋆ ˚｡⋆୨୧˚\n\n-তোমার জন্য অপেক্ষা করাটাツ\n\n ক্লান্তিকর নয়,বরং ভালোবাসার'\n\n সবচেয়ে সুন্দরতম অধ্যায়'🫂\n\n ✧˖°☁️🌷།國།⋆ ˚｡⋆୨୧‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎✧               ˖",
-  "°☁️🌷།國།⋆ ˚｡⋆୨୧˚       \n\n─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎Ꮗ ‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎ভালোবাসা সুন্দর যদি তুমি এই স্বার্থপর পৃথিবী'র মাঝে একজন সত্যিকারে'র বিশ্বস্ত মানুষ খুঁজে পাও\"...🤍:)💜َ🌷🥢>\n\n‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎               ˖°☁️🌷།國།⋆ ˚｡⋆୨୧˚",
+  "°☁️🌷།國།⋆ ˚｡⋆୨୧˚       \n\n─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎Ꮗ ‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎ভালোবাসা সুন্দর যদি তুমি এই স্বার্থপর পৃথিবী'র মাঝে একজন সত্যিকারে'র বিশ্বস্ত মানুষ খুঁজে পাও\"...🤍:)💜🌷🥢>\n\n‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎               ˖°☁️🌷།國།⋆ ˚｡⋆୨୧˚",
   "- ●───༊༆ 😩\n\n༎ ༎পত্রিকায় ༎ দেখলাম༎🥶\n\n\n༎এই গ্রুপে আমি ༎ নাকি ༎ একমাত্র ༎༎ single মেয়ে 😼😼😁🤪\n\n- ●───༊",
   "༆─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─'⸙ স্নিগ্ধতা’র এক টুকরো আলো’র স্পর্শে মুগ্ধতা’র আবরণে আমার সব'টুকু জুড়ে শুধু’ই তুমি -!🩵✨🌷ㅤㅤㅤㅤㅤㅤ✧",
   "˖°☁️🌷國⋆ ˚｡⋆୨୧˚   \n\n    ─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎─‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎‎Ꮗচলে আয় চুপটি করে ভেসে যাই প্রেম সাগরে'-চল কুড়োই মুক্ত ঝিনুক দুজনে আলতো করে-)✨💚🌷💫\n\nㅤㅤㅤㅤㅤㅤ✧˖°☁️🌷國⋆ ˚｡⋆୨୧˚",
@@ -470,12 +470,10 @@ const botReplies = [
 
 const randomFromArray = arr => arr[Math.floor(Math.random() * arr.length)];
 
-// --- UPDATED API URL ---
-const baseApiUrl = async () => {
-  const base = await axios.get(`https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json`);
-  return base.data.api;
-};
-// -----------------------
+// --- NEW API URL (from the second code) ---
+// const baseApiUrl = "https://noobs-api.top/dipto/baby";
+const baseApiUrl = "https://noobs-api.top/dipto/baby";  // Using the API from the second code
+// -------------------------------------------
 
 module.exports.config = {
   name: "baby",
@@ -492,7 +490,6 @@ module.exports.config = {
 
 module.exports.run = async function ({ api, event, args }) {
   try {
-    const link = `${await baseApiUrl()}/baby`;
     const dipto = args.join(" ").toLowerCase();
     const uid = event.senderID;
     const now = Date.now();
@@ -501,6 +498,55 @@ module.exports.run = async function ({ api, event, args }) {
     const lastUsed = global.babyCommandCooldown.get(uid) || 0;
     if (now - lastUsed < 2000) return;
     global.babyCommandCooldown.set(uid, now);
+
+    // Check for special commands from the second code
+    const command = args[0] ? args[0].toLowerCase() : "";
+
+    // Remove API
+    if (["remove", "rm"].includes(command)) {
+      const parts = dipto.replace(/^(remove|rm)\s*/i, "").split(/\s*-\s*/);
+      if (parts.length === 2 && !isNaN(parts[1])) {
+        // rm ask - index
+        const res = await axios.get(`${baseApiUrl}?remove=${encodeURIComponent(parts[0])}&index=${parts[1]}`);
+        return api.sendMessage(res.data.message || "Removed successfully!", event.threadID, event.messageID);
+      } else {
+        // remove ask
+        const ask = parts[0] || dipto.replace(/^(remove|rm)\s*/i, "").trim();
+        const res = await axios.get(`${baseApiUrl}?remove=${encodeURIComponent(ask)}&senderID=${uid}`);
+        return api.sendMessage(res.data.message || "Removed successfully!", event.threadID, event.messageID);
+      }
+    }
+
+    // List API
+    if (command === "list") {
+      const res = await axios.get(`${baseApiUrl}?list=all`);
+      if (res.data) {
+        return api.sendMessage(
+          `❇️ | Total Teach = ${res.data.length || "0"}\n♻️ | Total Response = ${res.data.responseLength || "0"}`,
+          event.threadID, event.messageID
+        );
+      } else return api.sendMessage(`Error getting list`, event.threadID, event.messageID);
+    }
+
+    // Edit API
+    if (command === "edit") {
+      const parts = dipto.replace(/^edit\s*/i, "").split(/\s*-\s*/);
+      if (parts.length < 2) return api.sendMessage("Use: edit [Question] - [NewReply]", event.threadID, event.messageID);
+      const ask = parts[0];
+      const newReply = parts[1];
+      const res = await axios.get(`${baseApiUrl}?edit=${encodeURIComponent(ask)}&replace=${encodeURIComponent(newReply)}&senderID=${uid}`);
+      return api.sendMessage(`changed ${res.data.message || 'success'}`, event.threadID, event.messageID);
+    }
+
+    // Teach API
+    if (command === "teach") {
+      const parts = dipto.replace(/^teach\s*/i, "").split(/\s*-\s*/);
+      if (parts.length < 2) return api.sendMessage("Use: teach [Question] - [Reply]", event.threadID, event.messageID);
+      const ask = parts[0];
+      const ans = parts[1];
+      const res = await axios.get(`${baseApiUrl}?teach=${encodeURIComponent(ask)}&reply=${encodeURIComponent(ans)}&senderID=${uid}&threadID=${event.threadID}`);
+      return api.sendMessage(`✅ Replies added: ${res.data.message}`, event.threadID, event.messageID);
+    }
 
     if (!args[0]) {
       await sendTypingIndicatorV2(true, event.threadID);
@@ -527,7 +573,7 @@ module.exports.run = async function ({ api, event, args }) {
     }
 
     try {
-      const response = await axios.get(`${link}?text=${encodeURIComponent(dipto)}&senderID=${uid}&font=1`, {
+      const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(dipto)}&senderID=${uid}&font=1`, {
         timeout: 15000,
         headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
       });
@@ -545,7 +591,7 @@ module.exports.run = async function ({ api, event, args }) {
               messageID: info.messageID,
               author: event.senderID,
               lnk: a,
-              apiUrl: link
+              apiUrl: baseApiUrl
             });
           }
         }, event.messageID);
@@ -569,7 +615,7 @@ module.exports.handleReply = async function ({ api, event, handleReply }) {
     if (handleReply.type === "randombot") {
       const reply = event.body.toLowerCase();
       try {
-        const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
+        const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
           timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -609,7 +655,7 @@ module.exports.handleReply = async function ({ api, event, handleReply }) {
     if (handleReply.type === "funnytrigger") {
       const reply = event.body.toLowerCase();
       try {
-        const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
+        const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
           timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -649,7 +695,7 @@ module.exports.handleReply = async function ({ api, event, handleReply }) {
     if (handleReply.type === "reply") {
       const reply = event.body.toLowerCase();
       try {
-        const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
+        const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(reply)}&senderID=${event.senderID}&font=1`, {
           timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -858,7 +904,7 @@ module.exports.handleEvent = async function ({ api, event }) {
     if (body.startsWith("bot ")) {
       const arr = body.replace(/^bot\s*/, "");
       try {
-        const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
+        const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
           timeout: 15000,
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
         });
@@ -891,10 +937,48 @@ module.exports.handleEvent = async function ({ api, event }) {
 
     const args = body.split(' ');
 
+    // Also handle trigger words with prefixes (e.g., "bby hello")
+    for (const trigger of allTriggerWords) {
+      if (args.length >= 2 && (args[0].toLowerCase() === trigger || args[0] === trigger)) {
+        const text = args.slice(1).join(" ");
+        try {
+          const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(text)}&senderID=${event.senderID}&font=1`, {
+            timeout: 15000,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+          });
+          if (!response.data || !response.data.reply) throw new Error('Invalid response format');
+          const a = response.data.reply;
+          await sendTypingIndicatorV2(true, event.threadID);
+          await new Promise(r => setTimeout(r, 2000));
+          await sendTypingIndicatorV2(false, event.threadID);
+          return api.sendMessage(a, event.threadID,
+            (error, info) => {
+              if (!error && info) {
+                global.client.handleReply.push({
+                  name: module.exports.config.name,
+                  type: "reply",
+                  messageID: info.messageID,
+                  author: event.senderID,
+                  lnk: a
+                });
+              }
+            }, event.messageID);
+        } catch (apiError) {
+          console.error('[BABY] API Error:', apiError.message);
+          const fallbackReply = randomFromArray(botReplies);
+          await sendTypingIndicatorV2(true, event.threadID);
+          await new Promise(r => setTimeout(r, 2000));
+          await sendTypingIndicatorV2(false, event.threadID);
+          return api.sendMessage(fallbackReply, event.threadID, event.messageID);
+        }
+      }
+    }
+
+    // Handle exact trigger word matches (e.g., just "bby")
     for (const trigger of allTriggerWords) {
       if (args.length === 1 && (args[0].toLowerCase() === trigger || args[0] === trigger)) {
         const userName = await getUserName(event.senderID);
-
+        
         const babyUniversalReplies = [
           `বেবি কি বেবি? 😘 ${userName}, তুমি আমার মিষ্টি বেবি 🍯`,
           `${userName} বেবি, তুমি আমার হৃদয়ের বেবি! 💕👶`,
@@ -902,7 +986,7 @@ module.exports.handleEvent = async function ({ api, event }) {
           `${userName} আমার বেবি, তুমি আমার জীবনের আলো! 🌟💖`,
           `বেবি ${userName}, তুমি আমার চোখের মণি 👁️💎`
         ];
-
+        
         const triggerRepliesMap = {
           "xan": [
             `খান কি খান? 😂 জান, তুমি আমার ${userName} জাহান আলী 🙈`,
@@ -1014,6 +1098,7 @@ module.exports.handleEvent = async function ({ api, event }) {
             `রিয়া ${userName}, তুমি আমার হৃদয়ের রানি 👸💕`
           ]
         };
+        
         const reply = randomFromArray(triggerRepliesMap[trigger] || babyUniversalReplies);
         await sendTypingIndicatorV2(true, event.threadID);
         await new Promise(r => setTimeout(r, 2000));
@@ -1031,72 +1116,12 @@ module.exports.handleEvent = async function ({ api, event }) {
       }
     }
 
-    for (const trigger of allTriggerWords) {
-      if (args[0] && (args[0].toLowerCase() === trigger || args[0] === trigger) && args.length > 1) {
-        const text = args.slice(1).join(" ");
-        try {
-          const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(text)}&senderID=${event.senderID}&font=1`, {
-            timeout: 15000,
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-          });
-          if (!response.data || !response.data.reply) throw new Error('Invalid response format');
-          const a = response.data.reply;
-          await sendTypingIndicatorV2(true, event.threadID);
-          await new Promise(r => setTimeout(r, 2000));
-          await sendTypingIndicatorV2(false, event.threadID);
-          return api.sendMessage(a, event.threadID,
-            (error, info) => {
-              if (!error && info) {
-                global.client.handleReply.push({
-                  name: module.exports.config.name,
-                  type: "reply",
-                  messageID: info.messageID,
-                  author: event.senderID,
-                  lnk: a
-                });
-              }
-            }, event.messageID);
-        } catch (apiError) {
-          console.error('[BABY] API Error:', apiError.message);
-          const fallbackReply = randomFromArray(botReplies);
-          await sendTypingIndicatorV2(true, event.threadID);
-          await new Promise(r => setTimeout(r, 2000));
-          await sendTypingIndicatorV2(false, event.threadID);
-          return api.sendMessage(fallbackReply, event.threadID, event.messageID);
-        }
-      }
-    }
-
-    if (body.startsWith("bby ") || body.startsWith("baby ") || body.startsWith("bbz ") || body.startsWith("kolixa ") || body.startsWith("kolija ") || body.startsWith("jan ") || body.startsWith("babu ") || body.startsWith("বেবি ") || body.startsWith("বিবি ") || body.startsWith("জান ") || body.startsWith("কলিজা ") || body.startsWith("বাবু ") || body.startsWith("Riya ") || body.startsWith("riya ") || body.startsWith("রিয়া ")) {
-      const arr = body.replace(/^\S+\s*/, "");
-      const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
-        timeout: 15000,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-      });
-      if (!response.data || !response.data.reply) throw new Error('Invalid API response');
-      const a = response.data.reply;
-      await sendTypingIndicatorV2(true, event.threadID);
-      await new Promise(r => setTimeout(r, 2000));
-      await sendTypingIndicatorV2(false, event.threadID);
-      await api.sendMessage(a, event.threadID, (error, info) => {
-        if (!error && info) {
-          global.client.handleReply.push({
-            name: module.exports.config.name,
-            type: "reply",
-            messageID: info.messageID,
-            author: event.senderID,
-            lnk: a
-          });
-        }
-      }, event.messageID);
-      return;
-    }
-
+    // Handle trigger words at the beginning (e.g., "bby hello world")
     for (const trigger of allTriggerWords) {
       if (body.startsWith(trigger + " ")) {
         const arr = body.replace(new RegExp(`^${trigger}\\s*`, "i"), "");
         try {
-          const response = await axios.get(`${await baseApiUrl()}/baby?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
+          const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
             timeout: 15000,
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
           });
@@ -1125,6 +1150,45 @@ module.exports.handleEvent = async function ({ api, event }) {
           await sendTypingIndicatorV2(false, event.threadID);
           return api.sendMessage(fallbackReply, event.threadID, event.messageID);
         }
+      }
+    }
+
+    // Handle bby/baby/bbz/kolixa/jan/babu prefixes
+    if (body.startsWith("bby ") || body.startsWith("baby ") || body.startsWith("bbz ") || 
+        body.startsWith("kolixa ") || body.startsWith("kolija ") || body.startsWith("jan ") || 
+        body.startsWith("babu ") || body.startsWith("বেবি ") || body.startsWith("বিবি ") || 
+        body.startsWith("জান ") || body.startsWith("কলিজা ") || body.startsWith("বাবু ") || 
+        body.startsWith("Riya ") || body.startsWith("riya ") || body.startsWith("রিয়া ")) {
+      const arr = body.replace(/^\S+\s*/, "");
+      try {
+        const response = await axios.get(`${baseApiUrl}?text=${encodeURIComponent(arr)}&senderID=${event.senderID}&font=1`, {
+          timeout: 15000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        if (!response.data || !response.data.reply) throw new Error('Invalid API response');
+        const a = response.data.reply;
+        await sendTypingIndicatorV2(true, event.threadID);
+        await new Promise(r => setTimeout(r, 2000));
+        await sendTypingIndicatorV2(false, event.threadID);
+        await api.sendMessage(a, event.threadID, (error, info) => {
+          if (!error && info) {
+            global.client.handleReply.push({
+              name: module.exports.config.name,
+              type: "reply",
+              messageID: info.messageID,
+              author: event.senderID,
+              lnk: a
+            });
+          }
+        }, event.messageID);
+        return;
+      } catch (apiError) {
+        console.error('[BABY] API Error:', apiError.message);
+        const fallbackReply = randomFromArray(botReplies);
+        await sendTypingIndicatorV2(true, event.threadID);
+        await new Promise(r => setTimeout(r, 2000));
+        await sendTypingIndicatorV2(false, event.threadID);
+        return api.sendMessage(fallbackReply, event.threadID, event.messageID);
       }
     }
 
