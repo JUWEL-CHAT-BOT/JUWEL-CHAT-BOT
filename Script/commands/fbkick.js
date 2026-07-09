@@ -30,23 +30,7 @@ module.exports.run = async function ({ api, event }) {
   const threadInfo = await api.getThreadInfo(threadID);
   const botID = api.getCurrentUserID();
 
-  // ✅ BOT ADMIN CHECK
-  const botAdmin = threadInfo.adminIDs.some(
-    item => item.id == botID
-  );
-
-  if (!botAdmin) {
-    return api.sendMessage(
-`╔━━❖ ⚠️ BOT ADMIN REQUIRED ❖━━╗
-┃
-┃ আগে আমাকে গ্রুপ এডমিন বানান।
-┃
-╚━━━━━━━━━━━━━━━━━━╝`,
-      threadID, messageID
-    );
-  }
-
-  // ✅ DETECT BAD USERS
+  // ✅ DETECT BAD USERS (আগে স্ক্যান করবে)
   const badUsers = threadInfo.userInfo.filter(user => {
     if (user.id == senderID) return false;
     if (user.id == botID) return false;
@@ -73,6 +57,35 @@ module.exports.run = async function ({ api, event }) {
     );
   }
 
+  // ✅ BOT ADMIN CHECK (এখন এডমিন চেক করবে)
+  const botAdmin = threadInfo.adminIDs.some(
+    item => item.id == botID
+  );
+
+  // ✅ যদি এডমিন না থাকে - প্রথমে কতজন ইউজার আছে দেখাবে তারপর এডমিন নাই নোটিশ
+  if (!botAdmin) {
+    return api.sendMessage(
+`╔━━❖ 🔍 SCAN COMPLETE ❖━━╗
+┃
+┃ গ্রুপে মোট ${badUsers.length} জন
+┃ সাসপেন্ড / ডিজেবল / META PP
+┃ লাগা নষ্ট আইডি পাওয়া গেছে! 😈
+┃
+┣━━━━━━━━━━━━━━━━━━
+┃ ⚠️ কিন্তু আমাকে গ্রুপে
+┃    এডমিন বানাননি!
+┃
+┃ ❌ তাই কিক দেওয়া সম্ভব নয়।
+┃
+┃ 📌 দয়া করে আগে আমাকে
+┃    এডমিন বানান।
+┃
+╚━━━━━━━━━━━━━━━━━━╝`,
+      threadID, messageID
+    );
+  }
+
+  // ✅ এডমিন থাকলে - কিক শুরু
   // ✅ SCAN RESULT — ১০ সেকেন্ড কাউন্টডাউন
   await api.sendMessage(
 `╔━━❖ 🔍 SCAN COMPLETE ❖━━╗
