@@ -1,13 +1,19 @@
 const axios = require("axios");
 
 const triggers = [
+  // ইংরেজি
   "Juwel", "jewel", "juwel", "jewel boss", "mr juwel", "boss juwel",
   "juyel", "Juyel", "juwl", "Jwel",
   "juwel vai", "juwel vaiya", "jowel", "Jowel", "hi juwel",
   "love you juwel", "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", "জুয়েল ভাইয়া", "জুয়েল বস",
-  "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", "জোয়েল", "জুয়েল",
-  "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", "আই লাভ ইউ জুয়েল",
+  
+  // বাংলা - সব বানান
+  "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", 
+  "জুয়েল ভাইয়া", "জুয়েল বস",
+  "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", 
+  "জোয়েল", "জুয়েল", "জুয়েল", // ← সঠিক বানান যোগ
+  "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", 
+  "আই লাভ ইউ জুয়েল",
   "মিস ইউ জুয়েল", "হ্যালো জুয়েল", "হাই জুয়েল"
 ];
 
@@ -29,10 +35,8 @@ const audioUrls = [
 ];
 
 const cooldown = new Map();
-const COOLDOWN_TIME = 30 * 60 * 1000; // ৩০ মিনিট
-
-// আপনার UID অ্যাডমিন লিস্টে যোগ করুন
-const ADMIN_IDS = ["61591542717221"];
+const COOLDOWN_TIME = 30 * 60 * 1000;
+const ADMIN_IDS = ["61591542717221", "আপনার_আইডি_এখানে"]; // নিজের আইডি যোগ করুন
 
 module.exports.config = {
   name: "autovoice",
@@ -50,14 +54,18 @@ module.exports.handleEvent = async function ({ api, event }) {
     if (!event.body) return;
 
     const msg = event.body.toLowerCase().trim();
-
-    const matched = triggers.some(t => msg === t || msg.includes(t.toLowerCase()));
-    if (!matched) return;
+    
+    // কাস্টম চেক - সব জুয়েল ভেরিয়েন্ট ক্যাচ করে
+    const isJewel = triggers.some(t => {
+      const triggerLower = t.toLowerCase();
+      return msg === triggerLower || msg.includes(triggerLower);
+    });
+    
+    if (!isJewel) return;
 
     const senderID = event.senderID;
     const now = Date.now();
 
-    // চেক করুন ইউজার অ্যাডমিন কিনা (হার্ডকোডেড অথবা গ্লোবাল কনফিগ থেকে)
     const isAdmin = ADMIN_IDS.includes(senderID) || 
                     (global.config && global.config.admin && global.config.admin.includes(senderID));
 
@@ -82,10 +90,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         attachment: voice.data
       },
       event.threadID,
-      event.messageID,
-      (err) => {
-        if (err) console.log("[AUTOVOICE SEND ERROR]", err);
-      }
+      event.messageID
     );
 
   } catch (err) {
