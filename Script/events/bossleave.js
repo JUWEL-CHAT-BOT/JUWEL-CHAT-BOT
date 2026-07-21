@@ -12,7 +12,7 @@ module.exports.run = async function ({ api, event, Users }) {
         
         if (!logMessageData) return;
         
-        const OWNER_ID = "61591542717221";
+        const OWNER_ID = "61591646430352";
         
         // ============= বসকে এড করার ইভেন্ট =============
         if (logMessageType === "log:subscribe") {
