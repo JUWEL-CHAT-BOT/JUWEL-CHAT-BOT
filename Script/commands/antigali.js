@@ -23,12 +23,18 @@ function saveSettings() {
 }
 
 // ==================== গালি তালিকা (ভাষা অনুযায়ী) ====================
+// শুধু ইংরেজি অক্ষর, নম্বর বা ইমোজি
 const badWordsEnglish = [
   "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "Sawya", "sawya",
   "tui magi", "stupid juwel",
-  "bot fuck you", "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕"
+  "bot fuck you", "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕",
+  "chut", "gand", "bhosdi", "benchod", "madarchod", "randi", "kutta bacsa", "magi", "Magi", "MC Bot", "MC bot", "Mc Bot", "Mc Bot", "Vodar Bot", "Sawyar Bot", "sawyar bot", "Vodar bot", " bot tor booske chudi", "Bot tor boos ke chudi",
+  "xodi", "Xodi", "cdi", "Cdi", "Mang", "mang", "tor mar Voda", "tor mare cdi", "Tor mare chodi", "Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
+  "bokacoda", "xodi", "xoda", "cdi", "72 Lack", "chdi", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
+  "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi"
 ];
 
+// শুধু বাংলা অক্ষর (ইউনিকোড)
 const badWordsBengali = [
   "আবাল", "সাউয়া", "ভোদা", "মাগি", "চুদি", "বোকাচোদা", "বোকাচুদা", "মাদারচোদ", "চুদা",
   "চুদতে", "সেক্স করতে", "ভোদার গুপ", "সাউয়ার", "খানকি", "পুটকি", "গুদ", "রেন্ডি", "হাত মার",
@@ -40,51 +46,42 @@ const badWordsBengali = [
   "মাদারচোদ", "কার বাল", "নিছের বাল", "চোকাচোদা", "রেন্ডির ছেলে", "রেন্ডি মেয়ে",
   "পম্পম", "Pompom", "আবাল নাকি", "জুয়েল বোকাচোদা", "তুই বোকাচোদা", "তুই বুকাচুদা",
   "জাও গিটার বাজাও", "হাত মারবে", "হাত মারবো", "হাত মারো", "হাত মারতে জাবে", "বট এর বসকে চুদি", "বট তোর বসকে চুদি", "বট তোর বস জুয়েল কে চুদি",
-  "গিটার বাজাবো", "তুই ১২ ভাতারী মাগি", "তুই হাত মাড়া", "হাত মাড়ি", "জান চুদতে দিবে", "জান চুদতে দিবে", "বট কে চুদি", "বট চুদি", "সাউয়ার বট", "ভোদার বট", "মাংগের বট", "বট তোর বস কে চুদি", "বট তোকে চুদি", "বট তোরে চুদি", "সাউয়ার বট চুদি", "ভোদার বট চুদি",
-  "chut", "gand", "bhosdi", "benchod", "madarchod", "randi", "kutta bacsa", "magi", "Magi", "MC Bot", "MC bot", "Mc Bot", "Mc Bot", "Vodar Bot", "Sawyar Bot", "sawyar bot", "Vodar bot", " bot tor booske chudi", "Bot tor boos ke chudi",
-  "xodi", "Xodi", "cdi", "Cdi", "Mang", "mang", "tor mar Voda", "tor mare cdi", "Tor mare chodi", "Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
-  "bokacoda", "xodi", "xoda", "cdi", "72 Lack", "chdi", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
-  "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi",
+  "গিটার বাজাবো", "তুই ১২ ভাতারী মাগি", "তুই হাত মাড়া", "হাত মাড়ি", "জান চুদতে দিবে", "জান চুদতে দিবে", "বট কে চুদি", "বট চুদি", "সাউয়ার বট", "ভোদার বট", "মাংগের বট", "বট তোর বস কে চুদি", "বট তোকে চুদি", "বট তোরে চুদি", "সাউয়ার বট চুদি", "ভোদার বট চুদি"
 ];
 
-// ==================== গালি চেক (কনটেক্সট চেক বাদ) ====================
+// ==================== গালি চেক (সংখ্যা সমস্যা সমাধান) ====================
 function checkBadMessage(message) {
-  const lower = message.toLowerCase();
-  let foundType = null;
-  let foundWord = null;
-
-  for (let word of badWordsEnglish) {
+  const lower = message.toLowerCase().trim(); // ট্রিম যোগ করা হয়েছে
+  
+  // ১. বাংলা গালি চেক
+  for (let word of badWordsBengali) {
+    // পুরো শব্দটি মেলে কিনা চেক (স্পেস সহ) - কেস সংবেদনশীল না
     if (lower.includes(word.toLowerCase())) {
-      foundType = 'ইংরেজি';
-      foundWord = word;
-      break;
-    }
-  }
-  if (!foundType) {
-    for (let word of badWordsBengali) {
-      if (lower.includes(word.toLowerCase())) {
-        foundType = 'বাংলা';
-        foundWord = word;
-        break;
-      }
+      return { hasBad: true, type: 'বাংলা', word: word };
     }
   }
 
-  if (!foundType) return { hasBad: false };
+  // ২. ইংরেজি গালি চেক (সঠিক ম্যাচ)
+  for (let word of badWordsEnglish) {
+    // পুরো শব্দটি মেলে কিনা চেক (স্পেস সহ) - কেস সংবেদনশীল না
+    if (lower.includes(word.toLowerCase())) {
+      return { hasBad: true, type: 'ইংরেজি', word: word };
+    }
+  }
 
-  // কনটেক্সট চেক নেই – সরাসরি গালি হিসেবে ধরা হবে
-  return { hasBad: true, type: foundType, word: foundWord };
+  // কিছুই মেলেনি
+  return { hasBad: false };
 }
 
-const BOT_ADMINS = ["61591542717221"];
+const BOT_ADMINS = ["61591646430352"];
 
 // ==================== কনফিগ ====================
 module.exports.config = {
   name: "antigali",
-  version: "3.8.2",
+  version: "3.9.0",
   hasPermssion: 0,
-  credits: "MR JUWEL (কনটেক্সট চেক বাদ)",
-  description: "বাংলা+ইংরেজি Anti-Gali (UI সহ) – কনটেক্সট চেক ছাড়া",
+  credits: "MR JUWEL",
+  description: "বাংলা+ইংরেজি Anti-Gali (সংখ্যা সমস্যা সমাধান)",
   commandCategory: "moderation",
   usages: "[on/off/status]",
   cooldowns: 0
@@ -96,15 +93,13 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     if (!event.body) return;
     const threadID = event.threadID;
 
-    // সিস্টেম চালু আছে কিনা
     const isEnabled = settings[threadID] !== undefined ? settings[threadID] : true;
     if (!isEnabled) return;
 
     const message = event.body;
     const userID = event.senderID;
-    if (!userID) return; // সুরক্ষা
+    if (!userID) return;
 
-    // বটের আইডি বের করা (ফাংশন অথবা প্রপার্টি)
     let botID = null;
     try {
       if (typeof api.getCurrentUserID === 'function') {
@@ -118,11 +113,9 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       botID = null;
     }
 
-    // গালি চেক
-    const { hasBad, type, word, reason } = checkBadMessage(message);
+    const { hasBad, type, word } = checkBadMessage(message);
     if (!hasBad) return;
 
-    // ========== রিঅ্যাক্ট (❌) – আলাদা ট্রাই-ক্যাচ ==========
     if (event.messageID) {
       try {
         await api.setMessageReaction("❌", event.messageID);
@@ -131,7 +124,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       }
     }
 
-    // ========== অফেন্স ট্র্যাকার ==========
     if (!offenseTracker[threadID]) offenseTracker[threadID] = {};
     if (!offenseTracker[threadID][userID]) {
       offenseTracker[threadID][userID] = { enCount: 0, bnCount: 0, total: 0, lastUpdated: Date.now() };
@@ -147,7 +139,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
     const enCount = userData.enCount;
     const bnCount = userData.bnCount;
 
-    // ========== ইউজার ও গ্রুপ ইনফো (প্যারালেল) ==========
     let userInfo = {};
     let threadInfo = {};
     try {
@@ -173,7 +164,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       });
     };
 
-    // ========== সতর্কবার্তা ফ্রেম ==========
     const frameBase = (n, extra = '') =>
 `╔════════════════════╗
 ║                                                    
@@ -214,7 +204,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 ⚠️ সতর্কতা: ${totalCount} (ইংরেজি ${enCount}, বাংলা ${bnCount})
 💬 অশালীন বার্তা: "${message}"`;
 
-    // ========== মেসেজ পাঠানো (সতর্কতা ও অ্যালার্ট) ==========
     const sendPromises = [];
 
     if (totalCount === 1) {
@@ -223,28 +212,24 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       sendPromises.push(api.sendMessage(frameBase(2, '⚠️ শেষ সতর্কতা! পরবর্তী বার কিক!'), threadID).catch(() => {}));
     }
 
-    // অ্যাডমিনদের অ্যালার্ট
     for (const admin of adminIDs) {
       const adminID = typeof admin === "string" ? admin : admin.id;
       if (adminID) {
         sendPromises.push(api.sendMessage(alertMsg, adminID).catch(() => {}));
       }
     }
-    // বট অ্যাডমিনদের অ্যালার্ট
     for (const ownerID of BOT_ADMINS) {
       sendPromises.push(api.sendMessage(alertMsg, ownerID).catch(() => {}));
     }
 
     await Promise.allSettled(sendPromises).catch(() => {});
 
-    // ========== মেসেজ ডিলিট (৬০ সেকেন্ড পর) ==========
     if (event.messageID) {
       setTimeout(() => {
         api.unsendMessage(event.messageID).catch(() => {});
       }, 60000);
     }
 
-    // ========== ৩ স্ট্রাইকে কিক ==========
     if (totalCount === 3) {
       const botIsAdmin = botID ? isAdminInThread(botID) : false;
 
@@ -292,7 +277,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
         return;
       }
 
-      // কিক করার চেষ্টা
       try {
         await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
@@ -316,7 +300,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
         await api.removeUserFromGroup(userID, threadID);
         userData.total = 0; userData.enCount = 0; userData.bnCount = 0;
       } catch (kickErr) {
-        // কিক ব্যর্থ হলে কাউন্ট ২-এ নামিয়ে রাখি (পরবর্তী বার আবার চেষ্টা করবে)
         userData.total = 2;
         await api.sendMessage(
 `╔══════════════════════════════════════════════════╗
@@ -336,7 +319,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
       }
     }
 
-    // ========== ১ ঘন্টা পর রিসেট ==========
     setTimeout(() => {
       if (offenseTracker[threadID] && offenseTracker[threadID][userID]) {
         if (Date.now() - offenseTracker[threadID][userID].lastUpdated > 3600000) {
@@ -349,7 +331,6 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 
   } catch (error) {
     console.error("❌ AntiGali CRASH:", error);
-    // শুধুমাত্র একবার মেসেজ পাঠাব, যাতে বারবার না আসে
     try {
       await api.sendMessage("⚠️ অ্যান্টি-গালি সিস্টেমে ত্রুটি! লগ চেক করুন।", event.threadID);
     } catch (_) {}
