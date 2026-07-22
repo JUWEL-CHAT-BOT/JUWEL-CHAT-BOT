@@ -10,9 +10,29 @@ module.exports.config = {
 };
 
 const fs = require("fs");
+const path = require("path");
+
+// কনফিগ ফাইল পাথ
+const configPath = path.join(__dirname, '..', '..', 'config.json');
 const stateFile = __dirname + "/autoreact_state.json";
 
 let autoreactEnabled = true;
+let adminIDs = [];
+
+// অ্যাডমিন লোড ফাংশন
+function loadAdmins() {
+  try {
+    if (fs.existsSync(configPath)) {
+      const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (configData.adminBot && Array.isArray(configData.adminBot)) {
+        adminIDs = configData.adminBot.map(id => id.toString());
+      }
+    }
+  } catch (error) {
+    console.log("❌ অ্যাডমিন লোড করতে সমস্যা:", error);
+    adminIDs = [];
+  }
+}
 
 // স্টেট লোড/সেভ ফাংশন
 function loadState() {
@@ -35,6 +55,8 @@ function saveState(enabled) {
   autoreactEnabled = enabled;
 }
 
+// ইনিশিয়াল লোড
+loadAdmins();
 loadState();
 
 module.exports.handleEvent = function({ api, event }) {
@@ -48,9 +70,6 @@ module.exports.handleEvent = function({ api, event }) {
   const msg = event.body.toLowerCase().trim();
   const { messageID } = event;
 
-  // শব্দগুলিকে স্পেস দিয়ে আলাদা করা
-  const words = msg.split(/\s+/);
-  
   // ---------- রিঅ্যাক্ট লিস্ট (ওয়ার্ড + ইমোজি) ----------
   const reactions = [
     // ১. শুভেচ্ছা / সালাম
@@ -155,34 +174,47 @@ module.exports.handleEvent = function({ api, event }) {
     }
   ];
 
-  // প্রতিটি শব্দ চেক করা
+  // মেসেজ থেকে শব্দগুলো আলাদা করা (শুধু অক্ষর ও সংখ্যা রাখা)
+  const words = msg.match(/[\u0980-\u09FFa-zA-Z0-9]+/g) || [];
+  
+  // শুধুমাত্র পুরো শব্দ মিলানো - প্রতিটি শব্দ চেক করা
   for (let word of words) {
-    // ইমোজি চেক করা (ইমোজি থাকলে সেটা আলাদা)
-    if (word.match(/[\u{1F000}-\u{1FFFF}]/u)) {
-      continue; // ইমোজি স্কিপ
-    }
-    
     for (let item of reactions) {
       if (item.keywords.some(keyword => word === keyword)) {
-        // পুরো শব্দ মিললে রিঅ্যাক্ট করবে
         api.setMessageReaction(item.reaction, messageID, (err) => {}, true);
-        return; // একটি মেসেজে শুধু প্রথম ম্যাচটাই রিঅ্যাক্ট করবে
+        return;
       }
     }
   }
   
-  // যদি কোনো শব্দ না মেলে, পুরো মেসেজ চেক করা (বাক্যাংশের জন্য)
+  // যদি কোনো শব্দ না মেলে, তাহলে বাক্যাংশ চেক করা
   for (let item of reactions) {
-    if (item.keywords.some(keyword => msg.includes(keyword))) {
-      api.setMessageReaction(item.reaction, messageID, (err) => {}, true);
-      return;
+    for (let keyword of item.keywords) {
+      const regex = new RegExp('\\b' + keyword + '\\b', 'i');
+      if (regex.test(msg)) {
+        api.setMessageReaction(item.reaction, messageID, (err) => {}, true);
+        return;
+      }
     }
   }
 };
 
-// ------------------- অফ/অন কমান্ড -------------------
+// ------------------- অফ/অন কমান্ড (শুধু এডমিনদের জন্য) -------------------
 module.exports.run = function({ api, event, args }) {
-  const { threadID, messageID } = event;
+  const { threadID, messageID, senderID } = event;
+
+  // এডমিন চেক করুন
+  loadAdmins(); // সর্বশেষ এডমিন লিস্ট লোড করুন
+  
+  const isAdmin = adminIDs.includes(senderID.toString());
+  
+  if (!isAdmin) {
+    return api.sendMessage(
+      "❌ আপনি এই কমান্ড ব্যবহার করার অনুমতি পাননি। শুধুমাত্র বট অ্যাডমিনরা এই কমান্ড চালাতে পারেন।",
+      threadID,
+      messageID
+    );
+  }
 
   if (args.length === 0) {
     return api.sendMessage(
@@ -194,11 +226,15 @@ module.exports.run = function({ api, event, args }) {
 
   const cmd = args[0].toLowerCase();
   if (cmd === "on") {
-    if (autoreactEnabled) return api.sendMessage("অটোরিঅ্যাক্ট ইতিমধ্যে চালু আছে।", threadID, messageID);
+    if (autoreactEnabled) {
+      return api.sendMessage("ℹ️ অটোরিঅ্যাক্ট ইতিমধ্যে চালু আছে।", threadID, messageID);
+    }
     saveState(true);
     api.sendMessage("✅ অটোরিঅ্যাক্ট চালু করা হয়েছে।", threadID, messageID);
   } else if (cmd === "off") {
-    if (!autoreactEnabled) return api.sendMessage("অটোরিঅ্যাক্ট ইতিমধ্যে বন্ধ আছে।", threadID, messageID);
+    if (!autoreactEnabled) {
+      return api.sendMessage("ℹ️ অটোরিঅ্যাক্ট ইতিমধ্যে বন্ধ আছে।", threadID, messageID);
+    }
     saveState(false);
     api.sendMessage("❌ অটোরিঅ্যাক্ট বন্ধ করা হয়েছে।", threadID, messageID);
   } else {
