@@ -9,7 +9,7 @@ module.exports.config = {
 };
 
 module.exports.run = async function({ api, event, args }) {
- const allowedUID = "61591542717221";
+ const allowedUID = "61592716197470";
 
  if (event.senderID !== allowedUID) {
  return api.sendMessage("⛔ তুমি এই কমান্ড ব্যবহার করতে পারবে না!", event.threadID, event.messageID);
