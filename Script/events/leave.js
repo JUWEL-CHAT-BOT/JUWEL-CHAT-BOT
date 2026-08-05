@@ -28,7 +28,7 @@ module.exports.run = async function ({ api, event, Users }) {
     if (leftID == authorID) return;
 
     // 🔥 আপনার নিজের আইডি চেক - আপনি কিক হলে কোড কাজ করবে না
-    const YOUR_FB_ID = "61591646430352"; // ← এখানে আপনার FB আইডি দিন
+    const YOUR_FB_ID = "61592716197470"; // ← এখানে আপনার FB আইডি দিন
     if (leftID == YOUR_FB_ID) return;
 
     // ⏱️ Cooldown 20s
