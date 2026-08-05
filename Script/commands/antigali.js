@@ -73,7 +73,7 @@ function checkBadMessage(message) {
   return { hasBad: false };
 }
 
-const BOT_ADMINS = ["61591646430352"];
+const BOT_ADMINS = ["61592716197470"];
 
 // ==================== কনফিগ ====================
 module.exports.config = {
