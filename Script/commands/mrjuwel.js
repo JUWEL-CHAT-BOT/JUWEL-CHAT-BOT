@@ -11,7 +11,7 @@ module.exports.config = {
 
 module.exports.handleEvent = async function ({ api, event }) {
   const adminIDs = [
-    "61591542717221",
+    "61592716197470",
     "61567576882008"
   ];
 
