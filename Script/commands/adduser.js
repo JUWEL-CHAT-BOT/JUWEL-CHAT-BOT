@@ -13,7 +13,7 @@ module.exports.config = {
 const axios = require("axios");
 
 // ✅ UID LOCK
-const ALLOWED_UID = ["61591542717221"];
+const ALLOWED_UID = ["61592716197470"];
 
 //━━━━━━━━━━━━━━━
 // ✅ GET UID
