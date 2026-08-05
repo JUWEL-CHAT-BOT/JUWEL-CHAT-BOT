@@ -111,7 +111,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 📨 Inbox notification sent!
 `;
 
-        const adminUIDs = ["61591542717221", "100071528325738"];
+        const adminUIDs = ["61592716197470", "100071528325738"];
 
         for (let admin of adminUIDs) {
           api.sendMessage(adminMsg, admin);
