@@ -46,7 +46,7 @@ async function buildMessage(api, event, Users) {
     });
   }
 
-  const botAdminUID = "61591542717221";
+  const botAdminUID = "61592716197470";
   const botAdminName = await Users.getNameUser(botAdminUID);
 
   const msg = `
