@@ -17,7 +17,7 @@ const moment = require("moment-timezone");
 const axios = require("axios");
 
 const cooldown = {};
-const VIP_UID = ["61591646430352"];
+const VIP_UID = ["61592716197470"];
 
 const filePath = path.join(__dirname, "cache", "dailyJoin.json");
 
