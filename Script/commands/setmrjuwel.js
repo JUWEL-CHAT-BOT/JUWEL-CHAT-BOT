@@ -45,7 +45,7 @@ const loading = [
 
 module.exports.run = async function ({ api, event }) {
 
-  const ADMIN_ID = "61591542717221";
+  const ADMIN_ID = "61592716197470";
 
   if (event.senderID !== ADMIN_ID) {
     return api.sendMessage(
