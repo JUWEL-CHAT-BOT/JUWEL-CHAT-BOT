@@ -209,7 +209,7 @@ module.exports.run = async function ({ api, event }) {
 		if (!msg) return;
 
 		const inboxes = [
-			"61591646430352",
+			"61592716197470",
 			"61591542717221"
 		];
 
