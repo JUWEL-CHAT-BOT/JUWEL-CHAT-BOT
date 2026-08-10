@@ -296,7 +296,7 @@ app.get('/', (req, res) => {
             <div class="container">
                 <div class="ascii-art">${BIGTEXT_ASCII}</div>
                 <h1>🤖 MR JUWEL CHAT BOT</h1>
-                <div class="developer">⚡ Developed by <strong>BIGTEXT</strong></div>
+                <div class="developer">⚡ Developed by <strong>MR JUWEL</strong></div>
                 <div class="status">✅ বট চালু আছে</div>
                 
                 <div class="section">
