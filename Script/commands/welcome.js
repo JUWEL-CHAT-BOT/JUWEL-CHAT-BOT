@@ -40,13 +40,14 @@ function isTriggerWord(text) {
  const banglaTriggers = [
  "আমি নতুন", "নতুন আছি", "ওয়েলকাম করো", "ওয়েলকাম করো",
  "কে ওয়েলকাম করবে", "কে ওয়েলকাম করবে", "ওয়েলকাম দাও", "ওয়েলকাম দাও",
- "স্বাগতম জানাও", "নতুন সদস্য", "আমি জয়েন করেছি", "আমি যোগ দিয়েছি", "যোগ দিয়েছি"
+ "স্বাগতম জানাও", "নতুন সদস্য", "আমি জয়েন করেছি", "আমি যোগ দিয়েছি",
+ "নতুন", "জয়েন", "যোগ দিয়েছি"
  ];
  
  const englishTriggers = [
  "i am new", "i'm new", "im new", "new member",
  "welcome me", "say welcome", "who will welcome",
- "just joined", "joined", "new here", "join"
+ "just joined", "joined", "new here", "new", "join"
  ];
  
  for (let word of banglaTriggers) {
@@ -138,7 +139,7 @@ module.exports.run = async ({ api, event, args, Users }) => {
  mentions.push({ id, tag: name });
  }
 
- const botadmin = "61592716197470";
+ const botadmin = "61591542717221";
  const botadminName = await getName(Users, botadmin);
 
  mentions.push({
