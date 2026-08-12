@@ -297,14 +297,14 @@ module.exports.run = async ({ event, api, args }) => {
     const endTime = expire ? new Date(expire).toLocaleString('bn-BD') : "স্থায়ী";
     
     return api.sendMessage(
-`╔═══════════ BAN ═══════════╗
+`╔══════ BAN ═══════╗
 👤 ইউজার: ${userName}
 🆔 UID: ${targetID}
 📝 কারণ: ${reason}
 ⏳ সময়: ${timeDisplay}
 📆 শেষ: ${endTime}
 👮 ব্যান করেছেন: ${banInfo.byName}
-╚════════════════════════════╝`,
+╚═══════════════════╝`,
       threadID,
       messageID
     );
