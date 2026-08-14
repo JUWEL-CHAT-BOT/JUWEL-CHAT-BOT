@@ -27,7 +27,7 @@ module.exports = {
       const mention = [{ tag: userName, id: senderID }];
       const startTime = Date.now();
 
-      //━━━━━━━━━━ COOLDOWN FEATURE (আগের মতোই) ━━━━━━━━━━//
+      //━━━━━━━━━━ COOLDOWN FEATURE ━━━━━━━━━━//
       const COOLDOWN_TIME = 5 * 60 * 1000;
       const adminIDs = Array.isArray(global.config.ADMINBOT)
         ? global.config.ADMINBOT.map(String)
@@ -67,7 +67,7 @@ module.exports = {
         }
       }
 
-      //━━━━━━━━━━ PLATFORM DETECT (আগের মতোই) ━━━━━━━━━━//
+      //━━━━━━━━━━ PLATFORM DETECT ━━━━━━━━━━//
       let platform = "Unknown";
       let emoji = "🎬";
       if (body.includes("facebook.com") || body.includes("fb.watch")) {
@@ -92,65 +92,35 @@ module.exports = {
 
       api.setMessageReaction("⏳", event.messageID, () => {}, true);
 
-      //━━━━━━━━━━ PROGRESS BAR (আগের মতোই, কিন্তু ফাস্ট) ━━━━━━━━━━//
-      const progressSteps = [
-        { percent: 10, bar: '█░░░░░░░░░', status: '📡 Connecting...' },
-        { percent: 30, bar: '███░░░░░░░', status: '📥 Fetching Info...' },
-        { percent: 50, bar: '█████░░░░░', status: '📤 Downloading...' },
-        { percent: 70, bar: '███████░░░', status: '⚡ Processing...' },
-        { percent: 90, bar: '█████████░', status: '📦 Preparing...' },
-        { percent: 100, bar: '██████████', status: '✅ Complete!' }
-      ];
-
-      const loading = await api.sendMessage(
-        `╔══════✦═════╗\n  📥 AUTO DOWNLOADER\n╚══════✦══════╝\n\n  ${emoji} ${platform}\n\n  ═══════════════════\n  ${progressSteps[0].bar} ${progressSteps[0].percent}%\n  ${progressSteps[0].status}\n  ═══════════════════\n\n  ⏳ Please wait...`,
-        event.threadID
-      );
-
-      //━━━━━━━━━━ স্পিড বুস্টার: প্রোগ্রেস বার আপডেট কম করা ━━━━━━━━━━//
-      // শুধু 2টি আপডেট দেখানো হবে (50% এবং 100%)
-      await new Promise(resolve => setTimeout(resolve, 800));
-      await api.editMessage(
-        `╔═════════✦════════╗\n  📥 AUTO DOWNLOADER\n╚═════════✦════════╝\n\n  ${emoji} ${platform}\n\n  ════════════════════\n  ${progressSteps[2].bar} ${progressSteps[2].percent}%\n  ${progressSteps[2].status}\n  ════════════════════\n\n  ⏳ Please wait...`,
-        loading.messageID
-      );
-
-      //━━━━━━━━━━ ফাস্ট ডাউনলোড (অপটিমাইজড) ━━━━━━━━━━//
-      // ডেটা ফেচ ও ডাউনলোড একসাথে (প্যারালাল)
-      const [data, response] = await Promise.all([
-        alldown(body),
-        alldown(body).then(d => axios({
-          url: d.url,
-          method: "GET",
-          responseType: "stream",
-          timeout: 30000,
-          maxRedirects: 5,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
-        }))
-      ]);
-
+      //━━━━━━━━━━ স্পিড বুস্ট: ডাইরেক্ট ডাউনলোড (কোন লোডিং মেসেজ নেই) ━━━━━━━━━━//
+      // ডাইরেক্ট ডাউনলোড শুরু
+      const data = await alldown(body);
+      
       if (!data || !data.url) {
         api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return api.editMessage("❌ Unable To Download This Video!", loading.messageID);
+        return api.sendMessage("❌ Unable To Download This Video!", event.threadID, event.messageID);
       }
 
-      //━━━━━━━━━━ ফাইনাল প্রোগ্রেস আপডেট ━━━━━━━━━━//
-      await api.editMessage(
-        `╔═════════✦════════╗\n  📥 AUTO DOWNLOADER\n╚═════════✦════════╝\n\n  ${emoji} ${platform}\n\n  ═════════════════\n  ${progressSteps[4].bar} ${progressSteps[4].percent}%\n  ${progressSteps[4].status}\n  ═════════════════\n\n  ⏳ Please wait...`,
-        loading.messageID
-      );
+      //━━━━━━━━━━ প্যারালাল ডাউনলোড (সবচেয়ে ফাস্ট) ━━━━━━━━━━//
+      const response = await axios({
+        url: data.url,
+        method: "GET",
+        responseType: "stream",
+        timeout: 15000, // টাইমআউট কমিয়ে দেয়া হয়েছে
+        maxRedirects: 3, // রিডাইরেক্ট কমিয়ে দেয়া হয়েছে
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Connection': 'keep-alive'
+        }
+      });
 
       let title = data.title || data.caption || data.desc || data.video_title || `${platform} Video`;
-      let duration = data.duration || data.length || "Unknown";
-      let quality = data.quality || data.resolution || "HD";
       title = title.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
 
       const fileName = `autodl_${senderID}.mp4`;
       const filePath = path.join(__dirname, "cache", fileName);
 
-      //━━━━━━━━━━ ফাইল রাইট (আগের মতোই) ━━━━━━━━━━//
+      //━━━━━━━━━━ ফাইল রাইট (স্ট্রিম ডাইরেক্ট) ━━━━━━━━━━//
       const writer = fs.createWriteStream(filePath);
       response.data.pipe(writer);
 
@@ -160,7 +130,7 @@ module.exports = {
         const endTime = Date.now();
         const totalTime = ((endTime - startTime) / 1000).toFixed(1);
 
-        // Update database (আগের মতোই)
+        // Update database
         if (!fs.existsSync(dbPath)) {
           fs.writeFileSync(dbPath, JSON.stringify({ total: 0, users: {} }, null, 2));
         }
@@ -183,19 +153,13 @@ module.exports = {
         }
         fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-        //━━━━━━━━━━ ফাইনাল কমপ্লিট মেসেজ ━━━━━━━━━━//
-        await api.editMessage(
-          `╔═══════════✦══════════╗\n  📥 AUTO DOWNLOADER\n╚═══════════✦══════════╝\n\n  ${emoji} ${platform}\n\n  ═══════════════════════\n  ${progressSteps[5].bar} ${progressSteps[5].percent}%\n  ${progressSteps[5].status}\n  ═══════════════════════\n\n  ✅ Download Complete!`,
-          loading.messageID
-        );
-
         api.setMessageReaction("✅", event.messageID, () => {}, true);
 
-        //━━━━━━━━━━ ফাইনাল মেসেজ (আগের মতোই) ━━━━━━━━━━//
+        //━━━━━━━━━━ ফাইনাল মেসেজ (সরাসরি ভিডিও সহ) ━━━━━━━━━━//
         return api.sendMessage(
           {
             body:
-              `╔══════════✦═════════╗\n『 AUTO DOWNLOADER 』\n╚═════════✦════════╝\n\n╭━━━━━━━━━━━━━━━━━━╮\n┃ 👤 REQUEST BY :\n┃ ${userName}\n┣━━━━━━━━━━━━━━━━━━┫\n┃ 🎬 YOUR DOWNLOAD :\n┃ ${db.users[senderID].totalDownload} Videos\n┣━━━━━━━━━━━━━━━━━━┫\n┃ 🌍 TOTAL DOWNLOAD :\n┃ ${db.total} Videos\n┣━━━━━━━━━━━━━━━━━━┫\n┃ ⚡ DOWNLOAD TIME :\n┃ ${totalTime} Seconds\n┣━━━━━━━━━━━━━━━━━━┫\n┃ 📦 FILE SIZE :\n┃ ${fileSize}\n╰━━━━━━━━━━━━━━━━━━╯\n\n⎯͢🩷ꤪ⁽𝐌ꤪ𝆠፝֟𝐑₎ꜛ⪼─⃞⤹𐙚\n𝐉𝆠፝֟🅤𝆠፝֟𝐖𝆠፝֟🅔𝆠፝֟𝐋༢ꜛ國🩷ꤪ🪽`,
+              `╔══════════✦═════════╗\n『 AUTO DOWNLOADER 』\n╚═════════✦════════╝\n\n╭━━━━━━━━━━━━━━━━━━╮\n┃ 👤 REQUEST BY :\n┃ ${userName}\n┣━━━━━━━━━━━━━━━━━━┫\n┃ 🎬 ${platform}\n┣━━━━━━━━━━━━━━━━━━┫\n┃ ⚡ DOWNLOAD TIME :\n┃ ${totalTime} Seconds\n┣━━━━━━━━━━━━━━━━━━┫\n┃ 📦 FILE SIZE :\n┃ ${fileSize}\n╰━━━━━━━━━━━━━━━━━━╯\n\n⎯͢🩷ꤪ⁽𝐌ꤪ𝆠፝֟𝐑₎ꜛ⪼─⃞⤹𐙚\n𝐉𝆠፝֟🅤𝆠፝֟𝐖𝆠፝֟🅔𝆠፝֟𝐋༢ꜛ國🩷ꤪ🪽`,
             mentions: mention,
             attachment: fs.createReadStream(filePath)
           },
