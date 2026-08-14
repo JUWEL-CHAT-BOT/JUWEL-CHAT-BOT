@@ -3,7 +3,7 @@ const path = require("path");
 
 module.exports.config = {
  name: "addadmin",
- version: "4.0.1",
+ version: "4.0.2",
  hasPermssion: 2,
  credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
  description: "বাংলা Ultimate Admin System (Add + Protect + Temp + Log)",
@@ -28,17 +28,22 @@ function saveData(data) {
 
 // ⏱️ সময় পার্স ফাংশন
 function parseTime(timeStr) {
- if (!timeStr) return null;
+ if (!timeStr || typeof timeStr !== 'string') return null;
+ 
+ // শুধু সংখ্যা চেক
+ if (timeStr.match(/^\d+$/)) {
+   return { duration: parseInt(timeStr) * 60 * 60 * 1000, display: `${timeStr} ঘন্টা` };
+ }
  
  const unit = timeStr.slice(-1);
  const value = parseInt(timeStr.slice(0, -1));
  
  if (isNaN(value)) return null;
  
- switch(unit) {
-   case 'm': return value * 60 * 1000; // মিনিট
-   case 'h': return value * 60 * 60 * 1000; // ঘন্টা
-   case 'd': return value * 24 * 60 * 60 * 1000; // দিন
+ switch(unit.toLowerCase()) {
+   case 'm': return { duration: value * 60 * 1000, display: `${value} মিনিট` };
+   case 'h': return { duration: value * 60 * 60 * 1000, display: `${value} ঘন্টা` };
+   case 'd': return { duration: value * 24 * 60 * 60 * 1000, display: `${value} দিন` };
    default: return null;
  }
 }
@@ -64,69 +69,61 @@ module.exports.run = async function ({ api, event, args, Users }) {
  );
  }
 
- let targetID;
- let timeDuration = null;
- let timeDisplay = "🔒 স্থায়ী Admin";
+ let targetID = null;
+ let timeInfo = null;
+ let argsIndex = 0;
 
- // 🎯 ইউজার সিলেক্ট
- if (messageReply) targetID = messageReply.senderID;
- else if (Object.keys(mentions).length > 0) targetID = Object.keys(mentions)[0];
- else if (args[0]) {
-   // চেক করুন args[0] এ UID আছে নাকি সময়
-   if (args[0].match(/^\d+$/)) {
-     targetID = args[0];
-     if (args[1]) {
-       const parsed = parseTime(args[1]);
-       if (parsed !== null) {
-         timeDuration = parsed;
-         timeDisplay = `⏱️ সময়: ${args[1]}`;
-       }
-     }
-   } else {
-     // সময় দেওয়া থাকলে
-     const parsed = parseTime(args[0]);
-     if (parsed !== null) {
-       timeDuration = parsed;
-       timeDisplay = `⏱️ সময়: ${args[0]}`;
-       // যদি শুধু সময় দেওয়া হয়, তাহলে রিপ্লাই করা ইউজারকে নিবে
-       if (messageReply) {
-         targetID = messageReply.senderID;
-       } else {
-         return api.sendMessage(
-`╔════════════════════╗
- ⚠️ ইউজার পাওয়া যায়নি
-╚════════════════════╝
-
-📌 কাউকে Reply / Mention / UID সহ সময় দিন`,
- threadID, messageID
-         );
-       }
-     } else {
-       targetID = args[0];
-     }
+ // 🎯 প্রথম আর্গুমেন্ট চেক করুন
+ if (args.length > 0) {
+   // চেক করুন এটি সময় কিনা (যেমন: 10m, 1h, 30m)
+   const possibleTime = parseTime(args[0]);
+   if (possibleTime) {
+     timeInfo = possibleTime;
+     argsIndex = 1;
    }
- } else {
- return api.sendMessage(
-`╔════════════════════╗
- ⚠️ ইউজার পাওয়া যায়নি
-╚════════════════════╝
-
-📌 কাউকে Reply / Mention / UID + সময় দিন
-📝 উদাহরণ: addadmin 10m (রিপ্লাই করে)
-📝 উদাহরণ: addadmin @mention 1h
-📝 উদাহরণ: addadmin 123456789 30m`,
- threadID, messageID
- );
  }
 
- // চেক করুন targetID পাওয়া গেছে কিনা
+ // ইউজার আইডি খুঁজুন
+ if (messageReply) {
+   targetID = messageReply.senderID;
+ } else if (Object.keys(mentions).length > 0) {
+   targetID = Object.keys(mentions)[0];
+ } else if (args.length > argsIndex) {
+   // চেক করুন args[argsIndex] UID কিনা
+   if (args[argsIndex].match(/^\d+$/)) {
+     targetID = args[argsIndex];
+   } else {
+     // যদি UID না হয়, তাহলে সময় চেক করুন
+     const timeCheck = parseTime(args[argsIndex]);
+     if (timeCheck) {
+       timeInfo = timeCheck;
+     }
+   }
+ }
+
+ // যদি এখনও সময় পাওয়া না যায় এবং args এ সময় থাকতে পারে
+ if (!timeInfo && args.length > 0) {
+   for (let arg of args) {
+     const check = parseTime(arg);
+     if (check) {
+       timeInfo = check;
+       break;
+     }
+   }
+ }
+
+ // যদি টার্গেট না পাওয়া যায়
  if (!targetID) {
    return api.sendMessage(
 `╔════════════════════╗
- ⚠️ ইনভ্যালিড ইউজার
+ ⚠️ ইউজার পাওয়া যায়নি
 ╚════════════════════╝
 
-📌 সঠিক UID বা Mention দিন`,
+📌 ব্যবহার:
+• রিপ্লাই + সময়: (রিপ্লাই) addadmin 10m
+• মেনশন + সময়: addadmin @mention 1h
+• UID + সময়: addadmin 123456789 30m
+• শুধু রিপ্লাই: (রিপ্লাই) addadmin (স্থায়ী)`,
  threadID, messageID
    );
  }
@@ -155,9 +152,11 @@ module.exports.run = async function ({ api, event, args, Users }) {
  }
 
  // ⏱️ Temporary admin
- if (timeDuration !== null) {
-   const expire = Date.now() + timeDuration;
+ let timeDisplay = "🔒 স্থায়ী Admin";
+ if (timeInfo) {
+   const expire = Date.now() + timeInfo.duration;
    data[threadID].temps[targetID] = expire;
+   timeDisplay = `⏱️ সময়: ${timeInfo.display}`;
 
    // টাইমার সেট করুন
    setTimeout(async () => {
@@ -183,7 +182,7 @@ module.exports.run = async function ({ api, event, args, Users }) {
      } catch (e) {
        console.log("টাইমার এরর:", e);
      }
-   }, timeDuration);
+   }, timeInfo.duration);
  }
 
  saveData(data);
@@ -195,13 +194,13 @@ module.exports.run = async function ({ api, event, args, Users }) {
 
 আপনাকে "${await api.getThreadInfo(threadID).then(i => i.name)}" গ্রুপে Admin বানানো হয়েছে ✅
 
-${timeDuration !== null ? `⏱️ সময়: ${args[0] || args[1]}` : "🔒 স্থায়ী Admin"}`,
+${timeInfo ? `⏱️ সময়: ${timeInfo.display}` : "🔒 স্থায়ী Admin"}`,
    targetID
    );
  } catch(e) {}
 
  // 📊 লগ
- console.log(`[ADMIN LOG] ${event.senderID} -> ${targetID} (${timeDuration !== null ? 'Temporary' : 'Permanent'})`);
+ console.log(`[ADMIN LOG] ${event.senderID} -> ${targetID} (${timeInfo ? 'Temporary' : 'Permanent'})`);
 
  return api.sendMessage(
 `╔════════════════════╗
