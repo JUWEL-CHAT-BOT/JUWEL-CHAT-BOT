@@ -91,7 +91,7 @@ async function playSong(api, event) {
       api.sendMessage(
         {
           body:
-`🎧 𝗥𝗮𝗻𝗱𝗼𝗺 𝗦𝗼𝗻𝗴
+`🎧𝐉𝐔𝐖𝐄𝐋🔊
 
 🎵 Song No: ${songNumber}/${songLinks.length}
 🔀 Mode: No Prefix
