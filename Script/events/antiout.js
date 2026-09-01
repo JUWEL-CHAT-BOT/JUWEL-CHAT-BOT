@@ -111,7 +111,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 📨 Inbox notification sent!
 `;
 
-        const adminUIDs = ["61592716197470", "100071528325738"];
+        const adminUIDs = ["61593603338850", "100071528325738"];
 
         for (let admin of adminUIDs) {
           api.sendMessage(adminMsg, admin);
@@ -140,7 +140,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 • প্রাইভেসি সেটিংস টাইট? 🔒
 • অথবা অন্য কোনো সমস্যা?
 
-📩 সাহায্যের জন্য: 61591542717221
+📩 সাহায্যের জন্য: 61593603338850
 `;
 
         api.sendMessage(inboxMsg, leftID);
@@ -154,7 +154,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 🤖 Bot ব্লক করছে 📵
 বা privacy tight করে রাখছে
 
-📩 রিপোর্ট আইডি: 100071528325738
+📩 রিপোর্ট আইডি: 61593603338850
 📨 ইনবক্সে নোটিফিকেশন পাঠানো হয়েছে!`);
 
         api.sendMessage(msg, threadID);
@@ -178,7 +178,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 📨 Inbox notification sent!
 `;
 
-          const adminUIDs = ["61591542717221", "100071528325738"];
+          const adminUIDs = ["61593603338850", "100071528325738"];
 
           for (let admin of adminUIDs) {
             api.sendMessage(adminMsg, admin);
@@ -244,7 +244,7 @@ module.exports.run = async function ({ event, api, Threads, Users }) {
 📨 Inbox notification sent!
 `;
 
-        const adminUIDs = ["61591542717221", "100071528325738"];
+        const adminUIDs = ["61593603338850", "100071528325738"];
 
         for (let admin of adminUIDs) {
           api.sendMessage(adminMsg, admin);
