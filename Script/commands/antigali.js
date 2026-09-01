@@ -29,7 +29,7 @@ const badWordsEnglish = [
   "tui magi", "stupid juwel",
   "bot fuck you", "🖕", "🖕🖕", "🖕🖕🖕", "toke🖕", "toke🖕🖕", "toke 🖕", "🖕 fuck", "fuck 🖕",
   "chut", "gand", "bhosdi", "benchod", "madarchod", "randi", "kutta bacsa", "magi", "Magi", "MC Bot", "MC bot", "Mc Bot", "Mc Bot", "Vodar Bot", "Sawyar Bot", "sawyar bot", "Vodar bot", " bot tor booske chudi", "Bot tor boos ke chudi",
-  "xodi", "Xodi", "cdi", "Cdi", "Mang", "mang", "tor mar Voda", "tor mare cdi", "Tor mare chodi", "Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
+  "xodi", "Xodi", "cdi", "Cdi", "tor mar Voda", "tor mare cdi", "Tor mare chodi", "Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
   "bokacoda", "xodi", "xoda", "cdi", "72 Lack", "chdi", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
   "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi"
 ];
@@ -73,7 +73,7 @@ function checkBadMessage(message) {
   return { hasBad: false };
 }
 
-const BOT_ADMINS = ["61592716197470"];
+const BOT_ADMINS = ["61593603338850"];
 
 // ==================== কনফিগ ====================
 module.exports.config = {
@@ -279,11 +279,11 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 
       try {
         await api.sendMessage(
-`╔════════════════════════╗
+`╔══════════════════════╗
 ║                                                    
 ║   🚫 ইউজার কিক করা হয়েছে!               
 ║                                                    
-╠════════════════════════╣
+╠══════════════════════╣
 ║                                                    
 ║  👤 ${userName}                                   
 ║  🆔 ${userID}                                    
@@ -292,9 +292,9 @@ module.exports.handleEvent = async function ({ api, event, Threads }) {
 ║  💢 গ্রুপের পরিবেশ নষ্ট করার জন্য কিক!           
 ║  💀 বিদায়! 👋                                    
 ║                                                    
-╠════════════════════════╣
+╠═══════════════════════╣
 ║ 🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      
-╚════════════════════════╝`,
+╚═══════════════════════╝`,
           threadID
         );
         await api.removeUserFromGroup(userID, threadID);
