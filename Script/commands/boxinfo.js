@@ -154,9 +154,9 @@ async function sendWeeklyReport(api, event, threadInfo) {
   });
 
   const report =
-    `┌──────────────────────────────┐\n` +
-    `│   📊  WEEKLY GROUP REPORT    │\n` +
-    `└──────────────────────────────┘\n` +
+    `┌───────────────────┐\n` +
+    `│📊 WEEKLY GROUP REPORT│\n` +
+    `└───────────────────┘\n` +
     `\n` +
     `  📅  Date     : ${date}\n` +
     `  🏷️  Group    : ${threadName}\n` +
@@ -166,15 +166,15 @@ async function sendWeeklyReport(api, event, threadInfo) {
     `  ⏰  Peak Hour : ${peakHour}\n` +
     `  🎂  Age       : ${ageText}\n` +
     `\n` +
-    `┌──────────────────────────────┐\n` +
-    `│       📈 ACTIVITY CHART      │\n` +
-    `└──────────────────────────────┘\n` +
+    `┌────────────────┐\n` +
+    `│📈 ACTIVITY CHART      \n` +
+    `└────────────────┘\n` +
     (chart ? `\n${chart}\n` : `  No activity data yet.\n`) +
     `\n` +
     `  ✅  Group is active & running!\n` +
     `\n` +
-    `  ─────────────────────────────\n` +
-    `  ⚡  Powered by CYBER BOT TEAM`;
+    `  ────────────────────\n` +
+    `⚡Powered by乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐`;
 
   api.sendMessage(report, tid, null, event.messageID);
   markWeeklyReportSent(tid);
