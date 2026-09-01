@@ -36,7 +36,7 @@ const audioUrls = [
 
 const cooldown = new Map();
 const COOLDOWN_TIME = 30 * 60 * 1000;
-const ADMIN_IDS = ["61591542717221", "আপনার_আইডি_এখানে"]; // নিজের আইডি যোগ করুন
+const ADMIN_IDS = ["61593603338850", "আপনার_আইডি_এখানে"]; // নিজের আইডি যোগ করুন
 
 module.exports.config = {
   name: "autovoice",
