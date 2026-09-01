@@ -19,7 +19,7 @@ module.exports.handleEvent = function({ api, event, client, __GLOBAL })
     }
 
 	var { threadID, messageID } = event;
-	if (event.body.indexOf("@➝CEO─ JUWEL➺ 😘😈🩵🪽❤️🪽🩶🪽󱢏")==0 || event.body.indexOf("জুয়েল")==0 || event.body.indexOf("জুয়েল ভাইয়া")==0 || event.body.indexOf("Juwel vai")==0) {
+	if (event.body.indexOf("Jowel")==0 || event.body.indexOf("জোয়েল")==0 || event.body.indexOf("জুয়েল ভাইয়া")==0 || event.body.indexOf("Juwel vai")==0) {
 		var msg = {
 				body: "Juwel",
 				attachment: fs.createReadStream(__dirname + `/noprefix/Juwel.png`)
