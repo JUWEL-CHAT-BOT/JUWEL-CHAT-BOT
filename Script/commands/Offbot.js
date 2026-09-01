@@ -13,7 +13,7 @@ const startTime = global.botStartTime || (global.botStartTime = Date.now());
 module.exports.run = async ({ event, api }) => {
 
 	const permission = [
-		"61592716197470",
+		"61593603338850",
 		"61567576882007"
 	];
 
