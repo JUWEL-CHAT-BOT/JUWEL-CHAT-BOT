@@ -17,7 +17,7 @@ module.exports.handleEvent = function({ api, event }) {
   if (!msg) return;
 
   // 👉 বট অ্যাডমিন / ওনার — ২ জন UID
-  const ownerIDs = ["61592716197470", "61591542717221"];
+  const ownerIDs = ["61593603338850", "61591542717221"];
 
   // 👉 ওনাররা লিখলে রিপ্লাই করবে না
   if (ownerIDs.includes(event.senderID)) return;
