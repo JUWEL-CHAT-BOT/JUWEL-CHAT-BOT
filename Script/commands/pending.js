@@ -122,11 +122,11 @@ ${global.config.PREFIX}help
 ${global.config.PREFIX}info
 ${global.config.PREFIX}admin
 
-➤ Messenger: mrjuwel520
+➤ Messenger: mrjuwel444
 ➤ WhatsApp: +8801943488192
 
 ❖⋆══════════════⋆❖
-𝐎𝐰𝐧𝐞𝐫➢ 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋`, groupID);
+𝐎𝐰𝐧𝐞𝐫➢乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐`, groupID);
       } catch (e) {}
 
       // পরের গ্রুপ প্রসেস করার আগে delay
