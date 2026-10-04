@@ -26,7 +26,7 @@ ${content}
 }
 
 // 🖼 IMAGE
-const imgs = ["https://i.imgur.com/IZx7VNF.jpeg"];
+const imgs = ["https://i.imgur.com/HMtGAMO.jpeg"];
 
 function getImage(cb) {
     const file = path.join(__dirname, "cache", `help_${Date.now()}.jpg`);
