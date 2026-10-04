@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "autoreplybot",
-  version: "7.0.0",
+  version: "8.0.0",
   hasPermssion: 0,
   credits: "MR JUWEL",
-  description: "Auto-response bot with advanced features",
+  description: "Auto-response bot with text triggers",
   commandCategory: "No Prefix",
   usages: "[any trigger]",
   cooldowns: 30,
@@ -346,19 +346,8 @@ const responses = {
 // ===== ১৩. অটো-ডিলিট কনফিগ =====
 const AUTO_DELETE_TIME = 15000; // ১৫ সেকেন্ড পর ডিলিট (০ দিলে ডিলিট হবে না)
 
-// ===== ১১. টাইম-বেইজড গ্রিটিংস =====
-function getTimeBasedGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 5) return "🌙 এই সময়ে জাগছো কেন? ভূতের পালা শুরু 🥶\nঘুমাও, নাহলে কালকে ক্লাসে ঘুমাবি 😴\nবস জুয়েলও এখন ঘুমায় 💤\nতাই শুয়ে পড়, স্বপ্নে দেখা হবে 💭";
-  if (hour < 12) return "☀️ শুভ সকাল! দাঁত ব্রাশ করেছো? 🪥\nসকালে উঠে ব্যায়াম কর 💪\nনাশতা খেয়ে স্কুলে যা 🍳\nবস জুয়েলের মতো ফিট হও 🏋️";
-  if (hour < 16) return "🌤️ শুভ দুপুর! খাবার খেয়েছো? 🍽️\nদুপুরে ভাত খেয়ে ঘুমা 😴\nনাহলে বিকেলে ঘুম আসবে 🥱\nবস জুয়েলও এখন লাঞ্চ করছে 🍛";
-  if (hour < 19) return "🌆 শুভ বিকেল! চা খেয়েছো? ☕\nবিকেলে পড়াশোনা কর 📚\nনাহলে রাতে ঘুম আসবে না 🌙\nবস জুয়েলের মতো সিরিয়াস হও 🎯";
-  if (hour < 22) return "🌃 শুভ সন্ধ্যা! পড়াশোনা করো 📚\nরাতে দেরি করে ঘুমাইস না 😴\nনাহলে সকালে উঠতে পারবি না ⏰\nবস জুয়েলের মতো ডিসিপ্লিন্ড হও 💼";
-  return "🌙 শুভ রাত্রি! এখন ঘুমাও 😴\nদাঁত ব্রাশ করে শুয়ে পড় 🪥\nস্বপ্নে বস জুয়েলকে দেখ 💭\nকাল সকালে কাজে লাগো 💼";
-}
-
 module.exports.handleEvent = async function ({ api, event, Users }) {
-  const { threadID, messageID, senderID, body, attachments } = event;
+  const { threadID, messageID, senderID, body } = event;
 
   // ===== ১৩. অটো-ডিলিট হেল্পার =====
   const sendReply = (message, replyToID) => {
@@ -370,40 +359,9 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     }, replyToID || messageID);
   };
 
-  // ===== ১০. অ্যাটাচমেন্ট রিপ্লাই =====
-  if (attachments && attachments.length > 0) {
-    const type = attachments[0].type;
-    if (type === "photo") {
-      const replies = [
-        "সুন্দর ছবি! 😍\nক্যামেরা কে দিলো তোমাকে? 📸\nবস জুয়েলের মতো ফটোজেনিক হও 🌟\nআরো ছবি পাঠাও 📷",
-        "ছবিটা তো ভালো 📸\nফটোশপ ছাড়াই সুন্দর লাগছে 😍\nবস জুয়েলের মতো স্টাইলিশ হও 💫\nআরো পাঠাও, দেখি 👀",
-        "ক্যামেরা কে দিলো তোমাকে? 🤔\nছবি দেখে চোখ জুড়াই গেল 😍\nবস জুয়েলের কাছে যাও 👑\nসে তোমাকে ফটোগ্রাফি শিখাবে 📷"
-      ];
-      return sendReply(replies[Math.floor(Math.random() * replies.length)]);
-    }
-    if (type === "video") {
-      return sendReply("ভিডিও দেখবো পরে, এখন বিজি 🎬\nবস জুয়েলের কাজ করছি 💼\nপরে আসো, কথা হবে 📝\nভিডিওটা সেভ করে রাখো 📥");
-    }
-    if (type === "sticker") {
-      return sendReply("স্টিকার ভালো 😄\nবস জুয়েলের কাছে আরো স্টিকার নে 🎨\nআমার কাছে স্টিকার শেষ 😅\nপরে আসো, নতুন আনবো 📦");
-    }
-    if (type === "audio") {
-      return sendReply("গান শুনবো পরে, এখন ক্লাসে আছি 🎵\nবস জুয়েলের কাছে গান শুনতে চা 🎧\nসে তোমাকে ভালো গান দিবে 🎶\nপরে আসো, শুনবো 🎤");
-    }
-    if (type === "file") {
-      return sendReply("ফাইল পেয়েছি, দেখে নিবো 📁\nবস জুয়েলের কাছে যাও 👑\nসে ফাইল চেক করবে 📝\nআমি এখন বিজি ⏰");
-    }
-  }
-
   if (!body) return;
 
   const msg = body.toLowerCase().trim();
-
-  // ===== ১১. টাইম-বেইজড গ্রিটিংস =====
-  const timeTriggers = ["hi", "hello", "hey", "সালাম", "assalamu", "আসসালামু", "হ্যালো", "হাই"];
-  if (timeTriggers.includes(msg)) {
-    return sendReply(getTimeBasedGreeting());
-  }
 
   // ===== ৪. রেসপন্স হ্যান্ডলিং (র্যান্ডম সাপোর্ট সহ) =====
   const reply = responses[msg];
