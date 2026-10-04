@@ -1,4 +1,6 @@
 const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 const triggers = [
   // ইংরেজি
@@ -11,7 +13,7 @@ const triggers = [
   "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", 
   "জুয়েল ভাইয়া", "জুয়েল বস",
   "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", 
-  "জোয়েল", "জুয়েল", "জুয়েল", // ← সঠিক বানান যোগ
+  "জোয়েল", "জুয়েল", "জুয়েল",
   "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", 
   "আই লাভ ইউ জুয়েল",
   "মিস ইউ জুয়েল", "হ্যালো জুয়েল", "হাই জুয়েল"
@@ -36,7 +38,26 @@ const audioUrls = [
 
 const cooldown = new Map();
 const COOLDOWN_TIME = 30 * 60 * 1000;
-const ADMIN_IDS = ["61594400795920", "আপনার_আইডি_এখানে"]; // নিজের আইডি যোগ করুন
+
+// কনফিগ ফাইল থেকে বট অ্যাডমিন লোড করার ফাংশন
+function getBotAdmins() {
+  try {
+    const configPath = path.join(__dirname, "..", "..", "config.json");
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+      return config.ADMINBOT || config.adminBot || config.botAdmin || [];
+    }
+    
+    const configPath2 = path.join(process.cwd(), "config.json");
+    if (fs.existsSync(configPath2)) {
+      const config = JSON.parse(fs.readFileSync(configPath2, "utf-8"));
+      return config.ADMINBOT || config.adminBot || config.botAdmin || [];
+    }
+  } catch (e) {
+    console.log("[AUTOVOICE] Config read error:", e.message);
+  }
+  return [];
+}
 
 module.exports.config = {
   name: "autovoice",
@@ -55,7 +76,6 @@ module.exports.handleEvent = async function ({ api, event }) {
 
     const msg = event.body.toLowerCase().trim();
     
-    // কাস্টম চেক - সব জুয়েল ভেরিয়েন্ট ক্যাচ করে
     const isJewel = triggers.some(t => {
       const triggerLower = t.toLowerCase();
       return msg === triggerLower || msg.includes(triggerLower);
@@ -66,14 +86,16 @@ module.exports.handleEvent = async function ({ api, event }) {
     const senderID = event.senderID;
     const now = Date.now();
 
-    const isAdmin = ADMIN_IDS.includes(senderID) || 
-                    (global.config && global.config.admin && global.config.admin.includes(senderID));
+    // কনফিগ থেকে বট অ্যাডমিন লিস্ট নেওয়া
+    const botAdmins = getBotAdmins();
+    const isAdmin = botAdmins.includes(senderID);
 
-    if (!isAdmin) {
-      const lastTime = cooldown.get(senderID) || 0;
-      if (now - lastTime < COOLDOWN_TIME) return;
-      cooldown.set(senderID, now);
-    }
+    // বট অ্যাডমিন হলে ভয়েস দিবে না
+    if (isAdmin) return;
+
+    const lastTime = cooldown.get(senderID) || 0;
+    if (now - lastTime < COOLDOWN_TIME) return;
+    cooldown.set(senderID, now);
 
     const url = audioUrls[Math.floor(Math.random() * audioUrls.length)];
 
