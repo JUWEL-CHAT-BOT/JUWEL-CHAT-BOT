@@ -1,4 +1,4 @@
-n.exports.config = {
+module.exports.config = {
   name: "album",
   version: "1.0.0",
   hasPermission: 0,
@@ -9,70 +9,169 @@ n.exports.config = {
   cooldowns: 5,
 };
 
-module.exports.run = async function({
-  event: e,
-  api: a,
-  args: n
-}) {
-  if (!n[0]) return a.sendMessage("╭───•𝗠𝗥 𝗝𝗨𝗪𝗘𝗟•───╮\n\n━━💛𝚅𝙸𝙳𝙴𝙾🎀𝙰𝙻𝙱𝚄𝙼💛━━ \n!\n!➤1 𝙸𝚂𝙻𝙰𝙼 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤2 𝙰𝙽𝙸𝙼𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤3 𝚂𝙷𝙰𝙸𝚁𝙸 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤4 𝚂𝙷𝙾𝚁𝚃 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤5 𝚂𝙰𝙳𝚅𝙸𝙳𝙾◄┈╯\n!\n!➤6 𝚂𝚃𝙰𝚃𝚄𝚂 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤7 𝙵𝙾𝙾𝚃𝙱𝙰𝙻𝙻 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤8 𝙵𝚄𝙽𝙽𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤9 𝙻𝙾𝚅𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤10 𝙲𝙿𝙻 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤11 𝙱𝙰𝙱𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤12 𝙵𝚁𝙴𝙴 𝙵𝙸𝚁𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤13 𝙻𝙾𝙵𝙸 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤14 𝙷𝙰𝙿𝙿𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯\n!\n!➤15 𝙷𝚄𝙼𝙰𝙸𝚈𝚄𝙽 𝚂𝙸𝚁 𝚅𝙸𝙳𝙴𝙾◄┈╯\n━━━━━━━━━━━━━━\n𝙾𝚆𝙽𝙴𝚁: 𝙼𝚁 𝙹𝚄𝚆𝙴𝙻 𝙵𝚋 facebook.com/mrjuwel999\n━━━━━━━━━━━━━━━━━\n𝙰 𝙿 𝙸//𝙹𝚄𝚆𝙴𝙻\n╰──𝙼𝚁 𝙹𝚄𝚆𝙴𝙻 𝙿𝚁𝙾𝙹𝙴𝙲𝚃──╯\n\nTell me how many video numbers you want to see by replaying this message", e.threadID, ((a, n) => {
-    global.client.handleReply.push({
-      name: this.config.name,
-      messageID: n.messageID,
-      author: e.senderID,
-      type: "create"
-    })
-  }), e.messageID)
-}; 
+// === Rate limit storage ===
+if (!global.albumRateLimit) global.albumRateLimit = {};
 
-module.exports.handleReply = async ({
-  api: e,
-  event: a,
-  client: n,
-  handleReply: t,
-  Currencies: s,
-  Users: i,
-  Threads: o
-}) => {
-  var { p, h } = await linkanh(a.body);
-  const axios = require("axios");
-  if ("create" === t.type) {
-    const response = await p.get(h);
-    const data = response.data.data;
-    const cap = response.data.shaon;
-    const cn = response.data.count;
-    let nayan = (await p.get(data, {
-      responseType: "stream"
-    })).data;
-    return e.sendMessage({
-      body: `🟡${cap}\n𝚃𝙾𝚃𝙰𝙻 𝚅𝙸𝙳𝙴𝙾:${cn}\n𝙰 𝙿 𝙸  𝗠𝗥 卝 𝗝𝗨𝗪𝗘𝗟🎀`,
-      attachment: nayan
-    }, a.threadID, a.messageID)
+module.exports.run = async function ({ event: e, api: a, args: n }) {
+  if (!n[0]) {
+    const menu = 
+`╭───•𝐌𝐑 𝐉𝐔𝐖𝐄𝐋•───╮
+
+━━💛𝐕𝐈𝐃𝐄𝐎🎀𝐀𝐋𝐁𝐔𝐌💛━━
+!
+!➤1 𝐈𝐒𝐋𝐀𝐌 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤2 𝐀𝐍𝐈𝐌𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤3 𝐒𝐇𝐀𝐈𝐑𝐈 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤4 𝐒𝐇𝐎𝐑𝐓 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤5 𝐒𝐀𝐃 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤6 𝐒𝐓𝐀𝐓𝐔𝐒 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤7 𝐅𝐎𝐎𝐓𝐁𝐀𝐋𝐋 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤8 𝐅𝐔𝐍𝐍𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤9 𝐋𝐎𝐕𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤10 𝐂𝐏𝐋 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤11 𝐁𝐀𝐁𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤12 𝐅𝐑𝐄𝐄 𝐅𝐈𝐑𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤13 𝐋𝐎𝐅𝐈 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤14 𝐇𝐀𝐏𝐏𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!
+!➤15 𝐇𝐔𝐌𝐀𝐈𝐘𝐔𝐍 𝐒𝐈𝐑 𝐕𝐈𝐃𝐄𝐎◄┈╯
+━━━━━━━━━━━━━━
+𝐎𝐖𝐍𝐄𝐑: 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋
+𝐅𝐁: facebook.com/mrjuwel444
+━━━━━━━━━━━━━━
+𝐀 𝐏 𝐈 // 𝐉𝐔𝐖𝐄𝐋
+╰──𝐌𝐑 𝐉𝐔𝐖𝐄𝐋 𝐏𝐑𝐎𝐉𝐄𝐂𝐓──╯
+
+⚠️ 𝐍𝐨𝐭𝐞: 𝟐 𝐦𝐢𝐧𝐮𝐭𝐞𝐫 𝐦𝐨𝐝𝐝𝐡𝐞 𝐬𝐨𝐫𝐛𝐨𝐜𝐜𝐡𝐨 𝟓𝐭𝐢 𝐯𝐢𝐝𝐞𝐨 𝐧𝐢𝐭𝐞 𝐩𝐚𝐫𝐛𝐞𝐧।
+
+𝐓𝐞𝐥𝐥 𝐦𝐞 𝐡𝐨𝐰 𝐦𝐚𝐧𝐲 𝐯𝐢𝐝𝐞𝐨 𝐧𝐮𝐦𝐛𝐞𝐫𝐬 𝐲𝐨𝐮 𝐰𝐚𝐧𝐭 𝐭𝐨 𝐬𝐞𝐞 𝐛𝐲 𝐫𝐞𝐩𝐥𝐲𝐢𝐧𝐠 𝐭𝐡𝐢𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞`;
+
+    return a.sendMessage(menu, e.threadID, (err, info) => {
+      if (err) return;
+      global.client.handleReply.push({
+        name: module.exports.config.name,
+        messageID: info.messageID,
+        author: e.senderID,
+        type: "create"
+      });
+    }, e.messageID);
   }
 };
 
-async function linkanh(choice) {
-  const axios = require("axios");
-  const apis = await axios.get('https://raw.githubusercontent.com/shaonproject/Shaon/main/api.json');
-  const n = apis.data.api
-  const options = {
-    "1": "/video/islam",
-    "2": "/video/anime",
-    "3": "/video/shairi",
-    "4": "/video/short",
-    "5": "/video/sad",
-    "6": "/video/status",
-    "7": "/video/football",
-    "8": "/video/funny",
-    "9": "/video/love",
-    "10": "/video/cpl",
-    "11": "/video/baby",
-    "12": "/video/kosto",
-    "13": "/video/lofi",
-    "14": "/video/happy",
-    "15": "/video/humaiyun",
-    
-    
-  };
-  const h = `${n}${options[choice]}`;
-  return { p: axios, h };
-}
+module.exports.handleReply = async function ({ api: e, event: a, handleReply: t }) {
+  try {
+    if (t.author !== a.senderID) return;
+    if (t.type !== "create") return;
+
+    const senderID = a.senderID;
+    const now = Date.now();
+    const TIME_LIMIT = 2 * 60 * 1000; // ২ মিনিট (milliseconds)
+    const MAX_VIDEOS = 5; // সর্বোচ্চ ৫টি ভিডিও
+
+    // === Rate limit check ===
+    if (!global.albumRateLimit[senderID]) {
+      global.albumRateLimit[senderID] = { count: 0, firstTime: now };
+    }
+
+    const userData = global.albumRateLimit[senderID];
+
+    // ২ মিনিট পার হলে reset
+    if (now - userData.firstTime >= TIME_LIMIT) {
+      userData.count = 0;
+      userData.firstTime = now;
+    }
+
+    // ৫টির বেশি হলে ব্লক
+    if (userData.count >= MAX_VIDEOS) {
+      const remaining = Math.ceil((TIME_LIMIT - (now - userData.firstTime)) / 1000);
+      const min = Math.floor(remaining / 60);
+      const sec = remaining % 60;
+      return e.sendMessage(
+        `⚠️ 𝐀𝐩𝐧𝐢 𝟐 𝐦𝐢𝐧𝐮𝐭𝐞𝐫 𝐦𝐨𝐝𝐝𝐡𝐞 𝐬𝐨𝐫𝐛𝐨𝐜𝐜𝐨 𝟓𝐭𝐢 𝐯𝐢𝐝𝐞𝐨 𝐧𝐢𝐲𝐞𝐜𝐡𝐞𝐧!\n\n⏳ 𝐀𝐛𝐚𝐫 𝐜𝐡𝐞𝐬𝐭𝐚 𝐤𝐨𝐫𝐮𝐧: ${min}𝐦 ${sec}𝐬 𝐩𝐨𝐫𝐞`,
+        a.threadID,
+        a.messageID
+      );
+    }
+
+    const choice = a.body.trim();
+    const axios = require("axios");
+
+    const apis = await axios.get('https://raw.githubusercontent.com/shaonproject/Shaon/main/api.json');
+    const baseURL = apis.data.api;
+
+    const options = {
+      "1": "/video/islam",
+      "2": "/video/anime",
+      "3": "/video/shairi",
+      "4": "/video/short",
+      "5": "/video/sad",
+      "6": "/video/status",
+      "7": "/video/football",
+      "8": "/video/funny",
+      "9": "/video/love",
+      "10": "/video/cpl",
+      "11": "/video/baby",
+      "12": "/video/kosto",
+      "13": "/video/lofi",
+      "14": "/video/happy",
+      "15": "/video/humaiyun",
+    };
+
+    if (!options[choice]) {
+      return e.sendMessage(
+        "❌ 𝐈𝐧𝐯𝐚𝐥𝐢𝐝 𝐧𝐮𝐦𝐛𝐞𝐫! 𝟏 𝐭𝐡𝐞𝐤𝐞 𝟏𝟓 𝐩𝐨𝐫𝐣𝐨𝐧𝐭𝐨 𝐬𝐨𝐧𝐠𝐤𝐡𝐚 𝐝𝐢𝐧।",
+        a.threadID,
+        a.messageID
+      );
+    }
+
+    const url = `${baseURL}${options[choice]}`;
+
+    const response = await axios.get(url);
+    const videoURL = response.data.data?.url || response.data.url || response.data.video || response.data.data;
+    const title = response.data.title || response.data.shaon || "𝐕𝐈𝐃𝐄𝐎";
+    const count = response.data.count || "1";
+
+    if (!videoURL) {
+      return e.sendMessage(
+        "❌ 𝐕𝐢𝐝𝐞𝐨 𝐩𝐚𝐰𝐚 𝐡𝐨𝐲 𝐧𝐢! 𝐀𝐛𝐚𝐫 𝐜𝐡𝐞𝐬𝐭𝐚 𝐤𝐨𝐫𝐮𝐧।",
+        a.threadID,
+        a.messageID
+      );
+    }
+
+    // ✅ সফলভাবে ভিডিও পাঠানোর আগে count বাড়ান
+    userData.count += 1;
+
+    const videoStream = (await axios.get(videoURL, { responseType: "stream" })).data;
+    const remainingCount = MAX_VIDEOS - userData.count;
+
+    return e.sendMessage({
+      body:
+`🟡 ${title}
+𝐓𝐎𝐓𝐀𝐋 𝐕𝐈𝐃𝐄𝐎: ${count}
+
+📊 𝐀𝐩𝐧𝐚𝐫 𝐛𝐚𝐤𝐢 𝐥𝐢𝐦𝐢𝐭: ${remainingCount}/${MAX_VIDEOS}
+
+𝐀 𝐏 𝐈 乛 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋 ꜛ࿐`,
+      attachment: videoStream
+    }, a.threadID, a.messageID);
+
+  } catch (err) {
+    console.error(err);
+    return e.sendMessage(`❌ 𝐄𝐫𝐫𝐨𝐫: ${err.message}`, a.threadID, a.messageID);
+  }
+};
