@@ -12,52 +12,65 @@ module.exports.config = {
 // === Rate limit storage ===
 if (!global.albumRateLimit) global.albumRateLimit = {};
 
+// === Bot Admin Check ===
+function isBotAdmin(senderID) {
+  try {
+    const config = require(global.client.dirConfig || "./config.json");
+    const adminList = config.ADMINBOT || [];
+    return adminList.map(String).includes(String(senderID));
+  } catch (e) {
+    console.error("Admin check error:", e);
+    return false;
+  }
+}
+
 module.exports.run = async function ({ event: e, api: a, args: n }) {
   if (!n[0]) {
-    const menu = 
-`╭───•𝐌𝐑 𝐉𝐔𝐖𝐄𝐋•───╮
+    const menu =
+`╭───•𝙼𝚁 𝙹𝚄𝚆𝙴𝙻•───╮
 
-━━💛𝐕𝐈𝐃𝐄𝐎🎀𝐀𝐋𝐁𝐔𝐌💛━━
+━━💛𝚅𝙸𝙳𝙴𝙾🎀𝙰𝙻𝙱𝚄𝙼💛━━
 !
-!➤1 𝐈𝐒𝐋𝐀𝐌 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤1 𝙸𝚂𝙻𝙰𝙼 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤2 𝐀𝐍𝐈𝐌𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤2 𝙰𝙽𝙸𝙼𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤3 𝐒𝐇𝐀𝐈𝐑𝐈 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤3 𝚂𝙷𝙰𝙸𝚁𝙸 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤4 𝐒𝐇𝐎𝐑𝐓 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤4 𝚂𝙷𝙾𝚁𝚃 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤5 𝐒𝐀𝐃 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤5 𝚂𝙰𝙳 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤6 𝐒𝐓𝐀𝐓𝐔𝐒 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤6 𝚂𝚃𝙰𝚃𝚄𝚂 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤7 𝐅𝐎𝐎𝐓𝐁𝐀𝐋𝐋 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤7 𝙵𝙾𝙾𝚃𝙱𝙰𝙻𝙻 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤8 𝐅𝐔𝐍𝐍𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤8 𝙵𝚄𝙽𝙽𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤9 𝐋𝐎𝐕𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤9 𝙻𝙾𝚅𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤10 𝐂𝐏𝐋 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤10 𝙲𝙿𝙻 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤11 𝐁𝐀𝐁𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤11 𝙱𝙰𝙱𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤12 𝐅𝐑𝐄𝐄 𝐅𝐈𝐑𝐄 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤12 𝙵𝚁𝙴𝙴 𝙵𝙸𝚁𝙴 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤13 𝐋𝐎𝐅𝐈 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤13 𝙻𝙾𝙵𝙸 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤14 𝐇𝐀𝐏𝐏𝐘 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤14 𝙷𝙰𝙿𝙿𝚈 𝚅𝙸𝙳𝙴𝙾◄┈╯
 !
-!➤15 𝐇𝐔𝐌𝐀𝐈𝐘𝐔𝐍 𝐒𝐈𝐑 𝐕𝐈𝐃𝐄𝐎◄┈╯
+!➤15 𝙷𝚄𝙼𝙰𝙸𝚈𝚄𝙽 𝚂𝙸𝚁 𝚅𝙸𝙳𝙴𝙾◄┈╯
 ━━━━━━━━━━━━━━
-𝐎𝐖𝐍𝐄𝐑: 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋
-𝐅𝐁: facebook.com/mrjuwel444
+𝙾𝚆𝙽𝙴𝚁: 𝙼𝚁 𝙹𝚄𝚆𝙴𝙻
+𝙵𝙱: facebook.com/mrjuwel444
 ━━━━━━━━━━━━━━
-𝐀 𝐏 𝐈 // 𝐉𝐔𝐖𝐄𝐋
-╰──𝐌𝐑 𝐉𝐔𝐖𝐄𝐋 𝐏𝐑𝐎𝐉𝐄𝐂𝐓──╯
+𝙰 𝙿 𝙸 // 𝙹𝚄𝚆𝙴𝙻
+╰──𝙼𝚁 𝙹𝚄𝚆𝙴𝙻 𝙿𝚁𝙾𝙹𝙴𝙲𝚃──╯
 
-⚠️ 𝐍𝐨𝐭𝐞: 𝟐 𝐦𝐢𝐧𝐮𝐭𝐞𝐫 𝐦𝐨𝐝𝐝𝐡𝐞 𝐬𝐨𝐫𝐛𝐨𝐜𝐜𝐡𝐨 𝟓𝐭𝐢 𝐯𝐢𝐝𝐞𝐨 𝐧𝐢𝐭𝐞 𝐩𝐚𝐫𝐛𝐞𝐧।
+⚠️ 𝙽𝚘𝚝𝚎: 𝟸 𝚖𝚒𝚗𝚞𝚝𝚎𝚛 𝚖𝚘𝚍𝚍𝚑𝚎 𝚜𝚘𝚛𝚋𝚘𝚌𝚌𝚑𝚘 𝟻𝚝𝚒 𝚟𝚒𝚍𝚎𝚘 𝚗𝚒𝚝𝚎 𝚙𝚊𝚛𝚋𝚎𝚗।
+(𝙱𝚘𝚝 𝙰𝚍𝚖𝚒𝚗 = 𝚄𝚗𝚕𝚒𝚖𝚒𝚝𝚎𝚍)
 
-𝐓𝐞𝐥𝐥 𝐦𝐞 𝐡𝐨𝐰 𝐦𝐚𝐧𝐲 𝐯𝐢𝐝𝐞𝐨 𝐧𝐮𝐦𝐛𝐞𝐫𝐬 𝐲𝐨𝐮 𝐰𝐚𝐧𝐭 𝐭𝐨 𝐬𝐞𝐞 𝐛𝐲 𝐫𝐞𝐩𝐥𝐲𝐢𝐧𝐠 𝐭𝐡𝐢𝐬 𝐦𝐞𝐬𝐬𝐚𝐠𝐞`;
+𝚃𝚎𝚕𝚕 𝚖𝚎 𝚑𝚘𝚠 𝚖𝚊𝚗𝚢 𝚟𝚒𝚍𝚎𝚘 𝚗𝚞𝚖𝚋𝚎𝚛𝚜 𝚢𝚘𝚞 𝚠𝚊𝚗𝚝 𝚝𝚘 𝚜𝚎𝚎 𝚋𝚢 𝚛𝚎𝚙𝚕𝚢𝚒𝚗𝚐 𝚝𝚑𝚒𝚜 𝚖𝚎𝚜𝚜𝚊𝚐𝚎`;
 
     return a.sendMessage(menu, e.threadID, (err, info) => {
       if (err) return;
@@ -78,32 +91,37 @@ module.exports.handleReply = async function ({ api: e, event: a, handleReply: t 
 
     const senderID = a.senderID;
     const now = Date.now();
-    const TIME_LIMIT = 2 * 60 * 1000; // ২ মিনিট (milliseconds)
-    const MAX_VIDEOS = 5; // সর্বোচ্চ ৫টি ভিডিও
+    const TIME_LIMIT = 2 * 60 * 1000; // ২ মিনিট
+    const MAX_VIDEOS = 5;              // সাধারণ ইউজারের জন্য সর্বোচ্চ ৫টি
 
-    // === Rate limit check ===
-    if (!global.albumRateLimit[senderID]) {
-      global.albumRateLimit[senderID] = { count: 0, firstTime: now };
-    }
+    // ✅ Bot Admin কিনা চেক
+    const isAdmin = isBotAdmin(senderID);
 
-    const userData = global.albumRateLimit[senderID];
+    // === Rate limit check (শুধু non-admin এর জন্য) ===
+    if (!isAdmin) {
+      if (!global.albumRateLimit[senderID]) {
+        global.albumRateLimit[senderID] = { count: 0, firstTime: now };
+      }
 
-    // ২ মিনিট পার হলে reset
-    if (now - userData.firstTime >= TIME_LIMIT) {
-      userData.count = 0;
-      userData.firstTime = now;
-    }
+      const userData = global.albumRateLimit[senderID];
 
-    // ৫টির বেশি হলে ব্লক
-    if (userData.count >= MAX_VIDEOS) {
-      const remaining = Math.ceil((TIME_LIMIT - (now - userData.firstTime)) / 1000);
-      const min = Math.floor(remaining / 60);
-      const sec = remaining % 60;
-      return e.sendMessage(
-        `⚠️ 𝐀𝐩𝐧𝐢 𝟐 𝐦𝐢𝐧𝐮𝐭𝐞𝐫 𝐦𝐨𝐝𝐝𝐡𝐞 𝐬𝐨𝐫𝐛𝐨𝐜𝐜𝐨 𝟓𝐭𝐢 𝐯𝐢𝐝𝐞𝐨 𝐧𝐢𝐲𝐞𝐜𝐡𝐞𝐧!\n\n⏳ 𝐀𝐛𝐚𝐫 𝐜𝐡𝐞𝐬𝐭𝐚 𝐤𝐨𝐫𝐮𝐧: ${min}𝐦 ${sec}𝐬 𝐩𝐨𝐫𝐞`,
-        a.threadID,
-        a.messageID
-      );
+      // ২ মিনিট পার হলে reset
+      if (now - userData.firstTime >= TIME_LIMIT) {
+        userData.count = 0;
+        userData.firstTime = now;
+      }
+
+      // ৫টির বেশি হলে ব্লক
+      if (userData.count >= MAX_VIDEOS) {
+        const remaining = Math.ceil((TIME_LIMIT - (now - userData.firstTime)) / 1000);
+        const min = Math.floor(remaining / 60);
+        const sec = remaining % 60;
+        return e.sendMessage(
+          `⚠️ 𝙰𝚙𝚗𝚒 𝟸 𝚖𝚒𝚗𝚞𝚝𝚎𝚛 𝚖𝚘𝚍𝚍𝚑𝚎 𝚜𝚘𝚛𝚋𝚘𝚌𝚌𝚘 𝟻𝚝𝚒 𝚟𝚒𝚍𝚎𝚘 𝚗𝚒𝚢𝚎𝚌𝚑𝚎𝚗!\n\n⏳ 𝙰𝚋𝚊𝚛 𝚌𝚑𝚎𝚜𝚝𝚊 𝚔𝚘𝚛𝚞𝚗: ${min}𝚖 ${sec}𝚜 𝚙𝚘𝚛𝚎`,
+          a.threadID,
+          a.messageID
+        );
+      }
     }
 
     const choice = a.body.trim();
@@ -132,7 +150,7 @@ module.exports.handleReply = async function ({ api: e, event: a, handleReply: t 
 
     if (!options[choice]) {
       return e.sendMessage(
-        "❌ 𝐈𝐧𝐯𝐚𝐥𝐢𝐝 𝐧𝐮𝐦𝐛𝐞𝐫! 𝟏 𝐭𝐡𝐞𝐤𝐞 𝟏𝟓 𝐩𝐨𝐫𝐣𝐨𝐧𝐭𝐨 𝐬𝐨𝐧𝐠𝐤𝐡𝐚 𝐝𝐢𝐧।",
+        "❌ 𝙸𝚗𝚟𝚊𝚕𝚒𝚍 𝚗𝚞𝚖𝚋𝚎𝚛! 𝟷 𝚝𝚑𝚎𝚔𝚎 𝟷𝟻 𝚙𝚘𝚛𝚓𝚘𝚗𝚝𝚘 𝚜𝚘𝚗𝚐𝚔𝚑𝚊 𝚍𝚒𝚗।",
         a.threadID,
         a.messageID
       );
@@ -142,36 +160,40 @@ module.exports.handleReply = async function ({ api: e, event: a, handleReply: t 
 
     const response = await axios.get(url);
     const videoURL = response.data.data?.url || response.data.url || response.data.video || response.data.data;
-    const title = response.data.title || response.data.shaon || "𝐕𝐈𝐃𝐄𝐎";
+    const title = response.data.title || response.data.shaon || "𝚅𝙸𝙳𝙴𝙾";
     const count = response.data.count || "1";
 
     if (!videoURL) {
       return e.sendMessage(
-        "❌ 𝐕𝐢𝐝𝐞𝐨 𝐩𝐚𝐰𝐚 𝐡𝐨𝐲 𝐧𝐢! 𝐀𝐛𝐚𝐫 𝐜𝐡𝐞𝐬𝐭𝐚 𝐤𝐨𝐫𝐮𝐧।",
+        "❌ 𝚅𝚒𝚍𝚎𝚘 𝚙𝚊𝚠𝚊 𝚑𝚘𝚢 𝚗𝚒! 𝙰𝚋𝚊𝚛 𝚌𝚑𝚎𝚜𝚝𝚊 𝚔𝚘𝚛𝚞𝚗।",
         a.threadID,
         a.messageID
       );
     }
 
-    // ✅ সফলভাবে ভিডিও পাঠানোর আগে count বাড়ান
-    userData.count += 1;
+    // Non-admin হলে count বাড়াও
+    let limitText = "";
+    if (!isAdmin) {
+      global.albumRateLimit[senderID].count += 1;
+      const remainingCount = MAX_VIDEOS - global.albumRateLimit[senderID].count;
+      limitText = `\n📊 𝙰𝚙𝚗𝚊𝚛 𝚋𝚊𝚔𝚒 𝚕𝚒𝚖𝚒𝚝: ${remainingCount}/${MAX_VIDEOS}`;
+    } else {
+      limitText = `\n👑 𝙰𝚍𝚖𝚒𝚗: 𝚄𝚗𝚕𝚒𝚖𝚒𝚝𝚎𝚍`;
+    }
 
     const videoStream = (await axios.get(videoURL, { responseType: "stream" })).data;
-    const remainingCount = MAX_VIDEOS - userData.count;
 
     return e.sendMessage({
       body:
 `🟡 ${title}
-𝐓𝐎𝐓𝐀𝐋 𝐕𝐈𝐃𝐄𝐎: ${count}
+𝚃𝙾𝚃𝙰𝙻 𝚅𝙸𝙳𝙴𝙾: ${count}${limitText}
 
-📊 𝐀𝐩𝐧𝐚𝐫 𝐛𝐚𝐤𝐢 𝐥𝐢𝐦𝐢𝐭: ${remainingCount}/${MAX_VIDEOS}
-
-𝐀 𝐏 𝐈 乛 𝐌𝐑 𝐉𝐔𝐖𝐄𝐋 ꜛ࿐`,
+𝙰 𝙿 𝙸 乛 𝙼𝚁 𝙹𝚄𝚆𝙴𝙻 ꜛ࿐`,
       attachment: videoStream
     }, a.threadID, a.messageID);
 
   } catch (err) {
     console.error(err);
-    return e.sendMessage(`❌ 𝐄𝐫𝐫𝐨𝐫: ${err.message}`, a.threadID, a.messageID);
+    return e.sendMessage(`❌ 𝙴𝚛𝚛𝚘𝚛: ${err.message}`, a.threadID, a.messageID);
   }
 };
