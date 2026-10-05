@@ -1,6 +1,6 @@
 module.exports.config = {
   name: "fbkick",
-  version: "13.0.0",
+  version: "13.0.1",
   hasPermission: 2,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "Premium FB User Cleaner",
@@ -30,12 +30,16 @@ module.exports.run = async function ({ api, event }) {
   const threadInfo = await api.getThreadInfo(threadID);
   const botID = api.getCurrentUserID();
 
-  // ✅ DETECT BAD USERS (আগে স্ক্যান করবে)
+  // ✅ FIX: adminIDs কে সবসময় id string array তে কনভার্ট করো
+  const adminIDList = (threadInfo.adminIDs || []).map(a =>
+    typeof a === "string" ? a : a.id
+  );
+
+  // ✅ DETECT BAD USERS
   const badUsers = threadInfo.userInfo.filter(user => {
     if (user.id == senderID) return false;
     if (user.id == botID) return false;
-    const isAdmin = threadInfo.adminIDs.some(a => a.id == user.id);
-    if (isAdmin) return false;
+    if (adminIDList.includes(user.id)) return false;   // FIXED
 
     const noGender = user.gender === undefined || user.gender === null;
     const noThumb = !user.thumbSrc || user.thumbSrc.includes("defaultUser");
@@ -43,6 +47,9 @@ module.exports.run = async function ({ api, event }) {
 
     return noGender || (noThumb && noName);
   });
+
+  // ✅ BOT ADMIN CHECK (FIXED)
+  const botAdmin = adminIDList.includes(botID);
 
   // ✅ NO BAD USER
   if (badUsers.length === 0) {
@@ -57,25 +64,17 @@ module.exports.run = async function ({ api, event }) {
     );
   }
 
-  // ✅ BOT ADMIN CHECK (এখন এডমিন চেক করবে)
-  const botAdmin = threadInfo.adminIDs.some(
-    item => item.id == botID
-  );
-
-  // ✅ যদি এডমিন না থাকে - প্রথমে কতজন ইউজার আছে দেখাবে তারপর এডমিন নাই নোটিশ
+  // ✅ যদি বট এডমিন না থাকে
   if (!botAdmin) {
     return api.sendMessage(
 `╔━━❖ 🔍 SCAN COMPLETE ❖━━╗
 ┃
 ┃ গ্রুপে মোট ${badUsers.length} জন
-┃ সাসপেন্ড / ডিজেবল / META PP
-┃ লাগা নষ্ট আইডি পাওয়া গেছে! 😈
+┃ নষ্ট আইডি পাওয়া গেছে! 😈
 ┃
 ┣━━━━━━━━━━━━━━━━━━
 ┃ ⚠️ কিন্তু আমাকে গ্রুপে
 ┃    এডমিন বানাননি!
-┃
-┃ ❌ তাই কিক দেওয়া সম্ভব নয়।
 ┃
 ┃ 📌 দয়া করে আগে আমাকে
 ┃    এডমিন বানান।
@@ -85,14 +84,12 @@ module.exports.run = async function ({ api, event }) {
     );
   }
 
-  // ✅ এডমিন থাকলে - কিক শুরু
   // ✅ SCAN RESULT — ১০ সেকেন্ড কাউন্টডাউন
   await api.sendMessage(
 `╔━━❖ 🔍 SCAN COMPLETE ❖━━╗
 ┃
 ┃ গ্রুপে মোট ${badUsers.length} জন
-┃ সাসপেন্ড / ডিজেবল / META PP
-┃ লাগা নষ্ট আইডি পাওয়া গেছে! 😈
+┃ নষ্ট আইডি পাওয়া গেছে! 😈
 ┃
 ┣━━━━━━━━━━━━━━━━━━
 ┃ ⏳ ১০ সেকেন্ড পর অটো কিক
@@ -102,10 +99,8 @@ module.exports.run = async function ({ api, event }) {
     threadID, messageID
   );
 
-  // ✅ COUNTDOWN 10 SEC
   await new Promise(r => setTimeout(r, 10000));
 
-  // ✅ START KICKING MESSAGE
   await api.sendMessage(
 `╔━━❖ 🇧🇩 FB CLEANER ❖━━╗
 ┃
@@ -122,7 +117,6 @@ module.exports.run = async function ({ api, event }) {
   let failed = 0;
   const failedList = [];
 
-  // ✅ REMOVE USERS
   for (const user of badUsers) {
     try {
       await api.removeUserFromGroup(user.id, threadID);
@@ -135,12 +129,10 @@ module.exports.run = async function ({ api, event }) {
     await new Promise(r => setTimeout(r, 1500));
   }
 
-  // ✅ FAILED LIST
   let failedNames = failedList.length > 0
     ? `┃\n┃ ⚠️ ফেল হওয়া আইডি:\n${failedList.map(n => `┃   • ${n}`).join("\n")}\n`
     : "";
 
-  // ✅ FINAL RESULT
   return api.sendMessage(
 `╔━━❖ ✅ KICK COMPLETE ❖━━╗
 ┃
