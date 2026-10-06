@@ -1,378 +1,967 @@
-const { createCanvas, loadImage } = require('canvas');
+const { createCanvas } = require('canvas');
 const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
-const axios = require('axios');
 
 module.exports.config = {
   name: "upt",
-  version: "3.0.0",
+  version: "2.0.0",
   hasPermssion: 0,
-  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Ultra System Monitor Dashboard",
+  credits: "MR JUWEL",
+  description: "Cyberpunk real-time system monitoring",
   commandCategory: "system",
   usages: "",
   cooldowns: 5
 };
 
+// =====================================================
+// CACHE
+// =====================================================
 module.exports.onLoad = () => {
   const cache = path.join(__dirname, "cache");
-  if (!fs.existsSync(cache)) fs.mkdirSync(cache, { recursive: true });
+
+  if (!fs.existsSync(cache)) {
+    fs.mkdirSync(cache, { recursive: true });
+  }
 };
 
-/* ---------- CPU ---------- */
-let prev = null;
+// =====================================================
+// BYTE FORMAT
+// =====================================================
+const f = (bytes) => {
+  if (!bytes || bytes <= 0) return "0 B";
+
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return (
+    bytes / Math.pow(1024, i)
+  ).toFixed(2) + " " + sizes[i];
+};
+
+// =====================================================
+// CPU USAGE
+// =====================================================
+let previousCPU = null;
+
 const getCPU = () => {
-  let idle = 0, total = 0;
-  for (const c of os.cpus()) {
-    for (const t in c.times) total += c.times[t];
-    idle += c.times.idle;
+  let idle = 0;
+  let total = 0;
+
+  for (const cpu of os.cpus()) {
+    for (const type in cpu.times) {
+      total += cpu.times[type];
+    }
+
+    idle += cpu.times.idle;
   }
-  const cur = { idle, total };
-  if (!prev) { prev = cur; return 0; }
-  const di = cur.idle - prev.idle;
-  const dt = cur.total - prev.total;
-  prev = cur;
-  return dt ? Math.round(100 - (100 * di / dt)) : 0;
+
+  const current = {
+    idle,
+    total
+  };
+
+  if (!previousCPU) {
+    previousCPU = current;
+    return 0;
+  }
+
+  const idleDiff = current.idle - previousCPU.idle;
+  const totalDiff = current.total - previousCPU.total;
+
+  previousCPU = current;
+
+  if (!totalDiff) return 0;
+
+  return Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(100 - (100 * idleDiff) / totalDiff)
+    )
+  );
 };
 
-/* ---------- Disk ---------- */
-const getDiskInfo = () => {
+// =====================================================
+// DISK USAGE
+// =====================================================
+const getDisk = () => {
   try {
-    const out = execSync('df -h').toString().split('\n').slice(1, 4);
-    return out.map(l => {
-      const p = l.split(/\s+/);
-      return { mount: p[5], used: p[2], total: p[1], percent: p[4] };
-    });
-  } catch {
-    return [];
-  }
-};
+    const output = execSync("df -k /").toString();
 
-/* ---------- Ping ---------- */
-const getPing = () => {
-  try {
-    const res = execSync('ping -c 1 8.8.8.8').toString();
-    const match = res.match(/time=(\d+\.?\d*)/);
-    return match ? Math.round(Number(match[1])) : 0;
-  } catch {
+    const line = output
+      .split("\n")
+      .filter(x => x.trim())[1];
+
+    const data = line.split(/\s+/);
+
+    const total = parseInt(data[1]) * 1024;
+    const used = parseInt(data[2]) * 1024;
+
+    if (!total) return 0;
+
+    return Math.min(
+      100,
+      Math.round((used / total) * 100)
+    );
+  } catch (e) {
     return 0;
   }
 };
 
-/* ---------- Process ---------- */
-const getTopProcess = () => {
-  try {
-    const res = execSync('ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head -6')
-      .toString()
-      .split('\n')
-      .slice(1, 6);
-    return res.map(l => l.trim()).filter(Boolean);
-  } catch {
-    return [];
+// =====================================================
+// ROUNDED RECTANGLE
+// =====================================================
+const roundedRect = (ctx, x, y, w, h, r) => {
+  ctx.beginPath();
+
+  ctx.moveTo(x + r, y);
+
+  ctx.arcTo(
+    x + w,
+    y,
+    x + w,
+    y + h,
+    r
+  );
+
+  ctx.arcTo(
+    x + w,
+    y + h,
+    x,
+    y + h,
+    r
+  );
+
+  ctx.arcTo(
+    x,
+    y + h,
+    x,
+    y,
+    r
+  );
+
+  ctx.arcTo(
+    x,
+    y,
+    x + w,
+    y,
+    r
+  );
+
+  ctx.closePath();
+};
+
+// =====================================================
+// NEON LINE
+// =====================================================
+const neonLine = (
+  ctx,
+  x1,
+  y1,
+  x2,
+  y2,
+  color,
+  width = 3
+) => {
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 15;
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+
+  ctx.stroke();
+
+  ctx.restore();
+};
+
+// =====================================================
+// CORNER FRAME
+// =====================================================
+const cornerFrame = (
+  ctx,
+  x,
+  y,
+  w,
+  h,
+  color
+) => {
+  ctx.save();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 6;
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+
+  ctx.beginPath();
+
+  // Top left
+  ctx.moveTo(x + 45, y);
+  ctx.lineTo(x + 5, y);
+  ctx.lineTo(x, y + 5);
+  ctx.lineTo(x, y + 45);
+
+  // Top right
+  ctx.moveTo(x + w - 45, y);
+  ctx.lineTo(x + w - 5, y);
+  ctx.lineTo(x + w, y + 5);
+  ctx.lineTo(x + w, y + 45);
+
+  // Bottom right
+  ctx.moveTo(x + w, y + h - 45);
+  ctx.lineTo(x + w, y + h - 5);
+  ctx.lineTo(x + w - 5, y + h);
+  ctx.lineTo(x + w - 45, y + h);
+
+  // Bottom left
+  ctx.moveTo(x + 45, y + h);
+  ctx.lineTo(x + 5, y + h);
+  ctx.lineTo(x, y + h - 5);
+  ctx.lineTo(x, y + h - 45);
+
+  ctx.stroke();
+
+  ctx.restore();
+};
+
+// =====================================================
+// SERVER BACKGROUND
+// =====================================================
+const drawServerBackground = (ctx, width, height) => {
+
+  // Main dark background
+  const bg = ctx.createLinearGradient(
+    0,
+    0,
+    width,
+    height
+  );
+
+  bg.addColorStop(0, "#020617");
+  bg.addColorStop(0.5, "#06152b");
+  bg.addColorStop(1, "#020617");
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+
+  // Grid
+  ctx.save();
+
+  ctx.strokeStyle = "rgba(0, 180, 255, 0.08)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x < width; x += 45) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
   }
-};
 
-/* ---------- Health ---------- */
-const healthScore = (cpu, ram, disk, ping) => {
-  let score = 100;
-  score -= cpu * 0.4;
-  score -= ram * 0.3;
-  score -= disk * 0.2;
-  score -= ping * 0.1;
-  return Math.max(0, Math.round(score));
-};
-
-module.exports.handleEvent = async ({ api, event }) => {
-  if (!event.body) return;
-  const msg = event.body.trim().toLowerCase();
-  if (msg === "up" || msg === "upt") {
-    return module.exports.run({ api, event });
+  for (let y = 0; y < height; y += 45) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
   }
-};
 
-module.exports.run = async ({ api, event }) => {
-  try {
-    const senderID = event.senderID;
-    
-    // ইউজারের প্রোফাইল ফটো ডাউনলোড
-    let avatarURL = `https://graph.facebook.com/${senderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-    let avatarImg = null;
-    try {
-      const response = await axios.get(avatarURL, { responseType: 'arraybuffer' });
-      avatarImg = await loadImage(Buffer.from(response.data));
-    } catch (e) {
-      avatarImg = null;
+  ctx.restore();
+
+  // Server rack decorations
+  for (let i = 0; i < 7; i++) {
+
+    const x = 35 + i * 155;
+    const y = 250 + (i % 2) * 20;
+
+    ctx.fillStyle = "rgba(2, 10, 25, 0.65)";
+    ctx.strokeStyle = "rgba(0, 140, 255, 0.18)";
+    ctx.lineWidth = 2;
+
+    ctx.fillRect(
+      x,
+      y,
+      115,
+      260
+    );
+
+    ctx.strokeRect(
+      x,
+      y,
+      115,
+      260
+    );
+
+    for (let j = 0; j < 6; j++) {
+
+      const ledX = x + 15 + j * 15;
+
+      ctx.beginPath();
+      ctx.arc(
+        ledX,
+        y + 25,
+        3,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle =
+        j % 2 === 0
+          ? "#00ff88"
+          : "#00bfff";
+
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = 10;
+
+      ctx.fill();
     }
 
-    getCPU();
-    await new Promise(r => setTimeout(r, 400));
+    for (let j = 0; j < 8; j++) {
+
+      ctx.fillStyle =
+        j % 2 === 0
+          ? "rgba(0,255,150,0.15)"
+          : "rgba(0,140,255,0.15)";
+
+      ctx.fillRect(
+        x + 12,
+        y + 55 + j * 23,
+        90,
+        8
+      );
+    }
+  }
+
+  // Blue glow
+  const glow = ctx.createRadialGradient(
+    width / 2,
+    350,
+    20,
+    width / 2,
+    350,
+    600
+  );
+
+  glow.addColorStop(
+    0,
+    "rgba(0,180,255,0.12)"
+  );
+
+  glow.addColorStop(
+    1,
+    "rgba(0,0,0,0)"
+  );
+
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+};
+
+// =====================================================
+// PROGRESS RING
+// =====================================================
+const drawRing = (
+  ctx,
+  x,
+  y,
+  percent,
+  color,
+  label
+) => {
+
+  const radius = 92;
+  const thickness = 20;
+
+  // Panel
+  ctx.save();
+
+  ctx.fillStyle = "rgba(2, 10, 25, 0.88)";
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+
+  roundedRect(
+    ctx,
+    x - 145,
+    y - 145,
+    290,
+    290,
+    25
+  );
+
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Background ring
+  ctx.beginPath();
+
+  ctx.arc(
+    x,
+    y,
+    radius,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.12)";
+
+  ctx.lineWidth = thickness;
+
+  ctx.stroke();
+
+  // Progress
+  ctx.beginPath();
+
+  ctx.arc(
+    x,
+    y,
+    radius,
+    -Math.PI / 2,
+    (percent / 100) *
+      Math.PI *
+      2 -
+      Math.PI / 2
+  );
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = thickness;
+  ctx.lineCap = "round";
+
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 18;
+
+  ctx.stroke();
+
+  // Percentage
+  ctx.shadowBlur = 0;
+
+  ctx.font = "bold 58px Arial";
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  ctx.fillText(
+    percent + "%",
+    x,
+    y
+  );
+
+  // Label
+  ctx.font = "bold 30px Arial";
+  ctx.fillStyle = color;
+
+  ctx.fillText(
+    label,
+    x,
+    y + 120
+  );
+};
+
+// =====================================================
+// INFO ROW
+// =====================================================
+const infoRow = (
+  ctx,
+  label,
+  value,
+  y,
+  color = "#00eaff"
+) => {
+
+  ctx.textAlign = "left";
+
+  ctx.font = "bold 27px Arial";
+  ctx.fillStyle = "#ffffff";
+
+  ctx.fillText(
+    label,
+    95,
+    y
+  );
+
+  ctx.font = "bold 27px Arial";
+  ctx.fillStyle = color;
+
+  ctx.fillText(
+    value,
+    320,
+    y
+  );
+};
+
+// =====================================================
+// NO PREFIX HANDLER
+// =====================================================
+module.exports.handleEvent = async function ({
+  api,
+  event
+}) {
+
+  if (!event.body) return;
+
+  const msg = event.body
+    .toLowerCase()
+    .trim();
+
+  if (msg === "upt") {
+
+    return module.exports.run({
+      api,
+      event
+    });
+  }
+};
+
+// =====================================================
+// MAIN
+// =====================================================
+module.exports.run = async function ({
+  api,
+  event
+}) {
+
+  try {
+
+    const startTime = Date.now();
+
+    // -------------------------------
+    // SYSTEM DATA
+    // -------------------------------
     const cpu = getCPU();
 
-    const totalRam = os.totalmem();
-    const usedRam = totalRam - os.freemem();
-    const ram = Math.round((usedRam / totalRam) * 100);
+    const totalRam =
+      os.totalmem();
 
-    const diskRaw = getDiskInfo();
-    const disk = diskRaw.length ? parseInt(diskRaw[0].percent) : 0;
+    const freeRam =
+      os.freemem();
 
-    const ping = getPing();
-    const health = healthScore(cpu, ram, disk, ping);
+    const usedRam =
+      totalRam - freeRam;
 
-    const uptimeSec = process.uptime();
-    const uptime = `${Math.floor(uptimeSec/3600)}h ${Math.floor(uptimeSec%3600/60)}m ${Math.floor(uptimeSec%60)}s`;
+    const ram = Math.min(
+      100,
+      Math.round(
+        (usedRam / totalRam) * 100
+      )
+    );
 
-    const processes = getTopProcess();
+    const disk = getDisk();
 
-    // বড়ো ক্যানভাস
-    const canvas = createCanvas(1800, 1200);
-    const c = canvas.getContext('2d');
+    // -------------------------------
+    // UPTIME
+    // -------------------------------
+    const seconds =
+      process.uptime();
 
-    /* =======================================================
-       🎨 ড্যাশবোর্ড - সবুজ ব্যাকগ্রাউন্ড
-    ======================================================= */
+    const days =
+      Math.floor(seconds / 86400);
 
-    /* ---------- পুরো সবুজ ব্যাকগ্রাউন্ড ---------- */
-    const bgGrad = c.createRadialGradient(900, 600, 100, 900, 600, 1000);
-    bgGrad.addColorStop(0, '#00ff00');
-    bgGrad.addColorStop(0.5, '#008000');
-    bgGrad.addColorStop(1, '#004d00');
-    c.fillStyle = bgGrad;
-    c.fillRect(0, 0, 1800, 1200);
+    const hours =
+      Math.floor(
+        (seconds % 86400) / 3600
+      );
 
-    /* ---------- আউটার ফ্রেম (ডাবল বর্ডার - সোনালী+সাদা) ---------- */
-    // প্রথম বর্ডার - সোনালী (বড়)
-    c.shadowColor = '#ffd700';
-    c.shadowBlur = 60;
-    c.strokeStyle = '#ffd700';
-    c.lineWidth = 12;
-    c.beginPath();
-    c.roundRect(25, 25, 1750, 1150, 55);
-    c.stroke();
-    
-    // দ্বিতীয় বর্ডার - সাদা (ছোট)
-    c.shadowColor = '#ffffff';
-    c.shadowBlur = 30;
-    c.strokeStyle = '#ffffff';
-    c.lineWidth = 6;
-    c.beginPath();
-    c.roundRect(45, 45, 1710, 1110, 45);
-    c.stroke();
-    
-    // তৃতীয় বর্ডার - সোনালী (ডটেড)
-    c.shadowBlur = 0;
-    c.setLineDash([15, 15]);
-    c.strokeStyle = '#ffd700';
-    c.lineWidth = 4;
-    c.beginPath();
-    c.roundRect(65, 65, 1670, 1070, 40);
-    c.stroke();
-    c.setLineDash([]);
+    const minutes =
+      Math.floor(
+        (seconds % 3600) / 60
+      );
 
-    /* ---------- মেইন প্যানেল (সবুজ) ---------- */
-    c.shadowBlur = 0;
-    c.fillStyle = 'rgba(0, 100, 0, 0.85)';
-    c.beginPath();
-    c.roundRect(85, 85, 1630, 1030, 35);
-    c.fill();
+    const secs =
+      Math.floor(seconds % 60);
 
-    /* ---------- প্রোফাইল ফটো (বড়ো সাইজ) ---------- */
-    const photoSize = 280;
-    if (avatarImg) {
-      c.save();
-      c.beginPath();
-      c.arc(900, 200, photoSize/2, 0, Math.PI * 2);
-      c.closePath();
-      c.clip();
-      c.drawImage(avatarImg, 900 - photoSize/2, 200 - photoSize/2, photoSize, photoSize);
-      c.restore();
-      
-      // ফটোর চারপাশে ডাবল রিং
-      c.shadowColor = '#ffd700';
-      c.shadowBlur = 40;
-      c.strokeStyle = '#ffd700';
-      c.lineWidth = 10;
-      c.beginPath();
-      c.arc(900, 200, photoSize/2 + 10, 0, Math.PI * 2);
-      c.stroke();
-      
-      c.shadowColor = '#ffffff';
-      c.shadowBlur = 20;
-      c.strokeStyle = '#ffffff';
-      c.lineWidth = 5;
-      c.beginPath();
-      c.arc(900, 200, photoSize/2 + 20, 0, Math.PI * 2);
-      c.stroke();
-      c.shadowBlur = 0;
+    const uptime =
+      `${days}d ${hours}h ${minutes}m ${secs}s`;
+
+    // -------------------------------
+    // PING
+    // -------------------------------
+    const ping =
+      Date.now() - startTime;
+
+    // =================================================
+    // CANVAS
+    // =================================================
+    const WIDTH = 1080;
+    const HEIGHT = 720;
+
+    const canvas =
+      createCanvas(
+        WIDTH,
+        HEIGHT
+      );
+
+    const ctx =
+      canvas.getContext("2d");
+
+    // =================================================
+    // BACKGROUND
+    // =================================================
+    drawServerBackground(
+      ctx,
+      WIDTH,
+      HEIGHT
+    );
+
+    // =================================================
+    // OUTER FRAME
+    // =================================================
+    cornerFrame(
+      ctx,
+      20,
+      20,
+      1040,
+      680,
+      "#00ff88"
+    );
+
+    cornerFrame(
+      ctx,
+      32,
+      32,
+      1016,
+      656,
+      "#00bfff"
+    );
+
+    // =================================================
+    // TOP TITLE
+    // =================================================
+    ctx.textAlign = "center";
+
+    ctx.shadowColor =
+      "#00ff88";
+
+    ctx.shadowBlur = 25;
+
+    ctx.font =
+      "bold 70px Arial";
+
+    ctx.fillStyle =
+      "#ffffff";
+
+    ctx.fillText(
+      "SYSTEM STATUS",
+      540,
+      105
+    );
+
+    ctx.shadowBlur = 0;
+
+    ctx.font =
+      "bold 28px Arial";
+
+    ctx.fillStyle =
+      "#00eaff";
+
+    ctx.fillText(
+      "REAL-TIME SERVER MONITORING",
+      540,
+      145
+    );
+
+    // Decorative lines
+    neonLine(
+      ctx,
+      100,
+      165,
+      390,
+      165,
+      "#00ff88",
+      4
+    );
+
+    neonLine(
+      ctx,
+      690,
+      165,
+      980,
+      165,
+      "#00bfff",
+      4
+    );
+
+    // =================================================
+    // SYSTEM RINGS
+    // =================================================
+    drawRing(
+      ctx,
+      240,
+      320,
+      cpu,
+      "#00ff88",
+      "CPU"
+    );
+
+    drawRing(
+      ctx,
+      540,
+      320,
+      ram,
+      "#ff267f",
+      "RAM"
+    );
+
+    drawRing(
+      ctx,
+      840,
+      320,
+      disk,
+      "#00bfff",
+      "DISK"
+    );
+
+    // =================================================
+    // LOWER INFORMATION PANEL
+    // =================================================
+    ctx.save();
+
+    ctx.fillStyle =
+      "rgba(1, 8, 22, 0.94)";
+
+    ctx.strokeStyle =
+      "#00bfff";
+
+    ctx.lineWidth = 3;
+
+    ctx.shadowColor =
+      "#00bfff";
+
+    ctx.shadowBlur = 15;
+
+    roundedRect(
+      ctx,
+      60,
+      485,
+      960,
+      175,
+      25
+    );
+
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // Divider
+    neonLine(
+      ctx,
+      700,
+      505,
+      700,
+      640,
+      "#00bfff",
+      2
+    );
+
+    // =================================================
+    // INFORMATION
+    // =================================================
+    infoRow(
+      ctx,
+      "UPTIME",
+      uptime,
+      525,
+      "#00ff88"
+    );
+
+    infoRow(
+      ctx,
+      "RAM",
+      ram + "%",
+      560,
+      "#ff267f"
+    );
+
+    infoRow(
+      ctx,
+      "DISK",
+      disk + "%",
+      595,
+      "#00bfff"
+    );
+
+    infoRow(
+      ctx,
+      "MEMORY",
+      `${f(usedRam)} / ${f(totalRam)}`,
+      630,
+      "#a855f7"
+    );
+
+    // =================================================
+    // PING
+    // =================================================
+    let pingColor;
+
+    if (ping < 80) {
+      pingColor = "#00ff88";
+    } else if (ping < 150) {
+      pingColor = "#ffaa00";
     } else {
-      c.beginPath();
-      c.arc(900, 200, 130, 0, Math.PI * 2);
-      c.fillStyle = '#ffd700';
-      c.fill();
-      c.fillStyle = '#008000';
-      c.font = 'bold 70px Arial';
-      c.textAlign = 'center';
-      c.fillText("UPT",900,225);
+      pingColor = "#ff3366";
     }
 
-    /* ---------- টাইটেল (সাদা) ---------- */
-    c.shadowColor = '#ffffff';
-    c.shadowBlur = 30;
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 85px "Arial"';
-    c.textAlign = 'center';
-    c.fillText("⚡ ULTRA DASHBOARD ⚡",900,400);
-    c.shadowBlur = 0;
+    ctx.font =
+      "bold 25px Arial";
 
-    /* ---------- বাম দিকের লেখা (সাদা) - বড়ো ---------- */
-    c.font = 'bold 50px "Arial"';
-    c.textAlign = 'left';
-    c.fillStyle = '#ffffff';
-    
-    // ✅ হেডার
-    c.fillText("✅ SYSTEM METRICS",120,480);
+    ctx.textAlign =
+      "center";
 
-    // 🟢 CPU - সাদা
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 48px "Arial"';
-    c.fillText(`🟢 CPU: ${cpu}%`,120,555);
-    
-    // 🟥 RAM - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`🟥 RAM: ${ram}%`,120,630);
-    
-    // 🟨 DISK - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`🟨 DISK: ${disk}%`,120,705);
-    
-    // 🤍 HEALTH - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`🤍 HEALTH: ${health}%`,120,780);
+    ctx.fillStyle =
+      pingColor;
 
-    // ⏱ Uptime - সাদা
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 46px "Arial"';
-    c.fillText(`⏱ Uptime: ${uptime}`,120,865);
-    
-    // 📶 Ping - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`📶 Ping: ${ping} ms`,120,940);
+    ctx.shadowColor =
+      pingColor;
 
-    // 💾 DISK PARTITIONS - সাদা
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 48px "Arial"';
-    c.fillText("💾 DISK PARTITIONS:",120,1015);
+    ctx.shadowBlur = 15;
 
-    let y = 1015;
-    diskRaw.slice(0,3).forEach((d, index) => {
-      y += 55;
-      c.fillStyle = '#ffffff';
-      c.font = 'bold 42px "Arial"';
-      c.fillText(`${d.mount}  ➜  ${d.used} / ${d.total}  (${d.percent})`,160,1060 + (index * 55));
-    });
+    ctx.fillText(
+      `PING  →  ${ping}ms`,
+      860,
+      545
+    );
 
-    /* ---------- ডান দিকের লেখা (সাদা) - বড়ো ---------- */
-    let y2 = 480;
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 50px "Arial"';
-    c.textAlign = 'left';
-    c.fillText("⚙️ TOP PROCESSES:",1050,530);
+    // =================================================
+    // SERVER ICON
+    // =================================================
+    ctx.shadowBlur = 15;
 
-    processes.forEach((p, index) => {
-      y2 += 65;
-      c.fillStyle = '#ffffff';
-      c.font = 'bold 42px "Arial"';
-      c.fillText(p,1080,555 + (index * 65));
-    });
+    ctx.strokeStyle =
+      "#00eaff";
 
-    // 🖥 OS - সাদা
-    c.fillStyle = '#ffffff';
-    c.font = 'bold 44px "Arial"';
-    c.fillText(`🖥 OS: ${os.platform()}`,1050,865);
-    
-    // 🧠 CPU Cores - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`🧠 CPU Cores: ${os.cpus().length}`,1050,940);
-    
-    // 📦 Node - সাদা
-    c.fillStyle = '#ffffff';
-    c.fillText(`📦 Node: ${process.version}`,1050,1015);
+    ctx.lineWidth = 4;
 
-    /* ---------- ফ্রেমের কর্নার ডেকোরেশন (সোনালী+সাদা) ---------- */
-    const corners = [
-      [85,85], [1715,85], [85,1115], [1715,1115]
+    // Server body
+    roundedRect(
+      ctx,
+      785,
+      570,
+      150,
+      55,
+      10
+    );
+
+    ctx.stroke();
+
+    roundedRect(
+      ctx,
+      785,
+      630,
+      150,
+      20,
+      8
+    );
+
+    ctx.stroke();
+
+    // Server lights
+    const lights = [
+      "#00ff88",
+      "#00bfff",
+      "#ff267f"
     ];
-    
-    corners.forEach(([x,y]) => {
-      // বড় সোনালী বৃত্ত
-      c.shadowColor = '#ffd700';
-      c.shadowBlur = 30;
-      c.fillStyle = '#ffd700';
-      c.beginPath();
-      c.arc(x, y, 30, 0, Math.PI * 2);
-      c.fill();
-      
-      // মাঝের সাদা বৃত্ত
-      c.shadowColor = '#ffffff';
-      c.shadowBlur = 20;
-      c.fillStyle = '#ffffff';
-      c.beginPath();
-      c.arc(x, y, 18, 0, Math.PI * 2);
-      c.fill();
-      
-      // ভিতরের সবুজ বৃত্ত
-      c.shadowBlur = 0;
-      c.fillStyle = '#008000';
-      c.beginPath();
-      c.arc(x, y, 8, 0, Math.PI * 2);
-      c.fill();
-      
-      // ছোট সোনালী ডট
-      c.fillStyle = '#ffd700';
-      c.beginPath();
-      c.arc(x, y, 3, 0, Math.PI * 2);
-      c.fill();
-    });
-    c.shadowBlur = 0;
 
-    /* ---------- সাইড ডেকোরেশন (সোনালী লাইন) ---------- */
-    // বাম পাশের ডেকোরেটিভ লাইন
-    for (let i = 0; i < 4; i++) {
-      const yPos = 480 + (i * 145);
-      c.shadowColor = '#ffd700';
-      c.shadowBlur = 15;
-      c.fillStyle = '#ffd700';
-      c.beginPath();
-      c.roundRect(90, yPos, 8, 55, 10);
-      c.fill();
-    }
-    
-    // ডান পাশের ডেকোরেটিভ লাইন
-    for (let i = 0; i < 4; i++) {
-      const yPos = 480 + (i * 145);
-      c.shadowColor = '#ffd700';
-      c.shadowBlur = 15;
-      c.fillStyle = '#ffd700';
-      c.beginPath();
-      c.roundRect(1700, yPos, 8, 55, 10);
-      c.fill();
-    }
-    c.shadowBlur = 0;
+    lights.forEach(
+      (color, index) => {
 
-    /* ---------- ফাইল সেভ ---------- */
-    const file = path.join(__dirname,'cache','upt.png');
-    fs.writeFileSync(file, canvas.toBuffer());
+        ctx.beginPath();
 
-    return api.sendMessage(
-      { attachment: fs.createReadStream(file) },
+        ctx.arc(
+          810 + index * 25,
+          597,
+          5,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fillStyle =
+          color;
+
+        ctx.shadowColor =
+          color;
+
+        ctx.shadowBlur = 12;
+
+        ctx.fill();
+      }
+    );
+
+    // =================================================
+    // STATUS TEXT
+    // =================================================
+    ctx.shadowBlur = 0;
+
+    ctx.font =
+      "bold 25px Arial";
+
+    ctx.fillStyle =
+      "#00ffcc";
+
+    ctx.fillText(
+      "● SERVER ONLINE",
+      860,
+      680
+    );
+
+    // =================================================
+    // SAVE IMAGE
+    // =================================================
+    const file =
+      path.join(
+        __dirname,
+        "cache",
+        "upt.png"
+      );
+
+    fs.writeFileSync(
+      file,
+      canvas.toBuffer("image/png")
+    );
+
+    // =================================================
+    // SEND IMAGE
+    // =================================================
+    api.sendMessage(
+      {
+        attachment:
+          fs.createReadStream(file)
+      },
       event.threadID,
-      () => fs.unlinkSync(file),
+      () => {
+
+        try {
+          if (fs.existsSync(file)) {
+            fs.unlinkSync(file);
+          }
+        } catch (err) {}
+
+      },
       event.messageID
     );
 
-  } catch (e) {
-    console.error(e);
-    return api.sendMessage("❌ Dashboard error", event.threadID, event.messageID);
+  } catch (error) {
+
+    console.error(
+      "UPT ERROR:",
+      error
+    );
+
+    api.sendMessage(
+      "❌ UPT image generate error",
+      event.threadID,
+      event.messageID
+    );
   }
 };
+
+এটা সরাসরি আগের "upt.js" ফাইলের জায়গায় বসাতে পারো। এতে আলাদা background image ফাইল লাগবে না—background, neon frame, server-room effect, rings এবং information panel সব Canvas দিয়েই তৈরি হবে।
