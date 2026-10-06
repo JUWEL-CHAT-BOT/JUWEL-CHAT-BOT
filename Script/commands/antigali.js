@@ -1,36 +1,13 @@
 const fs = require('fs');
-const path = require('path');
+const path = __dirname + '/antigaliStatus.json';
 
-// ==================== পাথ সেটআপ ====================
-const configPath = path.join(__dirname, '..', '..', 'config.json'); // bot root/config.json
-const statusPath = path.join(__dirname, 'antigaliStatus.json');
-
-// ==================== ডাটা লোড ====================
 let offenseTracker = {};
 let settings = {};
-let botConfig = { botAdmins: [] };
 
-// বট অ্যাডমিন config.json থেকে লোড
-function loadBotConfig() {
-  try {
-    if (fs.existsSync(configPath)) {
-      const raw = fs.readFileSync(configPath, 'utf8');
-      botConfig = JSON.parse(raw);
-      if (!Array.isArray(botConfig.botAdmins)) botConfig.botAdmins = [];
-    } else {
-      botConfig = { botAdmins: [] };
-    }
-  } catch (e) {
-    console.error("❌ config.json লোড ব্যর্থ:", e.message);
-    botConfig = { botAdmins: [] };
-  }
-}
-
-// গ্রুপ সেটিংস লোড
 function loadSettings() {
   try {
-    if (fs.existsSync(statusPath)) {
-      const data = fs.readFileSync(statusPath, 'utf8');
+    if (fs.existsSync(path)) {
+      const data = fs.readFileSync(path, 'utf8');
       settings = JSON.parse(data);
     } else {
       settings = {};
@@ -39,19 +16,13 @@ function loadSettings() {
     settings = {};
   }
 }
-
-function saveSettings() {
-  try {
-    fs.writeFileSync(statusPath, JSON.stringify(settings, null, 2), 'utf8');
-  } catch (e) {
-    console.error("❌ সেটিংস সেভ ব্যর্থ:", e.message);
-  }
-}
-
-loadBotConfig();
 loadSettings();
 
-// ==================== গালি তালিকা ====================
+function saveSettings() {
+  fs.writeFileSync(path, JSON.stringify(settings, null, 2), 'utf8');
+}
+
+// ==================== গালি তালিকা (ভাষা অনুযায়ী) ====================
 const badWordsEnglish = [
   "fuck", "fucking", "motherfucker", "mother fucker", "fucker", "bollocks", "Sawya", "sawya",
   "tui magi", "stupid juwel",
@@ -59,21 +30,21 @@ const badWordsEnglish = [
   "chut", "gand", "bhosdi", "benchod", "madarchod", "randi", "kutta bacsa", "magi", "Magi", "MC Bot", "MC bot", "Mc Bot", "Vodar Bot", "Sawyar Bot", "sawyar bot", "Vodar bot", " bot tor booske chudi", "Bot tor boos ke chudi",
   "xodi", "Xodi", "cdi", "Cdi", "tor mar Voda", "tor mare cdi", "Tor mare chodi", "Tor mar voda", "Tor mar Voda", "Tor Bon ar Voda", "Pompom", "chutmarani", " juwek ke cudi", "Juwel ke cdi", "tor boos Juwel ke Chudi",
   "bokacoda", "xodi", "xoda", "cdi", "72 Lack", "chdi", "chup magi", "Chup magi", "tok chudi", "Tor mar Sawya", " Tor bon ar sawya", "Tor Bon ar Sawya", " Sawya dey",
-  "tok fuck", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi"
+  "tok fuck", "Sawya", "sawya", "Voda", "voda", "Juwel ke chudi", "abal", "vodar group", "Vodar group", "Sawyar group", "nunu", "Nunu", "Tuntuni", "tuntuni", "tor boos ke cudi", "Tor boos ke cudi", "Tor boss ke chudi"
 ];
 
 const badWordsBengali = [
   "আবাল", "সাউয়া", "ভোদা", "মাগি", "চুদি", "বোকাচোদা", "বোকাচুদা", "মাদারচোদ", "চুদা",
   "চুদতে", "সেক্স করতে", "ভোদার গুপ", "সাউয়ার", "খানকি", "পুটকি", "গুদ", "রেন্ডি", "হাত মার",
   "গিটার বাজাও", "হাত মাড়া", "চুদবো", "চুদানির পোলা", "মাং", "মাংগের বেডি", "বালের বট", " তোর বোন এর ভোদা", "তোর বোন এর সাউয়া", "তোর বোন কে চুদি",
-  "সাউয়ার বট", "সাউয়ার কথা", "তোর মার ভোদা", "তোর সাউয়া", "তোর মায়ের সাউয়া", "তোর মার সাউয়া", "তোর মার ভোদা",
+  "সাউয়ার বট", "সাউয়ার কথা", "তোর মার ভোদা", "তোর সাউয়া", "তোর মায়ের সাউয়া", "তোর মার সাউয়া", "তোর মার ভোদা",
   "তোর বোনের সাউয়া", "তোর সাউয়া মাগি", "জুয়েল কে চুদি", "জুয়েল চোকাচোদা",
-  "এডমিন এর বাল", "চোদার", "তোর মতো মাগি", "তোক চুদি", "তুই ১২ মাগি", "জুয়েল এর মারে চুদি", "জুয়েল এর মাকে চুদি", "জুয়েল এর মার ভোদা", "জুয়েল এর মার সাউয়া",
-  "তুই হাত মাড়া মাগি", "তোর মা মাগি", "তোর বোন মাগি", "তোর মাকে চুদি", "তোর বোনকে চুদি", "জুয়েল এর বোন কে চুদি", "জুয়েল এর বোন এর সাউয়া", "জয়েল এর বোন এর ভোদা",
+  "এডমিন এর বাল", "চোদার", "তোর মতো মাগি", "তোক চুদি", "তুই ১২ মাগি", "জুয়েল এর মারে চুদি", "জুয়েল এর মাকে চুদি", "জুয়েল এর মার ভোদা", "জুয়েল এর মার সাউয়া",
+  "তুই হাত মাড়া মাগি", "তোর মা মাগি", "তোর বোন মাগি", "তোর মাকে চুদি", "তোর বোনকে চুদি", "জুয়েল এর বোন কে চুদি", "জুয়েল এর বোন এর সাউয়া", "জয়েল এর বোন এর ভোদা",
   "মাদারচোদ", "কার বাল", "নিছের বাল", "চোকাচোদা", "রেন্ডির ছেলে", "রেন্ডি মেয়ে",
   "পম্পম", "Pompom", "আবাল নাকি", "জুয়েল বোকাচোদা", "তুই বোকাচোদা", "তুই বুকাচুদা",
-  "জাও গিটার বাজাও", "হাত মারবে", "হাত মারবো", "হাত মারো", "হাত মারতে জাবে", "বট এর বসকে চুদি", "বট তোর বসকে চুদি", "বট তোর বস জুয়েল কে চুদি",
-  "গিটার বাজাবো", "তুই ১২ ভাতারী মাগি", "তুই হাত মাড়া", "হাত মাড়ি", "জান চুদতে দিবে", "বট কে চুদি", "বট চুদি", "ভোদার বট", "মাংগের বট", "বট তোর বস কে চুদি", "বট তোকে চুদি", "বট তোরে চুদি", "সাউয়ার বট চুদি", "ভোদার বট চুদি"
+  "জাও গিটার বাজাও", "হাত মারবে", "হাত মারবো", "হাত মারো", "হাত মারতে জাবে", "বট এর বসকে চুদি", "বট তোর বসকে চুদি", "বট তোর বস জুয়েল কে চুদি",
+  "গিটার বাজাবো", "তুই ১২ ভাতারী মাগি", "তুই হাত মাড়া", "হাত মাড়ি", "জান চুদতে দিবে", "বট কে চুদি", "বট চুদি", "সাউয়ার বট", "ভোদার বট", "মাংগের বট", "বট তোর বস কে চুদি", "বট তোকে চুদি", "বট তোরে চুদি", "সাউয়ার বট চুদি", "ভোদার বট চুদি"
 ];
 
 // ==================== গালি চেক ====================
@@ -95,45 +66,67 @@ function checkBadMessage(message) {
   return { hasBad: false };
 }
 
+const BOT_ADMINS = ["61594400795920"];
+
 // ==================== কনফিগ ====================
 module.exports.config = {
   name: "antigali",
   version: "4.0.0",
   hasPermssion: 0,
   credits: "MR JUWEL",
-  description: "বাংলা+ইংরেজি Anti-Gali (config.json থেকে বট অ্যাডমিন)",
+  description: "বাংলা+ইংরেজি Anti-Gali (ফিক্সড বট এডমিন চেক)",
   commandCategory: "moderation",
   usages: "[on/off/status]",
   cooldowns: 0
 };
 
 // ==================== ইভেন্ট হ্যান্ডলার ====================
-module.exports.handleEvent = async function ({ api, event }) {
+module.exports.handleEvent = async function ({ api, event, Threads }) {
   try {
     if (!event.body) return;
     const threadID = event.threadID;
-    const userID = event.senderID;
-    if (!userID) return;
 
-    // গ্রুপ অন/অফ চেক
     const isEnabled = settings[threadID] !== undefined ? settings[threadID] : true;
     if (!isEnabled) return;
 
-    // গালি চেক
-    const { hasBad, type, word } = checkBadMessage(event.body);
-    if (!hasBad) return;
+    const message = event.body;
+    const userID = event.senderID;
+    if (!userID) return;
 
-    // ❌ রিঅ্যাকশন
-    if (event.messageID) {
-      try { await api.setMessageReaction("❌", event.messageID); } catch (_) {}
+    // ==================== 🤖 বট আইডি বের করার ফিক্সড উপায় ====================
+    let botID = null;
+    try {
+      if (typeof api.getCurrentUserID === 'function') {
+        botID = api.getCurrentUserID();
+      } else if (global.data && global.data.botID) {
+        botID = global.data.botID;
+      } else if (global.client && global.client.botID) {
+        botID = global.client.botID;
+      }
+      if (botID) botID = String(botID).trim();
+      console.log("🤖 Bot ID detected:", botID);
+    } catch (e) {
+      console.error("Bot ID fetch error:", e);
+      botID = null;
     }
 
-    // ========== অফেন্স ট্র্যাকিং ==========
+    const { hasBad, type, word } = checkBadMessage(message);
+    if (!hasBad) return;
+
+    if (event.messageID) {
+      try {
+        await api.setMessageReaction("❌", event.messageID);
+      } catch (e) {
+        console.warn("Reaction failed:", e.message);
+      }
+    }
+
     if (!offenseTracker[threadID]) offenseTracker[threadID] = {};
     if (!offenseTracker[threadID][userID]) {
       offenseTracker[threadID][userID] = { enCount: 0, bnCount: 0, total: 0, lastUpdated: Date.now() };
     }
-    const userData = offenseTracker[threadID][userID];
+    let userData = offenseTracker[threadID][userID];
+
     if (type === 'ইংরেজি') userData.enCount += 1;
     else if (type === 'বাংলা') userData.bnCount += 1;
     userData.total += 1;
@@ -143,43 +136,38 @@ module.exports.handleEvent = async function ({ api, event }) {
     const enCount = userData.enCount;
     const bnCount = userData.bnCount;
 
-    // ========== ইউজার ও গ্রুপ ইনফো ==========
-    let userName = "অজানা";
-    let groupName = "Unknown";
-    let adminIDs = [];
+    let userInfo = {};
+    let threadInfo = {};
     try {
       const [uInfo, tInfo] = await Promise.all([
         api.getUserInfo(userID).catch(() => ({})),
         api.getThreadInfo(threadID).catch(() => ({}))
       ]);
-      userName = uInfo[userID]?.name || "অজানা";
-      groupName = tInfo.threadName || "Unknown";
-      adminIDs = Array.isArray(tInfo.adminIDs) ? tInfo.adminIDs : [];
+      userInfo = uInfo;
+      threadInfo = tInfo;
     } catch (e) {
-      console.error("Info fetch error:", e.message);
+      console.error("Info fetch error:", e);
     }
 
-    // ========== অ্যাডমিন চেক হেল্পার ==========
+    const userName = userInfo[userID]?.name || "অজানা";
+    const groupName = threadInfo.threadName || "Unknown";
+
+    // ==================== 👑 এডমিন লিস্ট ফিক্সড ====================
+    const adminIDs = Array.isArray(threadInfo.adminIDs) ? threadInfo.adminIDs : [];
+    const adminIdList = adminIDs.map(item => {
+      if (typeof item === 'string') return String(item).trim();
+      if (item && item.id) return String(item.id).trim();
+      return null;
+    }).filter(Boolean);
+
+    console.log("👑 Admins in thread:", adminIdList);
+    console.log("🤖 Is bot admin?", botID ? adminIdList.includes(String(botID).trim()) : false);
+
     const isAdminInThread = (uid) => {
       if (!uid) return false;
-      if (!Array.isArray(adminIDs) || adminIDs.length === 0) return false;
-      return adminIDs.some(item => {
-        const id = typeof item === "string" ? item : item.id;
-        return String(id) === String(uid);
-      });
+      return adminIdList.includes(String(uid).trim());
     };
 
-    // ========== বটের নিজের ID ==========
-    let botID = null;
-    try {
-      if (typeof api.getCurrentUserID === 'function') {
-        botID = await api.getCurrentUserID();
-      }
-    } catch (_) {}
-    if (!botID && global?.data?.botID) botID = global.data.botID;
-    if (!botID && global?.client?.botID) botID = global.client.botID;
-
-    // ========== ফ্রেম মেসেজ ==========
     const frameBase = (n, extra = '') =>
 `╔════════════════════╗
 ║                                                    
@@ -209,70 +197,58 @@ module.exports.handleEvent = async function ({ api, event }) {
 ║🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      
 ╚═══════════════════════╝`;
 
-    // ========== ইনবক্স নোটিশ (অ্যাডমিনদের জন্য) ==========
-    const inboxNotice =
+    const alertMsg =
 `🚨 অ্যান্টি-গালি অ্যালার্ট 🚨
-━━━━━━━━━━━━━━━━━━━━━
-📌 গ্রুপ       : ${groupName}
-🆔 গ্রুপ আইডি  : ${threadID}
-👤 ব্যবহারকারী : ${userName}
-🆔 ইউজার আইডি  : ${userID}
-🌐 ভাষা        : ${type}
-📝 শব্দ        : "${word}"
-💬 পূর্ণ মেসেজ : "${event.body}"
-━━━━━━━━━━━━━━━━━━━━━
-⚠️ সতর্কতা নম্বর : ${totalCount} / 3
-🇬🇧 ইংরেজি গালি : ${enCount} বার
-🇧🇩 বাংলা গালি  : ${bnCount} বার
-━━━━━━━━━━━━━━━━━━━━━
-🛡️ অ্যান্টি-গালি সিস্টেম`;
 
-    // ========== পাঠানোর তালিকা ==========
+📌 গ্রুপ: ${groupName}
+👤 ব্যবহারকারী: ${userName}
+🆔 আইডি: ${userID}
+🌐 ভাষা: ${type}
+📝 শব্দ: "${word}"
+⚠️ সতর্কতা: ${totalCount} (ইংরেজি ${enCount}, বাংলা ${bnCount})
+💬 অশালীন বার্তা: "${message}"`;
+
     const sendPromises = [];
 
-    // ১) গ্রুপে সতর্কবার্তা (শুধু ১ম ও ২য় বার)
     if (totalCount === 1) {
-      sendPromises.push(
-        api.sendMessage(frameBase(1, '📌 ১ম সতর্কতা! সাবধান!'), threadID).catch(() => {})
-      );
+      sendPromises.push(api.sendMessage(frameBase(1, '📌 ১ম সতর্কতা! সাবধান!'), threadID).catch(() => {}));
     } else if (totalCount === 2) {
-      sendPromises.push(
-        api.sendMessage(frameBase(2, '⚠️ শেষ সতর্কতা! পরবর্তী বার কিক!'), threadID).catch(() => {})
-      );
+      sendPromises.push(api.sendMessage(frameBase(2, '⚠️ শেষ সতর্কতা! পরবর্তী বার কিক!'), threadID).catch(() => {}));
     }
 
-    // ২) গ্রুপ অ্যাডমিনদের ইনবক্সে নোটিশ
-    for (const admin of adminIDs) {
-      const adminID = typeof admin === "string" ? admin : admin.id;
-      if (adminID && String(adminID) !== String(userID)) {
-        sendPromises.push(api.sendMessage(inboxNotice, adminID).catch(() => {}));
-      }
+    for (const admin of adminIdList) {
+      sendPromises.push(api.sendMessage(alertMsg, admin).catch(() => {}));
     }
-
-    // ৩) বট অ্যাডমিনদের ইনবক্সে নোটিশ (config.json থেকে)
-    for (const botAdminID of botConfig.botAdmins) {
-      if (botAdminID && String(botAdminID) !== String(userID)) {
-        sendPromises.push(api.sendMessage(inboxNotice, botAdminID).catch(() => {}));
-      }
+    for (const ownerID of BOT_ADMINS) {
+      sendPromises.push(api.sendMessage(alertMsg, ownerID).catch(() => {}));
     }
 
     await Promise.allSettled(sendPromises).catch(() => {});
 
-    // ========== ৬০ সেকেন্ড পর অটো ডিলিট ==========
     if (event.messageID) {
       setTimeout(() => {
         api.unsendMessage(event.messageID).catch(() => {});
       }, 60000);
     }
 
-    // ========== ৩ স্ট্রাইক হলে কিক ==========
+    // ==================== ৩ বার হলে কিক ====================
     if (totalCount === 3) {
-      const botIsAdmin = botID ? isAdminInThread(botID) : false;
+      // 🔄 ফ্রেশ লাইভ চেক (ক্যাশে সমস্যা এড়াতে)
+      let botIsAdmin = false;
+      let freshAdmins = adminIdList;
 
-      console.log("🔍 DEBUG → botID:", botID, "| botIsAdmin:", botIsAdmin);
-      console.log("🔍 DEBUG → adminIDs:", JSON.stringify(adminIDs));
+      try {
+        const freshInfo = await api.getThreadInfo(threadID);
+        freshAdmins = (freshInfo.adminIDs || []).map(a =>
+          String(typeof a === 'string' ? a : a.id).trim()
+        );
+        botIsAdmin = botID ? freshAdmins.includes(String(botID).trim()) : false;
+        console.log("🔄 Fresh bot admin check:", botIsAdmin, "| BotID:", botID, "| Admins:", freshAdmins);
+      } catch (e) {
+        console.error("Fresh admin check failed:", e);
+        botIsAdmin = botID ? isAdminInThread(botID) : false;
+      }
 
-      // বট অ্যাডমিন না হলে কিক বন্ধ
       if (!botIsAdmin) {
         await api.sendMessage(
 `╔══════════════════════╗
@@ -287,20 +263,22 @@ module.exports.handleEvent = async function ({ api, event }) {
 ║  👤 ${userName}                                   
 ║  🆔 ${userID}                                    
 ║                                                    
+║  🔍 Bot ID: ${botID || "Unknown"}                 
+║  📋 Admins: ${freshAdmins.length} জন              
+║                                                    
 ╠══════════════════════════╣
-║🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)     ║
+║🛡️অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)     ║
 ╚══════════════════════════╝`,
           threadID
         ).catch(() => {});
         return;
       }
 
-      // ব্যবহারকারী নিজেই গ্রুপ অ্যাডমিন হলে কিক বন্ধ
       if (isAdminInThread(userID)) {
         await api.sendMessage(
 `╔═════════════════════════╗
 ║                                                    
-║      ⚠️ অটো কিক বন্ধ!                        
+║      ⚠️অটো কিক বন্ধ!                        
 ║                                                    
 ╠══════════════════════════╣
 ║                                                    
@@ -318,7 +296,6 @@ module.exports.handleEvent = async function ({ api, event }) {
         return;
       }
 
-      // কিক করার চেষ্টা
       try {
         await api.sendMessage(
 `╔══════════════════════╗
@@ -342,6 +319,7 @@ module.exports.handleEvent = async function ({ api, event }) {
         await api.removeUserFromGroup(userID, threadID);
         userData.total = 0; userData.enCount = 0; userData.bnCount = 0;
       } catch (kickErr) {
+        console.error("Kick failed:", kickErr);
         userData.total = 2;
         await api.sendMessage(
 `╔════════════════════════╗
@@ -352,7 +330,7 @@ module.exports.handleEvent = async function ({ api, event }) {
 ║                                                    
 ║  ⚠️ ${userName} (${userID})                       
 ║  ➡️ কিক করতে ব্যর্থ!                              
-║  📌 কারণ: ${kickErr.message || 'অজানা'}          
+║  💬 কারণ: ${kickErr.message || "Unknown"}         
 ║                                                    
 ╠════════════════════════╣
 ║ 🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      
@@ -362,11 +340,13 @@ module.exports.handleEvent = async function ({ api, event }) {
       }
     }
 
-    // ========== ১ ঘন্টা পর রিসেট ==========
     setTimeout(() => {
-      const rec = offenseTracker?.[threadID]?.[userID];
-      if (rec && Date.now() - rec.lastUpdated > 3600000) {
-        rec.total = 0; rec.enCount = 0; rec.bnCount = 0;
+      if (offenseTracker[threadID] && offenseTracker[threadID][userID]) {
+        if (Date.now() - offenseTracker[threadID][userID].lastUpdated > 3600000) {
+          offenseTracker[threadID][userID].total = 0;
+          offenseTracker[threadID][userID].enCount = 0;
+          offenseTracker[threadID][userID].bnCount = 0;
+        }
       }
     }, 3600000);
 
@@ -383,16 +363,9 @@ module.exports.run = async function ({ api, event, args }) {
   const threadID = event.threadID;
   const command = args[0] ? args[0].toLowerCase() : null;
 
-  // config.json রিফ্রেশ (যাতে নতুন অ্যাডমিন যোগ করলে সাথে সাথে কাজ করে)
-  loadBotConfig();
-
-  const isBotAdmin = botConfig.botAdmins.map(String).includes(String(event.senderID));
-
   if (!command) {
-    const statusText = settings[threadID] !== undefined
-      ? (settings[threadID] ? '✅ চালু' : '❌ বন্ধ')
-      : '✅ চালু (ডিফল্ট)';
-
+    const isBotAdmin = BOT_ADMINS.includes(event.senderID);
+    const statusText = settings[threadID] !== undefined ? (settings[threadID] ? '✅ চালু' : '❌ বন্ধ') : '✅ চালু (ডিফল্ট)';
     let menu =
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
@@ -403,7 +376,6 @@ module.exports.run = async function ({ api, event, args }) {
 ║  📌 বর্তমান স্ট্যাটাস: ${statusText}               ║
 ║                                                    ║
 ║  🔹 অপশন সমূহ:                                     ║`;
-
     if (isBotAdmin) {
       menu += `
 ║  ➡️ ${module.exports.config.name} on  → চালু      ║
@@ -412,19 +384,16 @@ module.exports.run = async function ({ api, event, args }) {
       menu += `
 ║  ⚠️ শুধুমাত্র বট অ্যাডমিনরা on/off করতে পারেন     ║`;
     }
-
     menu += `
 ║  ➡️ ${module.exports.config.name} status → স্ট্যাটাস ║
 ║                                                    ║
 ╠══════════════════════════════════════════════════╣
 ║        🛡️ অ্যান্টি-গালি সিস্টেম (৩ স্ট্রাইক)      ║
 ╚══════════════════════════════════════════════════╝`;
-
     return api.sendMessage(menu, threadID);
   }
 
-  // on/off এর জন্য বট অ্যাডমিন চেক
-  if ((command === 'on' || command === 'off') && !isBotAdmin) {
+  if ((command === 'on' || command === 'off') && !BOT_ADMINS.includes(event.senderID)) {
     return api.sendMessage(
 `╔══════════════════════════════════════════════════╗
 ║                                                    ║
