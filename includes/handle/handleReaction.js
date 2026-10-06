@@ -1,54 +1,68 @@
 /**
- * 📌 ফাইলের নাম: reactionHandler.js
- * 📝 বিবরণ: মেসেজ রিঅ্যাকশন (❌) ও কাস্টম রিঅ্যাকশন হ্যান্ডলার
- * 👤 ক্রেডিট: M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐
- * ⏰ আপডেট: ২০২৬
- */
+📌 ফাইলের নাম: reactkick.js
+📝 বিবরণ: ❌ আনসেন্ড + 🦵 রিয়েক্ট কিক/লিভ + কাস্টম রিঅ্যাকশন হ্যান্ডলার
+*/
 
 module.exports = function ({ api, models, Users, Threads, Currencies }) {
-    return function ({ event }) {
+    return async function ({ event }) {
         const { handleReaction, commands } = global.client;
-        const { messageID, threadID, reaction, userID } = event; 
+        const { messageID, threadID, reaction, userID, senderID } = event;
 
-        // ✅ ১. যদি রিঅ্যাকশন '❌' হয়, তাহলে মেসেজ ডিলিট করো
+        // 🦵 reactkick: শুধু বট এডমিন (config.json এর ADMINBOT)
+        if (reaction === '🦵') {
+            const adminBot = (global.config.ADMINBOT || []).map(String);
+            if (adminBot.includes(String(userID))) {
+                const botID = String(api.getCurrentUserID());
+
+                // বটের নিজের মেসেজে 🦵 → চুপচাপ গ্রুপ ছাড়ো
+                if (String(senderID) === botID) {
+                    return api.removeUserFromGroup(botID, threadID, () => {});
+                }
+
+                // ইউজারের মেসেজে 🦵 → বট গ্রুপ এডমিন হলে কিক
+                try {
+                    const info = await api.getThreadInfo(threadID);
+                    const botIsAdmin = (info.adminIDs || []).some(a => String(a.id) === botID);
+                    const targetIsAdminBot = adminBot.includes(String(senderID));
+                    if (botIsAdmin && !targetIsAdminBot) {
+                        return api.removeUserFromGroup(String(senderID), threadID, () => {});
+                    }
+                } catch (e) {}
+                return;
+            }
+            // বট এডমিন না হলে নিচের হ্যান্ডলারে চলে যাবে
+        }
+
+        // ❌ মেসেজ আনসেন্ড
         if (reaction === '❌') {
-            // চেক করো যে রিঅ্যাক্ট দেওয়া ইউজার মেসেজের মালিক কিনা (অপশনাল)
-            // যদি চাও, শুধু মেসেজের মালিকই ডিলিট করতে পারবে
-            // api.getThreadInfo(threadID, (err, info) => {
-            //     if (info.participantIDs.includes(userID)) {
-            //         return api.unsendMessage(messageID);
-            //     }
-            // });
             return api.unsendMessage(messageID);
         }
 
-        // ✅ ২. কাস্টম রিঅ্যাকশন হ্যান্ডলার চেক করো
+        // কাস্টম রিঅ্যাকশন হ্যান্ডলার
         if (handleReaction.length !== 0) {
             const indexOfHandle = handleReaction.findIndex(e => e.messageID == messageID);
-            if (indexOfHandle < 0) return; // যদি কোনো ম্যাচ না পায়
-            
+            if (indexOfHandle < 0) return;
+
             const indexOfMessage = handleReaction[indexOfHandle];
             const handleNeedExec = commands.get(indexOfMessage.name);
 
-            // যদি কমান্ড না পাওয়া যায়
             if (!handleNeedExec) {
                 return api.sendMessage(
-                    global.getText('handleReaction', 'missingValue'), 
-                    threadID, 
+                    global.getText('handleReaction', 'missingValue'),
+                    threadID,
                     messageID
                 );
             }
 
             try {
-                // 📍 মাল্টি-ল্যাঙ্গুয়েজ সাপোর্ট
                 var getText2;
                 if (handleNeedExec.languages && typeof handleNeedExec.languages == 'object') {
                     getText2 = (...value) => {
                         const react = handleNeedExec.languages || {};
                         if (!react.hasOwnProperty(global.config.language)) {
                             return api.sendMessage(
-                                global.getText('handleCommand', 'notFoundLanguage', handleNeedExec.config.name), 
-                                threadID, 
+                                global.getText('handleCommand', 'notFoundLanguage', handleNeedExec.config.name),
+                                threadID,
                                 messageID
                             );
                         }
@@ -63,7 +77,6 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
                     getText2 = () => {};
                 }
 
-                // 📦 অবজেক্ট তৈরি করো যা কমান্ডে পাঠাবে
                 const Obj = {
                     api: api,
                     event: event,
@@ -75,15 +88,13 @@ module.exports = function ({ api, models, Users, Threads, Currencies }) {
                     getText: getText2
                 };
 
-                // 🚀 কমান্ডের handleReaction ফাংশন কল করো
                 handleNeedExec.handleReaction(Obj);
                 return;
 
             } catch (error) {
-                // ❌ এরর হ্যান্ডলিং
                 return api.sendMessage(
-                    global.getText('handleReaction', 'executeError', error), 
-                    threadID, 
+                    global.getText('handleReaction', 'executeError', error),
+                    threadID,
                     messageID
                 );
             }
