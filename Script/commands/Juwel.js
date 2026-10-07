@@ -15,10 +15,10 @@ try {
 
 module.exports.config = {
   name: "juwel",
-  version: "1.0.4",
+  version: "1.0.5",
   hasPermssion: 0,
   credits: "JUWEL",
-  description: "কেউ জুয়েল লিখলে ফানি রিপ্লাই (৩০ মিনিট কুলডাউন)",
+  description: "কেউ জুয়েল লিখলে ফানি রিপ্লাই (৪০ মিনিট কুলডাউন + ১০ সেকেন্ডে অটো ডিলিট)",
   commandCategory: "noprefix",
   usages: "juwel",
   cooldowns: 3
@@ -45,9 +45,10 @@ module.exports.handleEvent = function({ api, event }) {
     const senderID = event.senderID;
     const currentTime = Date.now();
 
+    // ⏰ কুলডাউন চেক (৪০ মিনিট = 2400000 ms)
     if (cooldown.has(senderID)) {
       const lastTime = cooldown.get(senderID);
-      if (currentTime - lastTime < 1800000) return;
+      if (currentTime - lastTime < 2400000) return;
     }
 
     cooldown.set(senderID, currentTime);
@@ -221,7 +222,16 @@ module.exports.handleEvent = function({ api, event }) {
     ];
 
     const randomReply = replies[Math.floor(Math.random() * replies.length)];
-    api.sendMessage(randomReply, event.threadID, event.messageID);
+
+    // মেসেজ পাঠিয়ে ১০ সেকেন্ড (10000 ms) পরে ডিলিট
+    api.sendMessage(randomReply, event.threadID, (err, info) => {
+      if (err) return;
+      if (info && info.messageID) {
+        setTimeout(() => {
+          api.unsendMessage(info.messageID);
+        }, 10000);
+      }
+    }, event.messageID);
   }
 };
 
