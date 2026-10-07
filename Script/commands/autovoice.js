@@ -7,13 +7,13 @@ const triggers = [
   "Juwel", "jewel", "juwel", "jewel boss", "mr juwel", "boss juwel",
   "juyel", "Juyel", "juwl", "Jwel",
   "juwel vai", "juwel vaiya", "jowel", "Jowel", "hi juwel",
-  "love you juwel", "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  "love you juwel",
   
   // বাংলা - সব বানান
   "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", 
   "জুয়েল ভাইয়া", "জুয়েল বস",
   "জুয়েল কই", "জুয়েল কোথায়", "কই জুয়েল", 
-  "জোয়েল", "জুয়েল", "জুয়েল",
+  "জোয়েল", "জুয়েল", "জুয়েল",
   "জুয়েল আসো", "জুয়েল শুনো", "জুয়েল ভালোবাসি", 
   "আই লাভ ইউ জুয়েল",
   "মিস ইউ জুয়েল", "হ্যালো জুয়েল", "হাই জুয়েল"
@@ -37,7 +37,7 @@ const audioUrls = [
 ];
 
 const cooldown = new Map();
-const COOLDOWN_TIME = 60 * 60 * 1000; // ✅ ১ ঘন্টা
+const COOLDOWN_TIME = 30 * 60 * 1000;
 
 // কনফিগ ফাইল থেকে বট অ্যাডমিন লোড করার ফাংশন
 function getBotAdmins() {
