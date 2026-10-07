@@ -1,11 +1,13 @@
 const moment = require("moment-timezone");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports.config = {
     name: "botautoban",
-    version: "3.0.0",
+    version: "3.1.0",
     hasPermssion: 0,
     credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-    description: "অন্যান্য বট শনাক্ত করে স্বয়ংক্রিয়ভাবে ব্যান করে",
+    description: "অন্যান্য বট শনাক্ত করে স্বয়ংক্রিয়ভাবে ব্যান করে (অ্যাডমিন সুরক্ষা সহ)",
     commandCategory: "system",
     usages: "",
     cooldowns: 0
@@ -120,14 +122,14 @@ const botKeywords = [
     "😤😤😎",
     "😤😤🚶",
     "𝗘𝗺𝗻𝗶 😒🫶🏻",
-	"𝗨𝗻𝗯𝗮𝗻🥳🥳",
-	"𝗠𝗼𝗻 𝗸𝗮𝗿𝗮𝗽😼",
-	"𝗛𝗶𝗵𝗶🥳🥳",
-	"𝗖𝗵𝗼𝗸𝗵 𝗲𝗺𝗻 𝗸𝗻 𝗽𝗿𝗼𝘁𝗶𝗯𝗼𝗻𝗱𝗵𝗶 𝗻𝗮𝗸𝗶🌚",
-	"𝗧𝗼𝗶 𝗽𝗼𝗰𝗵𝗮👽",
-	"𝗛𝗼 😞😴😴",
-	"𝗸𝗶 𝗱𝗲𝗸𝗵𝗼𝘀 𝗯𝗼𝗹𝗼𝗱😦",
-	"𝗛𝗲𝗮😦",
+    "𝗨𝗻𝗯𝗮𝗻🥳🥳",
+    "𝗠𝗼𝗻 𝗸𝗮𝗿𝗮𝗽😼",
+    "𝗛𝗶𝗵𝗶🥳🥳",
+    "𝗖𝗵𝗼𝗸𝗵 𝗲𝗺𝗻 𝗸𝗻 𝗽𝗿𝗼𝘁𝗶𝗯𝗼𝗻𝗱𝗵𝗶 𝗻𝗮𝗸𝗶🌚",
+    "𝗧𝗼𝗶 𝗽𝗼𝗰𝗵𝗮👽",
+    "𝗛𝗼 😞😴😴",
+    "𝗸𝗶 𝗱𝗲𝗸𝗵𝗼𝘀 𝗯𝗼𝗹𝗼𝗱😦",
+    "𝗛𝗲𝗮😦",
     "𝗬𝗼𝘂🥳🥳",
     "𝗝𝗮𝗻𝗶𝗻𝗮🐐",
     "𝗛𝗶𝗵𝗶😀",
@@ -168,8 +170,69 @@ const botKeywords = [
     "𝗢𝗸😏",
     "𝗞𝗻😴😴",
     "𝗵𝗶𝗵𝗶😏",
-    "𝗦𝗼𝗿𝗿𝘆 𝗕𝗮𝗯𝘆 𝗮𝗺𝗮𝗸𝗲 𝗮𝘁𝗮 𝗧𝗲𝗮𝗰𝗵 𝗸𝗼𝗿𝗮 𝗵𝗼𝗶 𝗻𝗶 < 🥺"
+    "𝗦𝗼𝗿𝗿𝘆 𝗕𝗮𝗯𝘆 𝗮𝗺𝗮𝗸𝗲 𝗮𝘁𝗮 𝗧𝗲𝗮𝗰𝗵 𝗸𝗼𝗿𝗮 𝗵𝗼𝗶 𝗻𝗶 < 🥺",
+
+    // ============= নতুন যোগ করা কীওয়ার্ড =============
+    "𝗺𝘂𝗿𝗶 𝗸𝗵𝗮𝗶😏",
+    "𝗡𝗮 𝗔𝗺𝗶 𝗰𝗵𝗼𝗰𝗼𝗹𝗮𝘁𝗲 𝗞𝗵𝗮𝗶 😋🚶",
+    "𝗞?🐸",
+    "𝗞𝗺𝗻𝗲😛",
+    "𝗘𝗺𝗻𝗶😵‍💫",
+    "𝗛𝗲𝗮𝗮😊😊✨❤️‍🩹",
+    "𝗞𝗶𝘀𝘀𝗲🐥",
+    "𝗡𝗮𝗵 𝗴𝗲𝗹𝗲 𝗺𝘂𝗿𝗶 𝗸𝗵𝗮𝘄🫡",
+    "𝗣𝗮𝗴𝗼𝗹😟",
+    "𝘁𝘂𝗺𝗿 𝘃𝗮𝗶𝘆𝗮𝗿 𝘀𝗮𝘁𝗵𝗲 𝗽𝗿𝗲𝗺 𝗸𝗼𝗿𝗶😏",
+    "𝘁𝘂𝗺𝗿 𝗸𝗼𝘁𝗵𝗮 𝘃𝗮𝗯𝗶 😆",
+    "𝗯𝗼𝗳 𝗮𝗿 𝗹𝗼𝗴𝗲 😼",
+    "𝗽𝗿𝗲𝗺 𝗸𝗼𝗿𝗶 🚶",
+    "𝗖𝗵𝗶𝗽𝗮 𝗰𝗵𝗮𝗿𝗮 𝗿 𝘀𝗵𝗼𝗯 𝗷𝗮𝘆𝗴𝗮𝘆🤠",
+    "𝗢𝗸🤗",
+    "𝗞𝗶𝘀𝘂 𝗻𝗮 𝘁𝗼𝗵!🐤🐤",
+    "𝗛𝘂𝗺👽",
+    "𝗦𝗲𝗶 𝗱𝗶𝗸𝗲 𝗸𝗵𝘂𝘀𝗵𝗶🩵🩵",
+    "𝗯𝗼𝘁 𝗯𝗼𝗶𝗹𝗼 𝗻𝗮 𝗽𝗮𝗸𝗵𝗶🐤🐤",
+    "🙂 𝗝𝗮 𝘃𝗮𝗮𝗴😒",
+    "𝗔𝗺𝗺𝘂𝗿𝗮 𝗸𝗵𝗮𝗹𝗶 𝗯𝗼𝗸𝗲😭🐐",
+    "𝗦𝗼𝗿𝗿𝘆.🙁😀",
+    "𝗮𝗶 𝘃𝗮𝗯𝗲 𝗻𝗵 𝗱𝗮𝗸𝗵𝗲 𝗷𝗮𝗵 𝗴𝗶𝘆𝗲 𝗿𝗶𝘀𝗵𝗶 𝗸𝗮 𝘀𝗺𝘀 𝗱𝗲🐸🦥 😃",
+    "𝗩𝗮𝗹𝗼 𝗹𝗮𝗴𝗲 𝗻𝗮❤️‍🩹",
+    "𝗽𝗮𝗿𝗶 𝗻𝗮😟",
+    "𝗧𝘂𝗺𝗶 𝗔𝗺𝗲𝗿 𝗴𝗳 𝗻𝗵 𝗯𝗼𝗹𝗼 🙂??🐤🐤",
+    "𝗼𝘄𝘄 🥺 𝗸𝗶 𝗵𝗼𝘆𝗲𝗰𝗵𝗲 𝗯𝗼𝗹𝗼 𝗮𝗺𝗮𝗸𝗲 ? 𝗺𝘂𝘀𝗶𝗰 𝘀𝘂𝗻𝗯𝗮 ?😗",
+    "𝗧𝘂𝗺𝗮𝗿👽",
+    "𝗸𝘁 𝗯𝗼𝗹𝗼 𝗼𝗿 𝘀𝗮𝘁𝗵𝗲🤷",
+    "-𝗪𝗵𝗼𝗸 𝘁𝗵𝘂😼",
+    "𝗧𝗺𝗿𝗲 𝗸𝗶𝘀𝘀 𝗱𝗶𝘀𝗶🤠",
+    "𝗔𝗶𝘁𝗼 𝗕𝗼𝘀𝗲 𝗔𝗰𝗵𝗶 𝗔𝗽𝗻𝗶🐤",
+    "𝗞𝗶𝗶 𝗵𝗼𝗶𝗰𝗲 😑😑",
+    "𝗸𝗶 𝗵𝗼𝗹𝗼 𝗯𝗯𝘆 𝗹𝗼𝗷𝗷𝗮 𝗽𝗮𝗰𝗰𝗵𝗼 𝗸𝗻🚶",
+    "𝗞𝗼 𝗮𝗺𝗿 𝗷𝗼𝗻𝗻𝗼🐤🐤",
+    "== Profile ==",
+    "Tên: Juwel AhmeD'z",
+    "ID: 61594400795920",
+    "-𝗢𝗶𝗶 আন্টি-🙆‍♂️-তোমার মেয়ে চোখ মারে-🥺🥴🐸"
 ];
+
+// ================== অ্যাডমিন লিস্ট লোড (config.json চেক) ==================
+function loadAdminList() {
+    try {
+        const configPath = path.join(__dirname, "..", "..", "config.json");
+        if (fs.existsSync(configPath)) {
+            const configData = fs.readJsonSync(configPath);
+            return configData.ADMINBOT || [];
+        }
+    } catch (e) {
+        console.log("⚠️ config.json পড়তে সমস্যা:", e.message);
+    }
+    return global.config?.ADMINBOT || [];
+}
+
+// চেক করা ইউজার অ্যাডমিন কিনা
+function isAdmin(senderID) {
+    const adminList = loadAdminList();
+    return adminList.includes(String(senderID)) || adminList.includes(senderID);
+}
 
 // ================== ইভেন্ট হ্যান্ডলার ==================
 module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
@@ -177,10 +240,20 @@ module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
 
     if (!body || senderID == api.getCurrentUserID()) return;
 
+    // ================== 🛡️ অ্যাডমিন সুরক্ষা ==================
+    if (isAdmin(senderID)) {
+        const adminMsg = body.toLowerCase().trim();
+        const adminMatched = botKeywords.filter(word => adminMsg === word.toLowerCase() || adminMsg.includes(word.toLowerCase()));
+        if (adminMatched.length > 0) {
+            console.log(`🛡️ অ্যাডমিন ${senderID} কীওয়ার্ড ম্যাচ করেছে কিন্তু ব্যান করা হয়নি: ${adminMatched.join(', ')}`);
+        }
+        return; // অ্যাডমিন হলে কিছুই করবে না
+    }
+
     const msg = body.toLowerCase().trim();
     const time = moment().tz("Asia/Dhaka").format("HH:mm:ss DD/MM/YYYY");
     const userName = await Users.getNameUser(senderID);
-    
+
     // থ্রেডের নাম পাওয়া
     let threadName = "ব্যক্তিগত চ্যাট";
     try {
@@ -189,8 +262,8 @@ module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
     } catch (e) {}
 
     // কীওয়ার্ড চেক করা
-    const matchedWords = botKeywords.filter(word => msg === word || msg.includes(word));
-    
+    const matchedWords = botKeywords.filter(word => msg === word.toLowerCase() || msg.includes(word.toLowerCase()));
+
     if (matchedWords.length === 0) return;
 
     // ================== ইউজারকে ব্যান নোটিশ ==================
@@ -236,18 +309,23 @@ module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
 
     await Users.setData(senderID, { data: userData });
 
-    // ব্যান নোটিশ পাঠানো
-    api.sendMessage(banNotice, threadID, messageID);
+    // ================== ব্যান নোটিশ পাঠানো (১ মিনিট পর অটো ডিলিট) ==================
+    api.sendMessage(banNotice, threadID, (err, info) => {
+        if (err) return;
+        setTimeout(() => {
+            api.unsendMessage(info.messageID).catch(() => {});
+        }, 60000); // ৬০,০০০ ms = ১ মিনিট পর ডিলিট
+    }, messageID);
 
     // ================== অ্যাডমিন নোটিফিকেশন ==================
     const adminIDs = global.config.ADMINBOT || [];
     for (const admin of adminIDs) {
         api.sendMessage(
-`╔════════════════════════════╗
-║    🚨 অ্যাডমিন সতর্কতা 🚨    ║
-╚════════════════════════════╝
+`╔══════════════════╗
+║   অ্যাডমিন সতর্কতা 🚨    ║
+╚═══════════════════╝
 
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 📋 ব্যান রিপোর্ট:
 
@@ -264,7 +342,7 @@ module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
 📊 পরিসংখ্যান:
 • মোট কীওয়ার্ড সনাক্ত: ${matchedWords.length}
 
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 ⚡ দ্রুত ব্যবস্থা নিন প্রয়োজনে ⚡`,
         admin
@@ -274,24 +352,25 @@ module.exports.handleEvent = async ({ event, api, Users, Threads }) => {
 
 // ================== কমান্ড রান ==================
 module.exports.run = async ({ event, api }) => {
+    const adminList = loadAdminList();
     return api.sendMessage(
-`╔════════════════════════╗
+`╔══════════════════╗
 ║   🤖 বট ডিটেক্ট সিস্টেম   ║
-╚════════════════════════╝
+╚═══════════════════╝
 
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 ✅ সিস্টেম স্ট্যাটাস:
 
 ✔️ মনিটরিং: সক্রিয়
 ✔️ অটো ব্যান: চালু
-✔️ অ্যাডমিন সুরক্ষা: সক্রিয়
+✔️ অ্যাডমিন সুরক্ষা: সক্রিয় 🛡️
 ✔️ কীওয়ার্ড ডেটাবেস: আপডেটেড
 
 📊 পরিসংখ্যান:
 • মোট কীওয়ার্ড: ${botKeywords.length}+
-
-▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+• সুরক্ষিত অ্যাডমিন: ${adminList.length} জন
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 ⚡ বট নিরাপদে চলছে ⚡`,
         event.threadID
