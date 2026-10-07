@@ -7,7 +7,7 @@ const triggers = [
   "Juwel", "jewel", "juwel", "jewel boss", "mr juwel", "boss juwel",
   "juyel", "Juyel", "juwl", "Jwel",
   "juwel vai", "juwel vaiya", "jowel", "Jowel", "hi juwel",
-  "love you juwel", "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  "love you juwel",
   
   // বাংলা - সব বানান
   "জোয়েল", "জোহেল", "জোয়েলjuweljuwel ভাই", 
