@@ -1,9 +1,9 @@
 module.exports.config = {
   name: "imgurall",
-  version: "2.1.0",
+  version: "2.3.0",
   hasPermssion: 3,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Upload last 15 group media to Imgur (admin only)",
+  description: "Upload last 30 group media to Imgur (admin only)",
   commandCategory: "other",
   usages: "imgurall",
   cooldowns: 30,
@@ -14,22 +14,18 @@ function getBotAdmins() {
   const fs = global.nodemodule['fs-extra'];
   const path = global.nodemodule['path'];
 
-  // সম্ভাব্য সব কনফিগ পাথ
   const possiblePaths = [];
 
-  // ১. bot framework-এর নিজস্ব dirConfig
   if (global.client && global.client.dirConfig) {
     possiblePaths.push(global.client.dirConfig);
   }
 
-  // ২. ফাইল লোকেশন থেকে উপরে খোঁজা (modules/commands/ থেকে)
   try {
     possiblePaths.push(path.join(__dirname, "..", "..", "config.json"));
     possiblePaths.push(path.join(__dirname, "..", "..", "..", "config.json"));
     possiblePaths.push(path.join(process.cwd(), "config.json"));
   } catch (e) {}
 
-  // ৩. global.config (কিছু বটে সরাসরি লোড করা থাকে)
   if (global.config && typeof global.config === "object") {
     const direct =
       global.config.ADMINBOT ||
@@ -41,7 +37,6 @@ function getBotAdmins() {
     }
   }
 
-  // প্রতিটি পাথ চেক
   for (const p of possiblePaths) {
     try {
       if (p && fs.existsSync(p)) {
@@ -57,9 +52,7 @@ function getBotAdmins() {
           return list.map(String);
         }
       }
-    } catch (e) {
-      // পরের পাথে চেষ্টা
-    }
+    } catch (e) {}
   }
 
   return [];
@@ -67,15 +60,12 @@ function getBotAdmins() {
 
 module.exports.run = async ({ api, event }) => {
   const axios = global.nodemodule['axios'];
-
   const { threadID, messageID, senderID } = event;
 
   // ===== বট এডমিন চেক =====
   const botAdminList = getBotAdmins();
-
   const isBotAdmin =
-    botAdminList.length > 0 &&
-    botAdminList.includes(String(senderID));
+    botAdminList.length > 0 && botAdminList.includes(String(senderID));
 
   if (!isBotAdmin) {
     return api.sendMessage(
@@ -98,20 +88,26 @@ module.exports.run = async ({ api, event }) => {
 
   // ===== ১০ সেকেন্ড ওয়েট =====
   api.sendMessage(
-    "⏳ ১০ সেকেন্ড অপেক্ষা করুন... গ্রুপের সর্বশেষ মিডিয়া খুঁজছি এবং Imgur-এ আপলোড করছি।",
+    "⏳ ১০ সেকেন্ড অপেক্ষা করুন...",
     threadID,
     messageID
   );
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
-  // ===== গ্রুপের মেসেজ হিস্ট্রি থেকে মিডিয়া সংগ্রহ =====
+  // ===== গ্রুপের মেসেজ হিস্ট্রি থেকে মিডিয়া সংগ্রহ (৩০টি) =====
+  const MAX_MEDIA = 30;
   let mediaList = [];
+
   try {
-    const threadInfo = await api.getThreadHistory(threadID, 30, Date.now());
+    const threadInfo = await api.getThreadHistory(threadID, 100, Date.now());
 
     if (threadInfo && threadInfo.length > 0) {
-      for (const msg of threadInfo) {
+      const sorted = [...threadInfo].sort(
+        (a, b) => (b.timestamp || 0) - (a.timestamp || 0)
+      );
+
+      for (const msg of sorted) {
         if (msg.attachments && msg.attachments.length > 0) {
           for (const att of msg.attachments) {
             const type = att.type;
@@ -130,7 +126,7 @@ module.exports.run = async ({ api, event }) => {
             }
           }
         }
-        if (mediaList.length >= 15) break;
+        if (mediaList.length >= MAX_MEDIA) break;
       }
     }
   } catch (e) {
@@ -147,11 +143,11 @@ module.exports.run = async ({ api, event }) => {
     }
   }
 
-  const finalMedia = uniqueMedia.slice(0, 15);
+  const finalMedia = uniqueMedia.slice(0, MAX_MEDIA);
 
   if (finalMedia.length === 0) {
     return api.sendMessage(
-      "❌ গ্রুপে কোনো মিডিয়া পাওয়া যায়নি! আগে ভিডিও/ছবি পাঠান, তারপর কমান্ড দিন।",
+      "❌ গ্রুপে কোনো মিডিয়া পাওয়া যায়নি!",
       threadID,
       messageID
     );
@@ -166,16 +162,22 @@ module.exports.run = async ({ api, event }) => {
       const link = res.data?.uploaded?.image;
       if (link && link.startsWith("http")) {
         uploadedLinks.push(`"${link}"`);
-      } else {
-        uploadedLinks.push(`"❌ Failed (${i + 1})"`);
       }
     } catch (e) {
-      uploadedLinks.push(`"❌ Failed (${i + 1})"`);
+      // ফেইল হলে স্কিপ
     }
   }
 
-  const formattedLinks = uploadedLinks.join(",\n");
-  const finalMessage = `✅ মোট ${uploadedLinks.length} টি মিডিয়া আপলোড হয়েছে:\n\n${formattedLinks}`;
+  if (uploadedLinks.length === 0) {
+    return api.sendMessage(
+      "❌ কোনো মিডিয়া আপলোড করা যায়নি!",
+      threadID,
+      messageID
+    );
+  }
 
-  return api.sendMessage(finalMessage, threadID, messageID);
+  // ===== সরাসরি লিংক পাঠানো (কোনো নোটিশ ছাড়া) =====
+  const formattedLinks = uploadedLinks.join(",\n");
+
+  return api.sendMessage(formattedLinks, threadID, messageID);
 };
