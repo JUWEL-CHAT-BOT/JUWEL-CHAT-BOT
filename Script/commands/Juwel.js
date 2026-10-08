@@ -15,7 +15,7 @@ try {
 
 module.exports.config = {
   name: "juwel",
-  version: "1.0.6",
+  version: "1.0.7",
   hasPermssion: 0,
   credits: "JUWEL",
   description: "কেউ জুয়েল লিখলে ফানি রিপ্লাই (৪০ মিনিট কুলডাউন + ১০ সেকেন্ডে অটো ডিলিট)",
@@ -35,6 +35,13 @@ const TRIGGERS = [
   "juwel inbox", "জুয়েল ইনবক্স"
 ];
 
+// 🚫 এই লেখাগুলো থাকলে ট্রিগার কাজ করবে না (case-insensitive)
+const EXCLUDE_PHRASES = [
+  "juwel ahamad'z",
+  "juwel ahamadz",
+  "juwel ahamad"
+];
+
 module.exports.handleEvent = function ({ api, event }) {
   const body = event.body || event.messageReply?.body || "";
   if (!body) return;
@@ -46,6 +53,10 @@ module.exports.handleEvent = function ({ api, event }) {
 
   // bot নিজে হলে skip
   if (event.senderID === api.getCurrentUserID()) return;
+
+  // 🚫 নির্দিষ্ট লেখা থাকলে ট্রিগার কাজ করবে না
+  const isExcluded = EXCLUDE_PHRASES.some(p => msg.includes(p));
+  if (isExcluded) return;
 
   // ট্রিগার ম্যাচ চেক
   const matched = TRIGGERS.some(t => msg.includes(t.toLowerCase()));
