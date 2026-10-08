@@ -1,16 +1,62 @@
 const fs = require('fs');
 const request = require("request");
+const path = require("path");
 
 module.exports.config = {
   name: "noti2",
-  version: "1.0.1",
+  version: "2.2.0",
   hasPermssion: 2,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Admin broadcast with two-way reply relay",
+  description: "Admin broadcast with stats, block, edit, reaction, voice support",
   commandCategory: "sandnoto",
-  usages: "[msg]",
+  usages: "[msg] | stats | block @user | unblock @user | delete",
   cooldowns: 5
 };
+
+// ---------- 𝙵𝙾𝙽𝚃 𝙲𝙾𝙽𝚅𝙴𝚁𝚃𝙴𝚁 ----------
+const toFont = (text) => {
+  const map = {
+    'A':'𝙰','B':'𝙱','C':'𝙲','D':'𝙳','E':'𝙴','F':'𝙵','G':'𝙶','H':'𝙷','I':'𝙸','J':'𝙹',
+    'K':'𝙺','L':'𝙻','M':'𝙼','N':'𝙽','O':'𝙾','P':'𝙿','Q':'𝚀','R':'𝚁','S':'𝚂','T':'𝚃',
+    'U':'𝚄','V':'𝚅','W':'𝚆','X':'𝚇','Y':'𝚈','Z':'𝚉',
+    'a':'𝚊','b':'𝚋','c':'𝚌','d':'𝚍','e':'𝚎','f':'𝚏','g':'𝚐','h':'𝚑','i':'𝚒','j':'𝚓',
+    'k':'𝚔','l':'𝚕','m':'𝚖','n':'𝚗','o':'𝚘','p':'𝚙','q':'𝚚','r':'𝚛','s':'𝚜','t':'𝚝',
+    'u':'𝚞','v':'𝚟','w':'𝚠','x':'𝚡','y':'𝚢','z':'𝚣',
+    '0':'𝟶','1':'𝟷','2':'𝟸','3':'𝟹','4':'𝟺','5':'𝟻','6':'𝟼','7':'𝟽','8':'𝟾','9':'𝟿'
+  };
+  return text.split('').map(c => map[c] || c).join('');
+};
+
+// ---------- 🎨 FRAME ----------
+const FRAME_TOP  = "🔥 𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐓𝐈𝐎𝐍 🔥";
+const FRAME_LINE = "⚡━━━━━━━━━━━━━━⚡";
+
+// ---------- 📌 FOOTER (নতুন যোগ) ----------
+const ADMIN_FOOTER =
+  "তুমি যদি এডমিন এর সঙ্গে কথা বলতে চাও, তাহলে অবশ্যই এই মেসেজের রিপ্লাই দিয়ে মেসেজ করো। " +
+  "আমি তোমার মেসেজ টা এডমিন এর কাছে ফরোয়ার্ড করে পাঠিয়ে দিবো ✅\n\n" +
+  "আর সরাসরি এডমিনের সাথে কথা বলতে চাইলে জুয়েল বসকে নক করো: fb.com/mrjuwel444";
+
+// ---------- PATHS ----------
+const CACHE_DIR     = path.join(__dirname, "cache");
+const STATS_FILE    = path.join(CACHE_DIR, "noti_stats.json");
+const BLOCKED_FILE  = path.join(CACHE_DIR, "noti_blocked.json");
+const SENT_FILE     = path.join(CACHE_DIR, "sent_messages.json");
+
+if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+
+// ---------- DB HELPERS ----------
+const loadJSON = (file, def) => {
+  try {
+    if (!fs.existsSync(file)) fs.writeFileSync(file, JSON.stringify(def, null, 2));
+    return JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch { return def; }
+};
+const saveJSON = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2));
+
+let stats        = loadJSON(STATS_FILE, { total: 0, replies: 0, users: {}, perGroup: {} });
+let blocked      = loadJSON(BLOCKED_FILE, []);
+let sentMessages = loadJSON(SENT_FILE, []);
 
 let atmDir = [];
 
@@ -25,7 +71,7 @@ const getAtm = (attachments, body) => new Promise(async (resolve) => {
         const res = await request.get(att.url);
         const pathname = res.uri.pathname;
         const ext = pathname.substring(pathname.lastIndexOf('.') + 1);
-        const filePath = __dirname + "/cache/" + att.filename + "." + ext;
+        const filePath = path.join(CACHE_DIR, att.filename + "." + ext);
 
         res.pipe(fs.createWriteStream(filePath)).on("close", () => {
           streams.push(fs.createReadStream(filePath));
@@ -34,120 +80,125 @@ const getAtm = (attachments, body) => new Promise(async (resolve) => {
         });
       } catch (err) {
         console.log("getAtm error:", err);
-        done(); // fail হলেও loop এগোবে
+        done();
       }
     });
   }
-
   messageData.attachment = streams;
   resolve(messageData);
 });
 
+// ---------- 🎙️ VOICE ----------
+const getVoice = (url, filename = `voice_${Date.now()}.mp3`) =>
+  new Promise(async (resolve) => {
+    try {
+      const filePath = path.join(CACHE_DIR, filename);
+      const res = await request.get(url);
+      res.pipe(fs.createWriteStream(filePath)).on("close", () => {
+        atmDir.push(filePath);
+        resolve(fs.createReadStream(filePath));
+      });
+    } catch (e) {
+      console.log("getVoice error:", e);
+      resolve(null);
+    }
+  });
+
 // ---------- REPLY HANDLER ----------
 module.exports.handleReply = async function ({
-  api,
-  event,
-  handleReply,
-  Users,
-  Threads
+  api, event, handleReply, Users, Threads
 }) {
   const { threadID, messageID, senderID, body } = event;
 
-  // নিজের (অ্যাডমিনের) মেসেজে রিপ্লাই ignore
   if (senderID == api.getCurrentUserID()) return;
+  if (blocked.includes(senderID)) return;
 
   const senderName = await Users.getNameUser(senderID);
 
   switch (handleReply.type) {
 
-    // ==== ইউজার অ্যাডমিনের নোটিশে রিপ্লাই দিচ্ছে ====
+    // ==== ইউজার → অ্যাডমিন ====
     case "sendnoti": {
       let groupName = "Unknow";
       try {
         const info = await Threads.getInfo(threadID);
         groupName = info.threadName || "Unknow";
-      } catch (e) {}
+      } catch {}
 
-      let msg =
-        "== User Reply ==\n\n" +
-        "『Reply』 : " + body + "\n\n\n" +
-        "User Name: " + senderName + "\n" +
-        "From Group: " + groupName;
+      const caption =
+        "🔥 " + toFont("USER REPLY") + " 🔥\n" +
+        "⚡━━━━━━━━━━━━━━⚡\n\n" +
+        "💬 " + toFont("Reply") + " : " + body + "\n\n" +
+        "👤 " + toFont("Name") + " : " + senderName + "\n" +
+        "📌 " + toFont("From Group") + " : " + groupName + "\n\n" +
+        "⚡━━━━━━━━━━━━━━⚡";
 
-      // অ্যাডমিনের কাছে পাঠানোর সময় caption
-      const adminCaption =
-        "== User Reply ==\n\n" +
-        "『Reply』 : " + body + "\n\n\n" +
-        "User Name: " + senderName + "\n" +
-        "From Group: " + groupName;
+      let sendData = caption;
 
-      let sendData = adminCaption;
+      const voiceAtt = event.attachments?.find(a =>
+        a.type === "audio" || a.type === "voice" || (a.url && a.url.includes(".mp3"))
+      );
 
-      if (event.attachments && event.attachments.length > 0) {
-        sendData = await getAtm(event.attachments, adminCaption);
+      if (voiceAtt) {
+        const voiceStream = await getVoice(voiceAtt.url);
+        if (voiceStream) {
+          api.sendMessage(
+            { body: caption, attachment: voiceStream },
+            handleReply.threadID,
+            (err, info) => {
+              cleanupAtm();
+              if (err) return console.log(err);
+              registerReply(info, "reply", threadID);
+            },
+            messageID
+          );
+          break;
+        }
       }
 
-      // ✅ অ্যাডমিনের (original) thread এ পাঠানো
+      if (event.attachments?.length > 0) {
+        sendData = await getAtm(event.attachments, caption);
+      }
+
       api.sendMessage(sendData, handleReply.threadID, (err, info) => {
-        // temp file cleanup
-        atmDir.forEach(f => { try { fs.unlinkSync(f); } catch (e) {} });
-        atmDir = [];
+        cleanupAtm();
+        if (err) return console.log(err);
 
-        if (err) return console.log("sendnoti reply error:", err);
+        api.setMessageReaction("✅", info.messageID, () => {}, true);
 
-        // অ্যাডমিন আবার রিপ্লাই দিলে যেন ইউজারের কাছে যায়
-        global.client.handleReply.push({
-          name: this.config.name,
-          type: "reply",
-          messageID: info.messageID,
-          messID: messageID,
-          threadID: threadID // ইউজারের thread (reply ফেরত পাঠানোর জন্য)
-        });
+        stats.replies++;
+        stats.users[senderID] = (stats.users[senderID] || 0) + 1;
+        stats.perGroup[threadID] = (stats.perGroup[threadID] || 0) + 1;
+        saveJSON(STATS_FILE, stats);
+
+        registerReply(info, "reply", threadID);
       }, messageID);
 
       break;
     }
 
-    // ==== অ্যাডমিন ইউজারকে রিপ্লাই দিচ্ছে ====
+    // ==== অ্যাডমিন → ইউজার (এখানে FOOTER যোগ) ====
     case "reply": {
-      let userMsg =
-        "𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐓𝐈𝐎𝐍\n" +
-        "•┄┅═════❁🌺❁═════┅┄•\n\n" +
-        "｢𝐌𝐄𝐒𝐒𝐀𝐆𝐄｣ : " + body + "\n\n\n" +
-        "｢𝗔𝗗𝗠𝗜𝗡｣ " + senderName + "\n\n" +
-        "•┄┅═════❁🌺❁═════┅┄•\n" +
-        "আপনি যদি এডমিন এর সঙ্গে কথা বলতে চান, তাহলে অবশ্যই এই মেসেজের রিপ্লাই দিয়ে মেসেজ করো। " +
-        "আমি তা এডমিন এর কাছে পৌঁছে দিবো। সরাসরি এডমিনের সাথে কথা বলতে চাইলে নক করুন: fb.com/mrjuwel444";
-
       const userCaption =
-        body + "\n\n" +
-        "𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐓𝐈𝐎𝐍\n" +
-        "•┄┅═════❁🌺❁═════┅┄•\n\n" +
-        "𝐀𝐃𝐌𝐈𝐍: " + senderName + "\n\n" +
-        "•┄┅═════❁🌺❁═════┅┄•\n" +
-        "আপনি যদি এডমিন এর সঙ্গে কথা বলতে চান, তাহলে অবশ্যই এই মেসেজের রিপ্লাই দিয়ে মেসেজ করো। " +
-        "আমি তা এডমিন এর কাছে পৌঁছে দিবো। সরাসরি এডমিনের সাথে কথা বলতে চাইলে নক করুন: fb.com/mrjuwel444";
+        "🔥 " + toFont("ADMIN NOTIFICATION") + " 🔥\n" +
+        "⚡━━━━━━━━━━━━━━⚡\n\n" +
+        "💬 " + toFont("Message") + " : " + body + "\n\n" +
+        "👑 " + toFont("Admin") + " : " + senderName + "\n\n" +
+        "⚡━━━━━━━━━━━━━━⚡\n\n" +
+        ADMIN_FOOTER;
 
-      let sendData = userMsg;
+      let sendData = userCaption;
 
-      if (event.attachments && event.attachments.length > 0) {
+      if (event.attachments?.length > 0) {
         sendData = await getAtm(event.attachments, userCaption);
       }
 
-      // ✅ ইউজারের thread এ পাঠানো
       api.sendMessage(sendData, handleReply.threadID, (err, info) => {
-        atmDir.forEach(f => { try { fs.unlinkSync(f); } catch (e) {} });
-        atmDir = [];
+        cleanupAtm();
+        if (err) return console.log(err);
 
-        if (err) return console.log("reply error:", err);
-
-        // ইউজার আবার রিপ্লাই দিলে যেন অ্যাডমিনের কাছে যায়
-        global.client.handleReply.push({
-          name: this.config.name,
-          type: "sendnoti",
-          messageID: info.messageID,
-          threadID: handleReply.threadID // ⚠️ এখানে handleReply থেকে নিন
-        });
+        api.setMessageReaction("✅", info.messageID, () => {}, true);
+        registerReply(info, "sendnoti", handleReply.threadID);
       }, messageID);
 
       break;
@@ -155,46 +206,166 @@ module.exports.handleReply = async function ({
   }
 };
 
-// ---------- MAIN RUN ----------
-module.exports.run = async function ({
-  api,
-  event,
-  args,
-  Users
-}) {
-  const { threadID, messageID, senderID, messageReply } = event;
+// ---------- HELPERS ----------
+function cleanupAtm() {
+  atmDir.forEach(f => { try { fs.unlinkSync(f); } catch {} });
+  atmDir = [];
+}
 
-  if (!args[0]) {
-    return api.sendMessage("Please input message", threadID);
+function registerReply(info, type, threadID) {
+  global.client.handleReply.push({
+    name: "noti2",
+    type,
+    messageID: info.messageID,
+    threadID
+  });
+
+  sentMessages.push({
+    messageID: info.messageID,
+    threadID,
+    time: Date.now(),
+    type
+  });
+  if (sentMessages.length > 500) sentMessages = sentMessages.slice(-500);
+  saveJSON(SENT_FILE, sentMessages);
+}
+
+// ---------- ADMIN SUB-COMMANDS ----------
+async function handleAdminCommand(api, event, args, Users) {
+  const { threadID } = event;
+  const sub = args[0].toLowerCase();
+
+  if (sub === "stats") {
+    const topUsers = Object.entries(stats.users)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([uid, cnt], i) => {
+        const medal = ["🥇","🥈","🥉","4️⃣","5️⃣"][i] || `${i+1}.`;
+        return `${medal} ${uid} → ${cnt}`;
+      }).join("\n") || "None yet";
+
+    return api.sendMessage(
+      "🔥 " + toFont("NOTI STATS") + " 🔥\n" +
+      "⚡━━━━━━━━━━━━━━⚡\n\n" +
+      "📨 " + toFont("Total Notices") + " : " + stats.total + "\n" +
+      "💬 " + toFont("Total Replies") + " : " + stats.replies + "\n" +
+      "👥 " + toFont("Unique Users") + " : " + Object.keys(stats.users).length + "\n" +
+      "🚫 " + toFont("Blocked Users") + " : " + blocked.length + "\n\n" +
+      "🏆 " + toFont("Top Repliers") + "\n" + topUsers + "\n\n" +
+      "⚡━━━━━━━━━━━━━━⚡",
+      threadID
+    );
   }
 
-  const allThreads = global.data.allThreadID || [];
+  if (sub === "block") {
+    const target = event.mentions && Object.keys(event.mentions)[0];
+    if (!target) return api.sendMessage("❌ " + toFont("Mention someone to block"), threadID);
+    if (!blocked.includes(target)) blocked.push(target);
+    saveJSON(BLOCKED_FILE, blocked);
+    return api.sendMessage("🚫 " + toFont("Blocked") + " : " + target, threadID);
+  }
+
+  if (sub === "unblock") {
+    const target = event.mentions && Object.keys(event.mentions)[0];
+    if (!target) return api.sendMessage("❌ " + toFont("Mention someone to unblock"), threadID);
+    blocked = blocked.filter(u => u !== target);
+    saveJSON(BLOCKED_FILE, blocked);
+    return api.sendMessage("✅ " + toFont("Unblocked") + " : " + target, threadID);
+  }
+
+  if (sub === "blocklist") {
+    if (!blocked.length) return api.sendMessage("✅ " + toFont("No blocked users"), threadID);
+    const list = [];
+    for (const uid of blocked) {
+      let name = uid;
+      try { name = await Users.getNameUser(uid); } catch {}
+      list.push("• " + name);
+    }
+    return api.sendMessage(
+      "🚫 " + toFont("BLOCKED USERS") + "\n" + list.join("\n"),
+      threadID
+    );
+  }
+
+  if (sub === "delete" || sub === "unsend") {
+    if (!sentMessages.length) return api.sendMessage("❌ " + toFont("Nothing to delete"), threadID);
+    const last = sentMessages.pop();
+    saveJSON(SENT_FILE, sentMessages);
+    api.unsendMessage(last.messageID, (err) => {
+      if (err) return api.sendMessage("❌ " + toFont("Failed to unsend"), threadID);
+      api.sendMessage("🗑️ " + toFont("Last message unsent"), threadID);
+    });
+    return;
+  }
+
+  if (sub === "clearstats") {
+    stats = { total: 0, replies: 0, users: {}, perGroup: {} };
+    saveJSON(STATS_FILE, stats);
+    return api.sendMessage("🧹 " + toFont("Stats cleared"), threadID);
+  }
+
+  return false;
+}
+
+// ---------- MAIN RUN ----------
+module.exports.run = async function ({ api, event, args, Users }) {
+  const { threadID, messageID, senderID, messageReply } = event;
+
+  if (!args[0]) return api.sendMessage("Please input message", threadID);
+
+  const subResult = await handleAdminCommand(api, event, args, Users);
+  if (subResult !== false) return;
+
+  const allThreads = (global.data.allThreadID || []).filter(t => !blocked.includes(t));
   let successCount = 0;
   let failCount = 0;
 
   const adminName = await Users.getNameUser(senderID);
   const text = args.join(" ");
 
+  // 🎨 ফ্রেম + 𝙵𝙾𝙽𝚃 + FOOTER
   let plainMsg =
-    "𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐓𝐈𝐎𝐍\n" +
-    "•┄┅═════❁🌺❁═════┅┄•\n\n" +
-    "𝐌𝐀𝐒𝐒𝐀𝐆𝐄: " + text + "\n\n" +
-    "𝗔𝗗𝗠𝗜𝗡 𝗡𝗔𝗠𝗘: " + adminName;
+    FRAME_TOP + "\n" +
+    FRAME_LINE + "\n\n" +
+    "💬 " + toFont("Message") + " : " + text + "\n\n" +
+    "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
+    FRAME_LINE + "\n\n" +
+    ADMIN_FOOTER;
 
   let sendData = plainMsg;
 
-  // অ্যাডমিন যদি কোনো মেসেজে reply দিয়ে attachment সহ পাঠায়
-  if (event.type == "message_reply" && messageReply && messageReply.attachments?.length > 0) {
-    sendData = await getAtm(
-      messageReply.attachments,
-      "𝐌𝐀𝐒𝐒𝐀𝐆𝐄 𝐅𝐑𝐎𝐌 𝐀𝐃𝐌𝐈𝐍\n" +
-      "•┄┅═════❁🌺❁═════┅┄•\n" +
-      "𝐌𝐀𝐒𝐒𝐀𝐆𝐄: " + text + "\n\n" +
-      "𝗔𝗗𝗠𝗜𝗡 𝗡𝗔𝗠𝗘: " + adminName
+  if (event.type === "message_reply" && messageReply) {
+    const voiceAtt = messageReply.attachments?.find(a =>
+      a.type === "audio" || a.type === "voice" || (a.url && a.url.includes(".mp3"))
     );
+
+    if (voiceAtt) {
+      const voiceStream = await getVoice(voiceAtt.url);
+      if (voiceStream) {
+        sendData = {
+          body: FRAME_TOP + "\n" +
+                FRAME_LINE + "\n\n" +
+                "🎙️ " + toFont("Voice from Admin") + "\n" +
+                "💬 " + toFont("Message") + " : " + text + "\n\n" +
+                "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
+                FRAME_LINE + "\n\n" +
+                ADMIN_FOOTER,
+          attachment: voiceStream
+        };
+      }
+    } else if (messageReply.attachments?.length > 0) {
+      sendData = await getAtm(
+        messageReply.attachments,
+        FRAME_TOP + "\n" +
+        FRAME_LINE + "\n\n" +
+        "💬 " + toFont("Message") + " : " + text + "\n\n" +
+        "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
+        FRAME_LINE + "\n\n" +
+        ADMIN_FOOTER
+      );
+    }
   }
 
-  // ✅ সব গ্রুপে পাঠানোর জন্য ঠিক করা Promise
   await new Promise((resolve) => {
     const total = allThreads.length;
     if (total === 0) return resolve();
@@ -208,26 +379,14 @@ module.exports.run = async function ({
             failCount++;
           } else {
             successCount++;
-
-            // ✅ প্রতিটি গ্রুপের জন্য handleReply পুশ — অ্যাডমিনের thread এ ফেরত আসবে
-            global.client.handleReply.push({
-              name: this.config.name,
-              type: "sendnoti",
-              messageID: info.messageID,
-              messID: messageID,
-              threadID: threadID // ⚠️ অ্যাডমিনের মূল thread (এখানেই রিপ্লাই আসবে)
-            });
+            registerReply(info, "sendnoti", threadID);
           }
-
           if (done === total) {
-            // সব শেষ হলে temp file cleanup
-            atmDir.forEach(f => { try { fs.unlinkSync(f); } catch (e) {} });
-            atmDir = [];
+            cleanupAtm();
             resolve();
           }
         });
       } catch (e) {
-        console.log("send error:", e);
         done++;
         failCount++;
         if (done === total) resolve();
@@ -235,8 +394,11 @@ module.exports.run = async function ({
     });
   });
 
+  stats.total += successCount;
+  saveJSON(STATS_FILE, stats);
+
   return api.sendMessage(
-    `✅ Send to ${successCount} thread, ❌ not send to ${failCount} thread`,
+    "✅ " + toFont("Sent") + " : " + successCount + " | ❌ " + toFont("Failed") + " : " + failCount,
     threadID
   );
 };
