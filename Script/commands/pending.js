@@ -1,6 +1,12 @@
+// ===== pending.js =====
+const fs = require("fs-extra");
+const path = require("path");
+
+const ADDER_CACHE_FILE = path.join(__dirname, "adderCache.json");
+
 module.exports.config = {
   name: "pending",
-  version: "1.1.0",
+  version: "1.2.0",
   credits: "𝐌𝐑 𝐉𝐔𝐖𝐄𝐋",
   hasPermssion: 2,
   description: "Manage bot's pending group requests",
@@ -52,7 +58,20 @@ function isAdmin(senderID) {
   return global.config.ADMINBOT.includes(senderID);
 }
 
-module.exports.handleReply = async function({ api, event, handleReply, getText }) {
+// 📂 cache লোড
+function loadAdderCache() {
+  try {
+    if (fs.existsSync(ADDER_CACHE_FILE)) {
+      return JSON.parse(fs.readFileSync(ADDER_CACHE_FILE, "utf8"));
+    }
+  } catch (e) {}
+  return {};
+}
+
+// ===================================================
+// handleReply : approve / reject
+// ===================================================
+module.exports.handleReply = async function ({ api, event, handleReply, getText }) {
   if (String(event.senderID) !== String(handleReply.author)) return;
 
   if (!isAdmin(event.senderID)) {
@@ -92,25 +111,29 @@ module.exports.handleReply = async function({ api, event, handleReply, getText }
       }
 
       const groupID = handleReply.pending[index - 1].threadID;
-
-      // ✅ গ্রুপটা প্রসেস হয়েছে ধরে নিচ্ছি, count আগেই বাড়িয়ে দিচ্ছি
-      // যাতে welcome message পাঠাতে সমস্যা হলেও approve count ঠিক দেখায়
       count++;
 
       try {
-        // 🔥 NOTI BOX 1 (UNCHANGED)
-        await api.sendMessage(`চ্ঁলে্ঁ এ্ঁসে্ঁছি্ঁ ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐ এঁখঁনঁ তোঁমাঁদেঁরঁ সাঁথেঁ আঁড্ডাঁ দিঁবঁ..!😘`, groupID);
+        // 🔥 NOTI BOX 1
+        await api.sendMessage(
+          `চ্ঁলে্ঁ এ্ঁসে্ঁছি্ঁ ⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐ এঁখঁনঁ তোঁমাঁদেঁরঁ সাঁথেঁ আঁড্ডাঁ দিঁবঁ..!😘`,
+          groupID
+        );
 
-        // 🔥 বটের নিকনেম সেট করা
+        // 🔥 বটের নিকনেম সেট
         try {
-          await api.changeNickname("⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐", groupID, api.getCurrentUserID());
+          await api.changeNickname(
+            "⎯꯭𓆩꯭𝆺𝅥😻⃞𝐑⃞𝐈⃞𝐘⃞𝐀⃞༢࿐",
+            groupID,
+            api.getCurrentUserID()
+          );
         } catch (e) {}
 
-        // সামান্য delay দিয়ে rate-limit এড়ানো
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(r => setTimeout(r, 800));
 
-        // 🔥 NOTI BOX 2 (UNCHANGED)
-        await api.sendMessage(`╭•┄┅═══❁🌺❁═══┅┄•╮
+        // 🔥 NOTI BOX 2
+        await api.sendMessage(
+          `╭•┄┅═══❁🌺❁═══┅┄•╮
 আ্ঁস্ঁসা্ঁলা্ঁমু্ঁ💚আ্ঁলা্ঁই্ঁকু্ঁম্ঁ
 ╰•┄┅═══❁🌺❁═══┅┄•╯
 
@@ -126,18 +149,22 @@ ${global.config.PREFIX}admin
 ➤ WhatsApp: +8801943488192
 
 ❖⋆══════════════⋆❖
-𝐎𝐰𝐧𝐞𝐫➢乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐`, groupID);
+𝐎𝐰𝐧𝐞𝐫➢乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐`,
+          groupID
+        );
       } catch (e) {}
 
-      // পরের গ্রুপ প্রসেস করার আগে delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(r => setTimeout(r, 1000));
     }
 
     return api.sendMessage(getText("approveSuccess", count), threadID, messageID);
   }
 };
 
-module.exports.run = async function({ api, event, getText }) {
+// ===================================================
+// run : pending লিস্ট দেখানো
+// ===================================================
+module.exports.run = async function ({ api, event, getText }) {
   const { threadID, messageID, senderID } = event;
 
   if (!isAdmin(senderID)) {
@@ -157,23 +184,39 @@ module.exports.run = async function({ api, event, getText }) {
       return api.sendMessage(getText("returnListClean"), threadID, messageID);
     }
 
-    // 🔥 GROUP INFO + PROFILE LINK FIX
+    const adderCache = loadAdderCache();
+
+    // 🔥 GROUP INFO + ADDER (CACHE থেকে) + PROFILE LINK
     const msgArr = await Promise.all(list.map(async (group, index) => {
       const members = group.participantIDs?.length || 0;
 
       let addedByName = "Unknown";
       let addedByID = null;
 
-      try {
-        const threadInfo = await api.getThreadInfo(group.threadID);
+      // ✅ FIRST: cache থেকে নাও (সবচেয়ে নির্ভরযোগ্য)
+      const cached = adderCache[group.threadID];
+      if (cached && cached.id) {
+        addedByID = cached.id;
+        addedByName = cached.name || "Unknown";
+      } else {
+        // ⚠️ FALLBACK: approvalQueue → adminIDs
+        try {
+          const threadInfo = await api.getThreadInfo(group.threadID);
 
-        if (threadInfo.adminIDs && threadInfo.adminIDs.length > 0) {
-          addedByID = threadInfo.adminIDs[0].id;
-
-          const userInfo = await api.getUserInfo(addedByID);
-          addedByName = userInfo[addedByID]?.name || "Unknown";
-        }
-      } catch (e) {}
+          // 1) approvalQueue
+          if (threadInfo.approvalQueue && threadInfo.approvalQueue.length > 0) {
+            addedByID = threadInfo.approvalQueue[0].requesterID;
+            const u = await api.getUserInfo(addedByID);
+            addedByName = u[addedByID]?.name || "Unknown";
+          }
+          // 2) adminIDs (last resort)
+          else if (threadInfo.adminIDs && threadInfo.adminIDs.length > 0) {
+            addedByID = threadInfo.adminIDs[0].id;
+            const u = await api.getUserInfo(addedByID);
+            addedByName = u[addedByID]?.name || "Unknown";
+          }
+        } catch (e) {}
+      }
 
       const profileLink = addedByID
         ? `https://www.facebook.com/${addedByID}`
@@ -205,6 +248,7 @@ module.exports.run = async function({ api, event, getText }) {
     );
 
   } catch (e) {
+    console.error(e);
     return api.sendMessage(getText("cantGetPendingList"), threadID, messageID);
   }
 };
