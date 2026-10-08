@@ -2,204 +2,225 @@ const chalk = require("chalk");
 const fs = require("fs");
 
 const logFile = __dirname + "/joinHistory.json";
-
 if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "[]");
 
 function saveLog(data) {
- fs.writeFileSync(logFile, JSON.stringify(data, null, 2));
+  fs.writeFileSync(logFile, JSON.stringify(data, null, 2));
 }
 
 function addLog(entry) {
- let data = JSON.parse(fs.readFileSync(logFile));
- data.push(entry);
- saveLog(data);
+  let data = JSON.parse(fs.readFileSync(logFile));
+  data.push(entry);
+  saveLog(data);
 }
 
 module.exports.config = {
- name: "join",
- version: "5.0.3",
- hasPermssion: 2,
- credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
- description: "REAL CLEAN GROUP JOIN SYSTEM",
- commandCategory: "system",
- cooldowns: 5
+  name: "join",
+  version: "6.0.0",
+  hasPermssion: 2,
+  credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
+  description: "JOIN GROUPS WHERE BOT IS BUT YOU ARE NOT",
+  commandCategory: "system",
+  cooldowns: 5
 };
 
 let autoMode = false;
 
+// 🔥 আপনার নিজের UID এখানে বসান
+const ADMIN_UID = "61594400795920";
+
 module.exports.onLoad = () => {
- console.log(chalk.hex("#00ff99")("🚀 CLEAN JOIN SYSTEM LOADED"));
+  console.log(chalk.hex("#00ff99")("🚀 JOIN SYSTEM LOADED"));
 };
 
 // ---------------- HANDLE REPLY ----------------
 module.exports.handleReply = async function ({ api, event, handleReply }) {
- const { threadID, senderID, body } = event;
- const { ID, author } = handleReply;
+  const { threadID, senderID, body } = event;
+  const { ID, author } = handleReply;
 
- if (senderID != author) return;
+  if (senderID != author) return;
 
- const input = (body || "").trim().toLowerCase();
- let selected = [];
+  const input = (body || "").trim().toLowerCase();
+  let selected = [];
 
- if (input === "add all") {
- selected = ID.map((_, i) => i);
- } else {
- selected = input.split(/\s+/)
- .map(x => parseInt(x) - 1)
- .filter(i => !isNaN(i) && i >= 0 && i < ID.length);
- }
+  if (input === "add all") {
+    selected = ID.map((_, i) => i);
+  } else {
+    selected = input.split(/\s+/)
+      .map(x => parseInt(x) - 1)
+      .filter(i => !isNaN(i) && i >= 0 && i < ID.length);
+  }
 
- if (selected.length === 0)
- return api.sendMessage("❌ Invalid input", threadID);
+  if (selected.length === 0)
+    return api.sendMessage("❌ Invalid input", threadID);
 
- let result = {
- added: 0,
- already: 0,
- failed: 0,
- retry: 0,
- details: []
- };
+  const botID = api.getCurrentUserID();
 
- for (const i of selected) {
- const tid = ID[i];
+  let result = {
+    added: 0,
+    already: 0,
+    failed: 0,
+    retry: 0,
+    details: []
+  };
 
- try {
- const info = await api.getThreadInfo(tid);
- const botID = api.getCurrentUserID();
+  for (const i of selected) {
+    const tid = ID[i];
+    let groupName = "Unknown Group";
 
- const isMember = info.participantIDs.includes(botID);
+    try {
+      // গ্রুপের নাম বের করার চেষ্টা
+      try {
+        const info = await api.getThreadInfo(tid);
+        groupName = info.name || groupName;
 
- if (isMember) {
- result.already++;
+        // 🔥 চেক: আপনি already আছেন কিনা
+        if (info.participantIDs && info.participantIDs.includes(ADMIN_UID)) {
+          result.already++;
+          result.details.push(`⚠️ Already You Joined → ${groupName}`);
+          addLog({
+            user: senderID,
+            threadID: tid,
+            name: groupName,
+            status: "Already You Joined",
+            time: new Date().toISOString()
+          });
+          continue;
+        }
+      } catch {}
 
- result.details.push(
- `⚠️ Already Joined → ${info.name}`
- );
+      // 🔥 আপনাকে (ADMIN_UID) গ্রুপে add করা
+      let success = false;
+      let lastError = "";
 
- addLog({
- user: senderID,
- threadID: tid,
- name: info.name,
- status: "Already Joined",
- time: new Date().toISOString()
- });
+      for (let r = 0; r < 3; r++) {
+        try {
+          await api.addUserToGroup(ADMIN_UID, tid);
+          success = true;
+          result.retry += r;
+          break;
+        } catch (err) {
+          lastError = (err?.error || err?.message || JSON.stringify(err) || "").toLowerCase();
 
- continue;
- }
+          // already member হলে success ধরে নাও
+          if (lastError.includes("already") || lastError.includes("exists")) {
+            success = true;
+            break;
+          }
+          await new Promise(res => setTimeout(res, 800));
+        }
+      }
 
- let success = false;
+      if (success) {
+        result.added++;
+        result.details.push(`✅ You Joined → ${groupName}`);
+        addLog({
+          user: senderID,
+          threadID: tid,
+          name: groupName,
+          status: "You Joined",
+          time: new Date().toISOString()
+        });
+      } else {
+        result.failed++;
+        result.details.push(`❌ Failed → ${groupName} (${lastError.slice(0, 40)})`);
+        addLog({
+          user: senderID,
+          threadID: tid,
+          name: groupName,
+          status: "Failed",
+          time: new Date().toISOString()
+        });
+      }
 
- for (let r = 0; r < 3; r++) {
- try {
- await api.addUserToGroup(botID, tid);
- success = true;
- result.retry += r;
- break;
- } catch {
- await new Promise(res => setTimeout(res, 700));
- }
- }
+    } catch (e) {
+      result.failed++;
+      result.details.push(`❌ Error → ${groupName}`);
+    }
+  }
 
- if (success) {
- result.added++;
- result.details.push(`✅ Joined → ${info.name}`);
- } else {
- result.failed++;
- result.details.push(`❌ Failed → ${info.name}`);
- }
-
- addLog({
- user: senderID,
- threadID: tid,
- name: info.name,
- status: success ? "Joined" : "Failed",
- time: new Date().toISOString()
- });
-
- } catch {
- result.failed++;
- result.details.push(`❌ Error → Unknown Group`);
- }
- }
-
- return api.sendMessage(
+  return api.sendMessage(
 `╔══════════════════════╗
-║ ⚡ REAL-TIME REPORT
+║ ⚡ JOIN REPORT
 ╠══════════════════════╣
-║ ✅ Added : ${result.added}
+║ ✅ Added   : ${result.added}
 ║ ⚠️ Already : ${result.already}
-║ ❌ Failed : ${result.failed}
-║ 🔄 Retry : ${result.retry}
+║ ❌ Failed  : ${result.failed}
+║ 🔄 Retry   : ${result.retry}
 ╚══════════════════════╝
 
 📌 DETAILS:
-${result.details.join("\n") || "No Data"}
-
-⚡ MODE: ${autoMode ? "AUTO ON" : "AUTO OFF"}`,
- threadID
- );
+${result.details.join("\n") || "No Data"}`,
+    threadID
+  );
 };
 
 // ---------------- MAIN ----------------
 module.exports.run = async function ({ api, event }) {
- const { threadID, senderID, messageID } = event;
+  const { threadID, senderID, messageID } = event;
 
- const adminUID = "61594400795920";
- if (senderID !== adminUID)
- return api.sendMessage("⚠️ Only Admin can use this command", threadID);
+  if (senderID !== ADMIN_UID)
+    return api.sendMessage("⚠️ Only Admin can use this command", threadID);
 
- let inbox = await api.getThreadList(100, null, ["INBOX"]);
+  const botID = api.getCurrentUserID();
 
- let groups = inbox.filter(t =>
- t.isGroup &&
- t.threadID &&
- t.name &&
- t.participantIDs &&
- t.participantIDs.includes(api.getCurrentUserID())
- );
+  // 🔥 200 টা thread নাও, শুধু INBOX (bot আছে যেগুলোতে)
+  let inbox = await api.getThreadList(200, null, ["INBOX"]);
 
- let msg = `╔══════════════════════╗
-║ ⚡ REAL-TIME GROUP LIST
+  // 🔥 ফিল্টার: bot আছে, কিন্তু আপনি (ADMIN_UID) নেই
+  let groups = inbox.filter(t =>
+    t.isGroup &&
+    t.threadID &&
+    t.name &&
+    t.participantIDs &&
+    t.participantIDs.includes(botID) &&        // bot আছে
+    !t.participantIDs.includes(ADMIN_UID)      // আপনি নেই
+  );
+
+  if (groups.length === 0)
+    return api.sendMessage(
+      "⚠️ এমন কোনো গ্রুপ পাওয়া যায়নি যেখানে bot আছে কিন্তু আপনি নেই",
+      threadID
+    );
+
+  let msg = `╔══════════════════════╗
+║ ⚡ GROUPS (Bot In, You Not)
 ╚══════════════════════╝\n\n`;
 
- const ID = [];
+  const ID = [];
+  groups.forEach((t, i) => {
+    msg += `┃ ${i + 1}. ${t.name}\n`;
+    ID.push(t.threadID);
+  });
 
- groups.forEach((t, i) => {
- msg += `┃ ${i + 1}. ${t.name}\n`;
- ID.push(t.threadID);
- });
-
- if (ID.length === 0)
- return api.sendMessage("⚠️ কোনো গ্রুপ পাওয়া যায়নি", threadID);
-
- msg += `\n╔══════════════════════╗
+  msg += `\n╔══════════════════════╗
 ║ ✏️ Reply: 1 2 3 / add all
 ║ 🔒 ADMIN ONLY MODE
 ╚══════════════════════╝`;
 
- return api.sendMessage(msg, threadID, (err, info) => {
- if (!err) {
- global.client.handleReply.push({
- name: module.exports.config.name,
- author: senderID,
- messageID: info.messageID,
- ID
- });
- }
- }, messageID);
+  return api.sendMessage(msg, threadID, (err, info) => {
+    if (!err) {
+      global.client.handleReply.push({
+        name: module.exports.config.name,
+        author: senderID,
+        messageID: info.messageID,
+        ID
+      });
+    }
+  }, messageID);
 };
 
 // ---------------- AUTO MODE ----------------
 module.exports.handleEvent = async function ({ api, event }) {
- const body = (event.body || "").toLowerCase();
+  const body = (event.body || "").toLowerCase();
 
- if (body === "auto on") {
- autoMode = true;
- return api.sendMessage("🟢 AUTO MODE ON", event.threadID);
- }
+  if (body === "auto on") {
+    autoMode = true;
+    return api.sendMessage("🟢 AUTO MODE ON", event.threadID);
+  }
 
- if (body === "auto off") {
- autoMode = false;
- return api.sendMessage("🔴 AUTO MODE OFF", event.threadID);
- }
+  if (body === "auto off") {
+    autoMode = false;
+    return api.sendMessage("🔴 AUTO MODE OFF", event.threadID);
+  }
 };
