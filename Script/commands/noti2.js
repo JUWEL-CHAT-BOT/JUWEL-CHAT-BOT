@@ -15,7 +15,7 @@ module.exports.config = {
 
 // ---------- 👑 ADMIN INFO (এখানে পরিবর্তন করুন) ----------
 const ADMIN_INFO = {
-  name: "Juwel Boss",
+  name: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   fbLink: "fb.com/mrjuwel444",
   messengerLink: "m.me/mrjuwel444"
 };
