@@ -4,13 +4,20 @@ const path = require("path");
 
 module.exports.config = {
   name: "noti2",
-  version: "2.2.0",
+  version: "3.0.0",
   hasPermssion: 2,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "Admin broadcast with stats, block, edit, reaction, voice support",
+  description: "Admin broadcast with premium Royal Gold UI",
   commandCategory: "sandnoto",
   usages: "[msg] | stats | block @user | unblock @user | delete",
   cooldowns: 5
+};
+
+// ---------- 👑 ADMIN INFO (এখানে পরিবর্তন করুন) ----------
+const ADMIN_INFO = {
+  name: "Juwel Boss",
+  fbLink: "fb.com/mrjuwel444",
+  messengerLink: "m.me/mrjuwel444"
 };
 
 // ---------- 𝙵𝙾𝙽𝚃 𝙲𝙾𝙽𝚅𝙴𝚁𝚃𝙴𝚁 ----------
@@ -27,15 +34,18 @@ const toFont = (text) => {
   return text.split('').map(c => map[c] || c).join('');
 };
 
-// ---------- 🎨 FRAME ----------
-const FRAME_TOP  = "🔥 𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐅𝐈𝐂𝐀𝐓𝐈𝐎𝐍 🔥";
-const FRAME_LINE = "⚡━━━━━━━━━━━━━━⚡";
+// ---------- 🎨 ROYAL GOLD UI ----------
+const UI = {
+  top:    "╔══════════════════╗\n   👑 𝐀𝐃𝐌𝐈𝐍 𝐍𝐎𝐓𝐈𝐂𝐄 👑\n╚══════════════════╝",
+  mid:    "┏━━━━━━━━━━━━━━━━━┓\n   💬 𝙼𝙴𝚂𝚂𝙰𝙶𝙴\n┗━━━━━━━━━━━━━━━━━┛",
+  line:   "━━━━━━━━━━━━━━━━━━━"
+};
 
-// ---------- 📌 FOOTER (নতুন যোগ) ----------
-const ADMIN_FOOTER =
-  "তুমি যদি এডমিন এর সঙ্গে কথা বলতে চাও, তাহলে অবশ্যই এই মেসেজের রিপ্লাই দিয়ে মেসেজ করো। " +
-  "আমি তোমার মেসেজ টা এডমিন এর কাছে ফরোয়ার্ড করে পাঠিয়ে দিবো ✅\n\n" +
-  "আর সরাসরি এডমিনের সাথে কথা বলতে চাইলে জুয়েল বসকে নক করো: fb.com/mrjuwel444";
+// ---------- 👑 ADMIN CONTACT BLOCK ----------
+const adminContactBlock =
+  "👑 " + toFont("Admin") + "   : " + ADMIN_INFO.name + "\n" +
+  "📘 " + toFont("Facebook") + " : " + ADMIN_INFO.fbLink + "\n" +
+  "💬 " + toFont("Messenger") + ": " + ADMIN_INFO.messengerLink;
 
 // ---------- PATHS ----------
 const CACHE_DIR     = path.join(__dirname, "cache");
@@ -126,12 +136,16 @@ module.exports.handleReply = async function ({
       } catch {}
 
       const caption =
-        "🔥 " + toFont("USER REPLY") + " 🔥\n" +
-        "⚡━━━━━━━━━━━━━━⚡\n\n" +
-        "💬 " + toFont("Reply") + " : " + body + "\n\n" +
-        "👤 " + toFont("Name") + " : " + senderName + "\n" +
-        "📌 " + toFont("From Group") + " : " + groupName + "\n\n" +
-        "⚡━━━━━━━━━━━━━━⚡";
+        "╔══════════════════╗\n" +
+        "   💬 𝚄𝚂𝙴𝚁 𝚁𝙴𝙿𝙻𝚈 💬\n" +
+        "╚══════════════════╝\n\n" +
+        "👤 " + toFont("Name") + "  : " + senderName + "\n" +
+        "📌 " + toFont("Group") + " : " + groupName + "\n\n" +
+        "┏━━━━━━━━━━━━━━━━━┓\n" +
+        "   💬 𝚁𝙴𝙿𝙻𝚈\n" +
+        "┗━━━━━━━━━━━━━━━━━┛\n\n" +
+        body + "\n\n" +
+        UI.line;
 
       let sendData = caption;
 
@@ -177,15 +191,14 @@ module.exports.handleReply = async function ({
       break;
     }
 
-    // ==== অ্যাডমিন → ইউজার (এখানে FOOTER যোগ) ====
+    // ==== অ্যাডমিন → ইউজার ====
     case "reply": {
       const userCaption =
-        "🔥 " + toFont("ADMIN NOTIFICATION") + " 🔥\n" +
-        "⚡━━━━━━━━━━━━━━⚡\n\n" +
-        "💬 " + toFont("Message") + " : " + body + "\n\n" +
-        "👑 " + toFont("Admin") + " : " + senderName + "\n\n" +
-        "⚡━━━━━━━━━━━━━━⚡\n\n" +
-        ADMIN_FOOTER;
+        UI.top + "\n\n" +
+        adminContactBlock + "\n\n" +
+        UI.mid + "\n\n" +
+        body + "\n\n" +
+        UI.line;
 
       let sendData = userCaption;
 
@@ -235,6 +248,7 @@ async function handleAdminCommand(api, event, args, Users) {
   const { threadID } = event;
   const sub = args[0].toLowerCase();
 
+  // 📊 STATS
   if (sub === "stats") {
     const topUsers = Object.entries(stats.users)
       .sort((a, b) => b[1] - a[1])
@@ -245,18 +259,23 @@ async function handleAdminCommand(api, event, args, Users) {
       }).join("\n") || "None yet";
 
     return api.sendMessage(
-      "🔥 " + toFont("NOTI STATS") + " 🔥\n" +
-      "⚡━━━━━━━━━━━━━━⚡\n\n" +
+      "╔══════════════════╗\n" +
+      "   📊 𝙽𝙾𝚃𝙸 𝚂𝚃𝙰𝚃𝚂 📊\n" +
+      "╚══════════════════╝\n\n" +
       "📨 " + toFont("Total Notices") + " : " + stats.total + "\n" +
       "💬 " + toFont("Total Replies") + " : " + stats.replies + "\n" +
-      "👥 " + toFont("Unique Users") + " : " + Object.keys(stats.users).length + "\n" +
+      "👥 " + toFont("Unique Users") + "  : " + Object.keys(stats.users).length + "\n" +
       "🚫 " + toFont("Blocked Users") + " : " + blocked.length + "\n\n" +
-      "🏆 " + toFont("Top Repliers") + "\n" + topUsers + "\n\n" +
-      "⚡━━━━━━━━━━━━━━⚡",
+      "┏━━━━━━━━━━━━━━━━━┓\n" +
+      "   🏆 𝚃𝙾𝙿 𝚁𝙴𝙿𝙻𝙸𝙴𝚁𝚂\n" +
+      "┗━━━━━━━━━━━━━━━━━┛\n\n" +
+      topUsers + "\n\n" +
+      UI.line,
       threadID
     );
   }
 
+  // 🚫 BLOCK
   if (sub === "block") {
     const target = event.mentions && Object.keys(event.mentions)[0];
     if (!target) return api.sendMessage("❌ " + toFont("Mention someone to block"), threadID);
@@ -265,6 +284,7 @@ async function handleAdminCommand(api, event, args, Users) {
     return api.sendMessage("🚫 " + toFont("Blocked") + " : " + target, threadID);
   }
 
+  // ✅ UNBLOCK
   if (sub === "unblock") {
     const target = event.mentions && Object.keys(event.mentions)[0];
     if (!target) return api.sendMessage("❌ " + toFont("Mention someone to unblock"), threadID);
@@ -273,6 +293,7 @@ async function handleAdminCommand(api, event, args, Users) {
     return api.sendMessage("✅ " + toFont("Unblocked") + " : " + target, threadID);
   }
 
+  // 📋 BLOCKLIST
   if (sub === "blocklist") {
     if (!blocked.length) return api.sendMessage("✅ " + toFont("No blocked users"), threadID);
     const list = [];
@@ -287,6 +308,7 @@ async function handleAdminCommand(api, event, args, Users) {
     );
   }
 
+  // 🗑️ DELETE last sent
   if (sub === "delete" || sub === "unsend") {
     if (!sentMessages.length) return api.sendMessage("❌ " + toFont("Nothing to delete"), threadID);
     const last = sentMessages.pop();
@@ -298,6 +320,7 @@ async function handleAdminCommand(api, event, args, Users) {
     return;
   }
 
+  // 🧹 CLEAR STATS
   if (sub === "clearstats") {
     stats = { total: 0, replies: 0, users: {}, perGroup: {} };
     saveJSON(STATS_FILE, stats);
@@ -316,24 +339,31 @@ module.exports.run = async function ({ api, event, args, Users }) {
   const subResult = await handleAdminCommand(api, event, args, Users);
   if (subResult !== false) return;
 
-  const allThreads = (global.data.allThreadID || []).filter(t => !blocked.includes(t));
+  let allThreads = (global.data.allThreadID || [])
+    .filter(t => !blocked.includes(t))
+    .filter(t => t && typeof t === "string" && t.length > 5);
+
+  if (allThreads.length === 0) {
+    return api.sendMessage("❌ No valid thread found", threadID);
+  }
+
   let successCount = 0;
   let failCount = 0;
+  const failedThreads = [];
 
-  const adminName = await Users.getNameUser(senderID);
   const text = args.join(" ");
 
-  // 🎨 ফ্রেম + 𝙵𝙾𝙽𝚃 + FOOTER
+  // ✅ ROYAL GOLD UI
   let plainMsg =
-    FRAME_TOP + "\n" +
-    FRAME_LINE + "\n\n" +
-    "💬 " + toFont("Message") + " : " + text + "\n\n" +
-    "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
-    FRAME_LINE + "\n\n" +
-    ADMIN_FOOTER;
+    UI.top + "\n\n" +
+    adminContactBlock + "\n\n" +
+    UI.mid + "\n\n" +
+    text + "\n\n" +
+    UI.line;
 
   let sendData = plainMsg;
 
+  // 🎙️ Voice reply
   if (event.type === "message_reply" && messageReply) {
     const voiceAtt = messageReply.attachments?.find(a =>
       a.type === "audio" || a.type === "voice" || (a.url && a.url.includes(".mp3"))
@@ -343,62 +373,85 @@ module.exports.run = async function ({ api, event, args, Users }) {
       const voiceStream = await getVoice(voiceAtt.url);
       if (voiceStream) {
         sendData = {
-          body: FRAME_TOP + "\n" +
-                FRAME_LINE + "\n\n" +
-                "🎙️ " + toFont("Voice from Admin") + "\n" +
-                "💬 " + toFont("Message") + " : " + text + "\n\n" +
-                "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
-                FRAME_LINE + "\n\n" +
-                ADMIN_FOOTER,
+          body: UI.top + "\n\n" +
+                adminContactBlock + "\n\n" +
+                "┏━━━━━━━━━━━━━━━━━┓\n" +
+                "   🎙️ 𝚅𝙾𝙸𝙲𝙴 𝙵𝚁𝙾𝙼 𝙰𝙳𝙼𝙸𝙽\n" +
+                "┗━━━━━━━━━━━━━━━━━┛\n\n" +
+                text + "\n\n" +
+                UI.line,
           attachment: voiceStream
         };
       }
     } else if (messageReply.attachments?.length > 0) {
       sendData = await getAtm(
         messageReply.attachments,
-        FRAME_TOP + "\n" +
-        FRAME_LINE + "\n\n" +
-        "💬 " + toFont("Message") + " : " + text + "\n\n" +
-        "👑 " + toFont("Admin") + " : " + adminName + "\n\n" +
-        FRAME_LINE + "\n\n" +
-        ADMIN_FOOTER
+        UI.top + "\n\n" +
+        adminContactBlock + "\n\n" +
+        UI.mid + "\n\n" +
+        text + "\n\n" +
+        UI.line
       );
     }
   }
 
-  await new Promise((resolve) => {
+  await new Promise(async (resolve) => {
     const total = allThreads.length;
-    if (total === 0) return resolve();
     let done = 0;
 
-    allThreads.forEach(tid => {
-      try {
-        api.sendMessage(sendData, tid, (err, info) => {
+    const sendToThread = (tid) => {
+      return new Promise((res) => {
+        try {
+          api.sendMessage(sendData, tid, (err, info) => {
+            if (err) {
+              failCount++;
+              failedThreads.push({
+                tid,
+                error: err.error || err.message || JSON.stringify(err)
+              });
+              console.log(`❌ [${done+1}/${total}] Failed → ${tid} :`, err.error || err);
+            } else {
+              successCount++;
+              registerReply(info, "sendnoti", threadID);
+              console.log(`✅ [${done+1}/${total}] Sent → ${tid}`);
+            }
+            done++;
+            setTimeout(res, 2000);
+          });
+        } catch (e) {
+          failCount++;
+          failedThreads.push({ tid, error: e.message });
           done++;
-          if (err) {
-            failCount++;
-          } else {
-            successCount++;
-            registerReply(info, "sendnoti", threadID);
-          }
-          if (done === total) {
-            cleanupAtm();
-            resolve();
-          }
-        });
-      } catch (e) {
-        done++;
-        failCount++;
-        if (done === total) resolve();
-      }
-    });
+          setTimeout(res, 1000);
+        }
+      });
+    };
+
+    for (const tid of allThreads) {
+      await sendToThread(tid);
+    }
+
+    cleanupAtm();
+    resolve();
   });
 
   stats.total += successCount;
   saveJSON(STATS_FILE, stats);
 
-  return api.sendMessage(
-    "✅ " + toFont("Sent") + " : " + successCount + " | ❌ " + toFont("Failed") + " : " + failCount,
-    threadID
-  );
+  let report =
+    "✅ " + toFont("Sent") + " : " + successCount +
+    " | ❌ " + toFont("Failed") + " : " + failCount;
+
+  if (failedThreads.length > 0) {
+    report += "\n\n❌ " + toFont("Failed Reasons") + ":\n";
+    const shown = failedThreads.slice(0, 5);
+    for (const f of shown) {
+      report += `• ${f.tid} → ${String(f.error).substring(0, 60)}\n`;
+    }
+    if (failedThreads.length > 5) {
+      report += `...and ${failedThreads.length - 5} more`;
+    }
+  }
+
+  return api.sendMessage(report, threadID);
 };
