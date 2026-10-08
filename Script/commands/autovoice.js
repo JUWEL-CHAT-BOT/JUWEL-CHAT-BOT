@@ -36,6 +36,15 @@ const audioUrls = [
   "https://files.catbox.moe/314f6q.mp3"
 ];
 
+// এই লেখাটা বললে ট্রিগার কাজ করবে না
+const blockTriggers = [
+  "juwel ahamed'z",
+  "juwel ahmed'z",
+  "juwel ahame dz",
+  "juwel ahamedz",
+  "জুয়েল আহামেদ'জ"
+];
+
 const cooldown = new Map();
 const COOLDOWN_TIME = 30 * 60 * 1000;
 
@@ -76,6 +85,15 @@ module.exports.handleEvent = async function ({ api, event }) {
 
     const msg = event.body.toLowerCase().trim();
     
+    // 🚫 ব্লক চেক - এই লেখাগুলো থাকলে ট্রিগার কাজ করবে না
+    const isBlocked = blockTriggers.some(b => {
+      const blockLower = b.toLowerCase();
+      return msg === blockLower || msg.includes(blockLower);
+    });
+    
+    if (isBlocked) return;
+    
+    // ✅ ট্রিগার চেক
     const isJewel = triggers.some(t => {
       const triggerLower = t.toLowerCase();
       return msg === triggerLower || msg.includes(triggerLower);
