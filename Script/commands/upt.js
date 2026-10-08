@@ -1,7 +1,7 @@
 /**
  * ╔══════════════════════════════════════════════╗
- * ║              UPTIME MONITOR                 ║
  * ║              MR JUWEL CHAT BOT              ║
+ * ║              SYSTEM STATUS UPT              ║
  * ╚══════════════════════════════════════════════╝
  */
 
@@ -13,10 +13,10 @@ const { execSync } = require("child_process");
 
 module.exports.config = {
   name: "upt",
-  version: "2.0.0",
+  version: "3.0.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
-  description: "3D System Status & Uptime",
+  description: "Simple System Status with 3D background",
   commandCategory: "system",
   usages: "",
   cooldowns: 5
@@ -31,34 +31,50 @@ module.exports.onLoad = () => {
   const cache = path.join(__dirname, "cache");
 
   if (!fs.existsSync(cache)) {
-    fs.mkdirSync(cache, { recursive: true });
+    fs.mkdirSync(cache, {
+      recursive: true
+    });
   }
 };
 
 
 // ═══════════════════════════════════════════════
-// FORMAT BYTES
+// BYTE FORMAT
 // ═══════════════════════════════════════════════
 
 function formatBytes(bytes) {
-  if (!bytes || bytes <= 0) return "0 B";
 
-  const units = ["B", "KB", "MB", "GB", "TB"];
+  if (!bytes || bytes <= 0) {
+    return "0 B";
+  }
+
+  const units = [
+    "B",
+    "KB",
+    "MB",
+    "GB",
+    "TB"
+  ];
+
   const i = Math.floor(
-    Math.log(bytes) / Math.log(1024)
+    Math.log(bytes) /
+    Math.log(1024)
   );
 
   return (
-    bytes / Math.pow(1024, i)
-  ).toFixed(2) + " " + units[i];
+    bytes /
+    Math.pow(1024, i)
+  ).toFixed(2) +
+  " " +
+  units[i];
 }
 
 
 // ═══════════════════════════════════════════════
-// CPU
+// CPU USAGE
 // ═══════════════════════════════════════════════
 
-let previousCPU = null;
+let oldCPU = null;
 
 function getCPU() {
 
@@ -74,7 +90,6 @@ function getCPU() {
     for (const type in cpu.times) {
       total += cpu.times[type];
     }
-
   }
 
   const current = {
@@ -82,55 +97,70 @@ function getCPU() {
     total
   };
 
-  if (!previousCPU) {
-    previousCPU = current;
+  if (!oldCPU) {
+    oldCPU = current;
     return 0;
   }
 
   const idleDiff =
-    current.idle - previousCPU.idle;
+    current.idle -
+    oldCPU.idle;
 
   const totalDiff =
-    current.total - previousCPU.total;
+    current.total -
+    oldCPU.total;
 
-  previousCPU = current;
+  oldCPU = current;
 
-  if (!totalDiff) return 0;
+  if (!totalDiff) {
+    return 0;
+  }
+
+  let usage =
+    100 -
+    (idleDiff / totalDiff) * 100;
+
+  usage = Math.round(usage);
 
   return Math.max(
     0,
-    Math.min(
-      100,
-      Math.round(
-        100 -
-        (idleDiff / totalDiff) * 100
-      )
-    )
+    Math.min(100, usage)
   );
 }
 
 
 // ═══════════════════════════════════════════════
-// DISK
+// DISK USAGE
 // ═══════════════════════════════════════════════
 
 function getDisk() {
 
   try {
 
-    const result = execSync("df -k /")
+    const output = execSync(
+      "df -k /"
+    )
       .toString()
       .trim()
-      .split("\n")[1]
-      .split(/\s+/);
+      .split("\n");
+
+    if (!output[1]) {
+      return 0;
+    }
+
+    const data =
+      output[1]
+        .split(/\s+/);
 
     const total =
-      parseInt(result[1]) * 1024;
+      parseInt(data[1]) * 1024;
 
     const used =
-      parseInt(result[2]) * 1024;
+      parseInt(data[2]) * 1024;
 
-    if (!total) return 0;
+    if (!total) {
+      return 0;
+    }
 
     return Math.min(
       100,
@@ -139,7 +169,7 @@ function getDisk() {
       )
     );
 
-  } catch (e) {
+  } catch (error) {
 
     return 0;
 
@@ -148,31 +178,44 @@ function getDisk() {
 
 
 // ═══════════════════════════════════════════════
-// UPTIME
+// BOT UPTIME
 // ═══════════════════════════════════════════════
 
 function getUptime() {
 
-  const sec =
-    Math.floor(process.uptime());
+  const seconds =
+    Math.floor(
+      process.uptime()
+    );
 
   const days =
-    Math.floor(sec / 86400);
+    Math.floor(
+      seconds / 86400
+    );
 
   const hours =
     Math.floor(
-      (sec % 86400) / 3600
+      (seconds % 86400) / 3600
     );
 
   const minutes =
     Math.floor(
-      (sec % 3600) / 60
+      (seconds % 3600) / 60
     );
 
-  const seconds =
-    sec % 60;
+  const secs =
+    seconds % 60;
 
-  return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+  return (
+    days +
+    "d " +
+    hours +
+    "h " +
+    minutes +
+    "m " +
+    secs +
+    "s"
+  );
 }
 
 
@@ -233,7 +276,7 @@ function roundedRect(
 
 
 // ═══════════════════════════════════════════════
-// 3D BACKGROUND
+// BACKGROUND
 // ═══════════════════════════════════════════════
 
 function drawBackground(
@@ -242,28 +285,28 @@ function drawBackground(
   H
 ) {
 
-  // Main background
+  // Main dark background
   const bg =
     ctx.createLinearGradient(
       0,
       0,
-      W,
+      0,
       H
     );
 
   bg.addColorStop(
     0,
-    "#020817"
+    "#020914"
   );
 
   bg.addColorStop(
     0.5,
-    "#071a2d"
+    "#031322"
   );
 
   bg.addColorStop(
     1,
-    "#020611"
+    "#020711"
   );
 
   ctx.fillStyle = bg;
@@ -276,23 +319,25 @@ function drawBackground(
   );
 
 
-  // ═══════════════════════════════════════════
-  // BACK GLOW
-  // ═══════════════════════════════════════════
-
+  // Center blue glow
   const glow =
     ctx.createRadialGradient(
       W / 2,
-      280,
+      350,
       20,
       W / 2,
-      280,
-      550
+      350,
+      600
     );
 
   glow.addColorStop(
     0,
-    "rgba(0,180,255,0.18)"
+    "rgba(0,170,255,0.12)"
+  );
+
+  glow.addColorStop(
+    0.5,
+    "rgba(0,100,180,0.05)"
   );
 
   glow.addColorStop(
@@ -311,43 +356,43 @@ function drawBackground(
 
 
   // ═══════════════════════════════════════════
-  // SERVER RACKS
+  // LEFT SERVER RACK
   // ═══════════════════════════════════════════
 
-  function rack(
+  function serverRack(
     x,
     y,
     w,
     h
   ) {
 
-    const gradient =
+    const rack =
       ctx.createLinearGradient(
         x,
         y,
         x + w,
-        y + h
+        y
       );
 
-    gradient.addColorStop(
+    rack.addColorStop(
       0,
-      "#10263d"
+      "#071827"
     );
 
-    gradient.addColorStop(
+    rack.addColorStop(
       0.5,
-      "#061321"
+      "#0a1d2e"
     );
 
-    gradient.addColorStop(
+    rack.addColorStop(
       1,
-      "#02070e"
+      "#020914"
     );
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = rack;
 
     ctx.shadowColor =
-      "rgba(0,150,255,0.25)";
+      "rgba(0,170,255,0.18)";
 
     ctx.shadowBlur = 25;
 
@@ -365,7 +410,7 @@ function drawBackground(
     ctx.shadowBlur = 0;
 
     ctx.strokeStyle =
-      "rgba(0,190,255,0.35)";
+      "rgba(0,170,255,0.20)";
 
     ctx.lineWidth = 2;
 
@@ -375,83 +420,133 @@ function drawBackground(
     // Server slots
     for (
       let i = 0;
-      i < 8;
+      i < 7;
       i++
     ) {
 
       const sy =
-        y + 25 + i * 52;
-
-      ctx.fillStyle =
-        "rgba(0,0,0,0.5)";
+        y +
+        25 +
+        i * 58;
 
       roundedRect(
         ctx,
-        x + 12,
+        x + 15,
         sy,
-        w - 24,
-        34,
+        w - 30,
+        38,
         5
       );
 
-      ctx.fill();
-
-
-      // LED
-      ctx.beginPath();
-
-      ctx.arc(
-        x + w - 35,
-        sy + 17,
-        4,
-        0,
-        Math.PI * 2
-      );
-
       ctx.fillStyle =
-        i % 2 === 0
-          ? "#00ff88"
-          : "#00aaff";
-
-      ctx.shadowColor =
-        ctx.fillStyle;
-
-      ctx.shadowBlur = 12;
+        "rgba(0,0,0,0.35)";
 
       ctx.fill();
 
-      ctx.shadowBlur = 0;
+
+      // tiny lights
+      for (
+        let j = 0;
+        j < 3;
+        j++
+      ) {
+
+        ctx.beginPath();
+
+        ctx.arc(
+          x + 30 +
+          j * 13,
+          sy + 19,
+          3,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fillStyle =
+          j === 0
+            ? "#00ff88"
+            : "#008cff";
+
+        ctx.shadowColor =
+          ctx.fillStyle;
+
+        ctx.shadowBlur = 10;
+
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+      }
     }
   }
 
 
-  rack(
-    40,
-    125,
-    190,
-    440
+  serverRack(
+    45,
+    150,
+    175,
+    410
   );
 
-  rack(
-    W - 230,
-    125,
-    190,
-    440
+  serverRack(
+    W - 220,
+    150,
+    175,
+    410
   );
 
 
   // ═══════════════════════════════════════════
-  // 3D FLOOR
+  // CENTER BACK SERVER
+  // ═══════════════════════════════════════════
+
+  const centerX =
+    W / 2;
+
+  const centerY =
+    450;
+
+  ctx.save();
+
+  ctx.shadowColor =
+    "rgba(0,170,255,0.25)";
+
+  ctx.shadowBlur = 30;
+
+  roundedRect(
+    ctx,
+    centerX - 110,
+    centerY - 80,
+    220,
+    150,
+    15
+  );
+
+  ctx.fillStyle =
+    "rgba(5,24,40,0.7)";
+
+  ctx.fill();
+
+  ctx.strokeStyle =
+    "rgba(0,180,255,0.25)";
+
+  ctx.stroke();
+
+  ctx.restore();
+
+
+  // ═══════════════════════════════════════════
+  // FLOOR GRID
   // ═══════════════════════════════════════════
 
   ctx.save();
 
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha =
+    0.15;
 
   ctx.strokeStyle =
-    "#00baff";
+    "#008cff";
 
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
 
 
   for (
@@ -461,7 +556,8 @@ function drawBackground(
   ) {
 
     const y =
-      590 + i * i * 3;
+      620 +
+      i * i * 2.5;
 
     ctx.beginPath();
 
@@ -489,7 +585,7 @@ function drawBackground(
 
     ctx.moveTo(
       W / 2,
-      550
+      575
     );
 
     ctx.lineTo(
@@ -503,12 +599,9 @@ function drawBackground(
   ctx.restore();
 
 
-  // ═══════════════════════════════════════════
-  // DARK OVERLAY
-  // ═══════════════════════════════════════════
-
+  // Dark overlay
   ctx.fillStyle =
-    "rgba(2,7,18,0.35)";
+    "rgba(1,7,16,0.25)";
 
   ctx.fillRect(
     0,
@@ -520,7 +613,46 @@ function drawBackground(
 
 
 // ═══════════════════════════════════════════════
-// STATUS RING
+// GLASS PANEL
+// ═══════════════════════════════════════════════
+
+function drawPanel(
+  ctx,
+  x,
+  y,
+  w,
+  h
+) {
+
+  ctx.save();
+
+  roundedRect(
+    ctx,
+    x,
+    y,
+    w,
+    h,
+    28
+  );
+
+  ctx.fillStyle =
+    "rgba(2,12,25,0.84)";
+
+  ctx.fill();
+
+  ctx.strokeStyle =
+    "rgba(0,190,255,0.35)";
+
+  ctx.lineWidth = 2;
+
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+
+// ═══════════════════════════════════════════════
+// RING
 // ═══════════════════════════════════════════════
 
 function drawRing(
@@ -532,12 +664,13 @@ function drawRing(
   label
 ) {
 
-  const radius = 88;
-  const thickness = 20;
+  const radius = 92;
+  const width = 22;
 
   ctx.save();
 
-  // Background
+
+  // Background circle
   ctx.beginPath();
 
   ctx.arc(
@@ -549,10 +682,10 @@ function drawRing(
   );
 
   ctx.lineWidth =
-    thickness;
+    width;
 
   ctx.strokeStyle =
-    "rgba(255,255,255,0.10)";
+    "rgba(80,100,115,0.28)";
 
   ctx.stroke();
 
@@ -571,37 +704,37 @@ function drawRing(
   );
 
   ctx.lineWidth =
-    thickness;
-
-  ctx.strokeStyle =
-    color;
+    width;
 
   ctx.lineCap =
     "round";
+
+  ctx.strokeStyle =
+    color;
 
   ctx.shadowColor =
     color;
 
   ctx.shadowBlur =
-    20;
+    22;
 
   ctx.stroke();
 
   ctx.shadowBlur = 0;
 
 
-  // Value
+  // Percentage
   ctx.font =
     "bold 45px Arial";
-
-  ctx.fillStyle =
-    "#ffffff";
 
   ctx.textAlign =
     "center";
 
   ctx.textBaseline =
     "middle";
+
+  ctx.fillStyle =
+    "#ffffff";
 
   ctx.fillText(
     value + "%",
@@ -620,7 +753,7 @@ function drawRing(
   ctx.fillText(
     label,
     x,
-    y + 67
+    y + 70
   );
 
   ctx.restore();
@@ -628,51 +761,7 @@ function drawRing(
 
 
 // ═══════════════════════════════════════════════
-// GLASS BOX
-// ═══════════════════════════════════════════════
-
-function glassBox(
-  ctx,
-  x,
-  y,
-  w,
-  h
-) {
-
-  ctx.save();
-
-  roundedRect(
-    ctx,
-    x,
-    y,
-    w,
-    h,
-    25
-  );
-
-  ctx.fillStyle =
-    "rgba(3,14,29,0.82)";
-
-  ctx.fill();
-
-  ctx.strokeStyle =
-    "rgba(0,200,255,0.45)";
-
-  ctx.lineWidth = 2;
-
-  ctx.shadowColor =
-    "rgba(0,180,255,0.25)";
-
-  ctx.shadowBlur = 20;
-
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-
-// ═══════════════════════════════════════════════
-// NO PREFIX
+// NO PREFIX HANDLER
 // ═══════════════════════════════════════════════
 
 module.exports.handleEvent =
@@ -681,15 +770,18 @@ async function ({
   event
 }) {
 
-  if (!event.body)
+  if (!event.body) {
     return;
+  }
 
-  const msg =
+  const message =
     String(event.body)
       .trim()
       .toLowerCase();
 
-  if (msg === "upt") {
+  if (
+    message === "upt"
+  ) {
 
     return module.exports.run({
       api,
@@ -701,7 +793,7 @@ async function ({
 
 
 // ═══════════════════════════════════════════════
-// MAIN
+// MAIN COMMAND
 // ═══════════════════════════════════════════════
 
 module.exports.run =
@@ -710,7 +802,7 @@ async function ({
   event
 }) {
 
-  let file = null;
+  let imageFile = null;
 
   try {
 
@@ -719,24 +811,33 @@ async function ({
 
 
     // ═══════════════════════════════════════════
-    // SYSTEM DATA
+    // LIVE DATA
     // ═══════════════════════════════════════════
 
     const cpu =
       getCPU();
 
-    const totalRam =
+    const totalRAM =
       os.totalmem();
 
-    const freeRam =
+    const freeRAM =
       os.freemem();
 
-    const usedRam =
-      totalRam - freeRam;
+    const usedRAM =
+      totalRAM -
+      freeRAM;
 
     const ram =
-      Math.round(
-        (usedRam / totalRam) * 100
+      Math.max(
+        0,
+        Math.min(
+          100,
+          Math.round(
+            (usedRAM /
+              totalRAM) *
+            100
+          )
+        )
       );
 
     const disk =
@@ -746,7 +847,8 @@ async function ({
       getUptime();
 
     const ping =
-      Date.now() - start;
+      Date.now() -
+      start;
 
 
     // ═══════════════════════════════════════════
@@ -763,10 +865,12 @@ async function ({
       );
 
     const ctx =
-      canvas.getContext("2d");
+      canvas.getContext(
+        "2d"
+      );
 
 
-    // 3D Background
+    // Background
     drawBackground(
       ctx,
       W,
@@ -774,11 +878,8 @@ async function ({
     );
 
 
-    // ═══════════════════════════════════════════
-    // MAIN PANEL
-    // ═══════════════════════════════════════════
-
-    glassBox(
+    // Main border panel
+    drawPanel(
       ctx,
       25,
       25,
@@ -788,7 +889,7 @@ async function ({
 
 
     // ═══════════════════════════════════════════
-    // TITLE
+    // SYSTEM STATUS
     // ═══════════════════════════════════════════
 
     ctx.save();
@@ -796,8 +897,11 @@ async function ({
     ctx.textAlign =
       "center";
 
+    ctx.textBaseline =
+      "middle";
+
     ctx.font =
-      "bold 60px Arial";
+      "bold 62px Arial";
 
     ctx.fillStyle =
       "#ffffff";
@@ -805,19 +909,20 @@ async function ({
     ctx.shadowColor =
       "#00bfff";
 
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur =
+      18;
 
     ctx.fillText(
       "SYSTEM STATUS",
       W / 2,
-      88
+      85
     );
 
     ctx.restore();
 
 
     // ═══════════════════════════════════════════
-    // BOT NAME
+    // MR JUWEL CHAT BOT
     // ═══════════════════════════════════════════
 
     ctx.save();
@@ -826,7 +931,7 @@ async function ({
       "center";
 
     ctx.font =
-      "bold 25px Arial";
+      "bold 27px Arial";
 
     ctx.fillStyle =
       "#00eaff";
@@ -834,47 +939,53 @@ async function ({
     ctx.shadowColor =
       "#00eaff";
 
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur =
+      15;
 
     ctx.fillText(
       "MR JUWEL CHAT BOT",
       W / 2,
-      125
+      135
     );
 
     ctx.restore();
 
 
     // ═══════════════════════════════════════════
-    // ADMIN
+    // ADMIN MR JUWEL
     // ═══════════════════════════════════════════
 
-    ctx.font =
-      "bold 18px Arial";
-
-    ctx.fillStyle =
-      "#00ff88";
+    ctx.save();
 
     ctx.textAlign =
       "right";
 
+    ctx.font =
+      "bold 21px Arial";
+
+    ctx.fillStyle =
+      "#00ff88";
+
     ctx.shadowColor =
       "#00ff88";
 
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur =
+      12;
 
     ctx.fillText(
       "ADMIN MR JUWEL",
-      1010,
-      60
+      1015,
+      65
     );
 
-    ctx.shadowBlur = 0;
+    ctx.restore();
 
 
     // ═══════════════════════════════════════════
-    // UPTIME — BIG
+    // UPTIME
     // ═══════════════════════════════════════════
+
+    ctx.save();
 
     ctx.textAlign =
       "center";
@@ -883,15 +994,16 @@ async function ({
       "bold 30px Arial";
 
     ctx.fillStyle =
-      "#8da5c4";
+      "#a7b5c5";
 
     ctx.fillText(
       "UPTIME",
       W / 2,
-      165
+      180
     );
 
 
+    // BIG UPTIME
     ctx.font =
       "bold 58px Arial";
 
@@ -901,106 +1013,150 @@ async function ({
     ctx.shadowColor =
       "#00ff88";
 
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur =
+      25;
 
     ctx.fillText(
       uptime,
       W / 2,
-      220
+      235
     );
 
-    ctx.shadowBlur = 0;
+    ctx.restore();
 
 
     // ═══════════════════════════════════════════
-    // RINGS
+    // CPU
     // ═══════════════════════════════════════════
 
     drawRing(
       ctx,
       250,
-      340,
+      365,
       cpu,
       "#00ff88",
       "CPU"
     );
 
+
+    // RAM
     drawRing(
       ctx,
       540,
-      340,
+      365,
       ram,
-      "#ff3b81",
+      "#ff2f82",
       "RAM"
     );
 
+
+    // DISK
     drawRing(
       ctx,
       830,
-      340,
+      365,
       disk,
-      "#00b7ff",
+      "#00aaff",
       "DISK"
     );
 
 
     // ═══════════════════════════════════════════
-    // BOTTOM INFO
+    // INFORMATION BOX
     // ═══════════════════════════════════════════
 
-    glassBox(
+    drawPanel(
       ctx,
-      100,
-      470,
-      880,
-      150
+      105,
+      505,
+      870,
+      125
     );
 
 
-    // Memory
+    // MEMORY LABEL
     ctx.textAlign =
       "left";
 
     ctx.font =
-      "bold 21px Arial";
+      "bold 22px Arial";
 
     ctx.fillStyle =
-      "#8da5c4";
+      "#91a6bb";
 
     ctx.fillText(
       "MEMORY",
-      135,
-      515
+      140,
+      545
     );
 
+
+    // MEMORY VALUE
     ctx.font =
-      "bold 23px Arial";
+      "bold 24px Arial";
 
     ctx.fillStyle =
-      "#ff3b81";
+      "#ff2f82";
 
     ctx.fillText(
-      `${formatBytes(usedRam)} / ${formatBytes(totalRam)}`,
-      270,
-      515
+      `${formatBytes(usedRAM)} / ${formatBytes(totalRAM)}`,
+      290,
+      545
     );
 
 
-    // Ping
+    // STATUS
     ctx.font =
-      "bold 21px Arial";
+      "bold 22px Arial";
 
     ctx.fillStyle =
-      "#8da5c4";
+      "#91a6bb";
+
+    ctx.fillText(
+      "STATUS",
+      650,
+      545
+    );
+
+
+    // ONLINE
+    ctx.font =
+      "bold 24px Arial";
+
+    ctx.fillStyle =
+      "#00ff88";
+
+    ctx.shadowColor =
+      "#00ff88";
+
+    ctx.shadowBlur =
+      15;
+
+    ctx.fillText(
+      "● ONLINE",
+      775,
+      545
+    );
+
+    ctx.shadowBlur = 0;
+
+
+    // PING
+    ctx.font =
+      "bold 22px Arial";
+
+    ctx.fillStyle =
+      "#91a6bb";
 
     ctx.fillText(
       "PING",
-      135,
-      560
+      140,
+      590
     );
 
+
     ctx.font =
-      "bold 23px Arial";
+      "bold 24px Arial";
 
     ctx.fillStyle =
       ping < 100
@@ -1008,68 +1164,36 @@ async function ({
         : "#ffaa00";
 
     ctx.fillText(
-      `${ping} ms`,
-      270,
-      560
+      ping + " ms",
+      290,
+      590
     );
 
 
-    // Status
+    // DISK
     ctx.font =
-      "bold 21px Arial";
+      "bold 22px Arial";
 
     ctx.fillStyle =
-      "#8da5c4";
-
-    ctx.fillText(
-      "STATUS",
-      600,
-      515
-    );
-
-    ctx.font =
-      "bold 23px Arial";
-
-    ctx.fillStyle =
-      "#00ff88";
-
-    ctx.shadowColor =
-      "#00ff88";
-
-    ctx.shadowBlur = 12;
-
-    ctx.fillText(
-      "● ONLINE",
-      735,
-      515
-    );
-
-    ctx.shadowBlur = 0;
-
-
-    // Disk
-    ctx.font =
-      "bold 21px Arial";
-
-    ctx.fillStyle =
-      "#8da5c4";
+      "#91a6bb";
 
     ctx.fillText(
       "DISK",
-      600,
-      560
+      650,
+      590
     );
 
+
     ctx.font =
-      "bold 23px Arial";
+      "bold 24px Arial";
 
     ctx.fillStyle =
-      "#00b7ff";
+      "#00aaff";
 
     ctx.fillText(
       disk + "%",
-      735,
-      560
+      775,
+      590
     );
 
 
@@ -1077,53 +1201,61 @@ async function ({
     // FOOTER
     // ═══════════════════════════════════════════
 
+    ctx.save();
+
     ctx.textAlign =
       "center";
 
     ctx.font =
-      "bold 20px Arial";
+      "bold 23px Arial";
 
     ctx.fillStyle =
-      "#00eaff";
+      "#00d9ff";
 
     ctx.shadowColor =
-      "#00eaff";
+      "#00d9ff";
 
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur =
+      15;
 
     ctx.fillText(
       "MR JUWEL CHAT BOT",
       W / 2,
-      655
+      665
     );
 
-    ctx.shadowBlur = 0;
+    ctx.restore();
 
 
     // ═══════════════════════════════════════════
-    // SAVE IMAGE
+    // SAVE
     // ═══════════════════════════════════════════
 
-    file = path.join(
-      __dirname,
-      "cache",
-      `upt_${Date.now()}.png`
-    );
+    imageFile =
+      path.join(
+        __dirname,
+        "cache",
+        `upt_${Date.now()}.png`
+      );
 
     fs.writeFileSync(
-      file,
-      canvas.toBuffer("image/png")
+      imageFile,
+      canvas.toBuffer(
+        "image/png"
+      )
     );
 
 
     // ═══════════════════════════════════════════
-    // SEND IMAGE
+    // SEND
     // ═══════════════════════════════════════════
 
     api.sendMessage(
       {
         attachment:
-          fs.createReadStream(file)
+          fs.createReadStream(
+            imageFile
+          )
       },
       event.threadID,
       () => {
@@ -1131,15 +1263,26 @@ async function ({
         try {
 
           if (
-            file &&
-            fs.existsSync(file)
+            imageFile &&
+            fs.existsSync(
+              imageFile
+            )
           ) {
 
-            fs.unlinkSync(file);
+            fs.unlinkSync(
+              imageFile
+            );
 
           }
 
-        } catch (e) {}
+        } catch (e) {
+
+          console.log(
+            "UPT cache delete error:",
+            e
+          );
+
+        }
 
       },
       event.messageID
@@ -1149,8 +1292,15 @@ async function ({
   } catch (error) {
 
     console.error(
-      "[UPT ERROR]",
+      "========== UPT ERROR =========="
+    );
+
+    console.error(
       error
+    );
+
+    console.error(
+      "================================"
     );
 
     api.sendMessage(
