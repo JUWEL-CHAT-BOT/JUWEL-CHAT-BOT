@@ -81,14 +81,14 @@ users.needObject=Have to be an Object
 
 includes/handle/handleCommand.js
 
-handleCommand.userBanned=বক্স এ বেশি আবলামি করার কারণে তুমাকে ব্যান করা হয়েছে..!🚫
-handleCommand.threadBanned=Group Has Been Banned..!⛔️\nPlease Contact Owner MR JUWEL For Unban ⚠️
-handleCommand.commandNotExist=⚠️তোমার দেওয়া🗣️কমান্ডটি ভুল🤦‍♂️       এটা কমান্ড আমার মধ্য এড নাই⚠️       ✅সঠিক কমান্ড দাও বেবি♻️🎀
+handleCommand.userBanned=বক্স এ বেশি আবলামি করার কারণে তুমাকে ব্যান করা হয়েছে..!🚫আন ব্যান হতে চাইলে জুয়েল বসকে নক করো আন ব্যান করতে বলো বস এর আইডি	> fb.com/mrjuwel
+handleCommand.threadBanned=বক্স এ বেশি আবলামি করার কারণে গুপ ব্যান করা হয়েছে.গুপ.!🚫আন ব্যান করতে চাইলে জুয়েল বসকে নক করো আন ব্যান করতে বলো বস এর আইডি	> fb.com/mrjuwel
+handleCommand.commandNotExist=⚠️তোমার দেওয়া🗣️কমান্ডটি ভুল🤦‍♂️       এটা কমান্ড আমার মধ্য এড নাই⚠️      ✅সঠিক কমান্ড দাও বেবি♻️🎀
 handleCommand.commandThreadBanned=😘সঠিক কমান্ড করো বেবি🫂😘 "%1"
 handleCommand.commandUserBanned=You are unable to use command "%1"
 handleCommand.threadNotAllowNSFW=This Commnd Only use Andmin
 handleCommand.cantGetInfoThread=Can't get your thread's info, error: %1
-handleCommand.permssionNotEnough="%1 You Have No Permission! 🚫\nThis Command is Only For Boss 𝐉🅤𝐖🅔𝐋 😘\n\nপাগল!🥵এই কমান্ডটা তোর⚠জন্য না!\n👑 এইটা শুধুমাত্র আমার বস 𝐉🅤𝐖🅔𝐋 ব্যবহার করতে পারবে!\nতুই তো এডমিন লেভেলে নাই বুঝলি?🐸👋😂
+handleCommand.permssionNotEnough="%1 You Have No Permission! 🚫\nThis Command is Only For Boss 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐ 😘\n\n!🥵এই কমান্ডটা তোর⚠জন্য না'রে পাগলা!\n👑 এই কমান্ড শুধুমাত্র আমার বস 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐ ব্যবহার করতে পারবে!\nতুই তো এডমিন লেভেলে নাই বুঝলি?🐸👋😂
 handleCommand.cantSetMessageReaction=Having some unexpected error at setMessageReaction, error: %1
 handleCommand.executeCommand=[ %1 ] Command used: %2 by user: %3 at thread: %4 | Args included: %5 | Processing time: %6ms
 handleCommand.commandError=Having some unexpected error when using command %1, error: %2
