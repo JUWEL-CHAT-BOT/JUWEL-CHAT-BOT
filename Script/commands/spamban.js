@@ -1,9 +1,19 @@
 const num = 5;
 const timeWindow = 60;
 
+// ✅ স্প্যাম কিওয়ার্ড লিস্ট (এখানে যা চান যোগ করতে পারেন)
+const SPAM_KEYWORDS = [
+  "bot",
+  "bby", "baby", "বেবি", "বিবি", "bbz", "বিবিজেড",
+  "kolixa", "kolija", "কলিজা",
+  "riya", "রিয়া",
+  "babu", "বাবু",
+  "jan", "জান"
+];
+
 module.exports.config = {
   name: "spamban",
-  version: "4.1.0",
+  version: "4.2.0",
   hasPermssion: 0,
   credits: "乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐",
   description: "বাংলা স্প্যাম ব্যান সিস্টেম",
@@ -35,9 +45,9 @@ module.exports.run = async function ({ api, event }) {
 `╔════════════════════╗
 ║ 🤖 স্প্যাম ব্যান সিস্টেম
 ╠════════════════════╣
-║ 📌 কমান্ড + "bot" detect
+║ 📌 কমান্ড + স্প্যাম কিওয়ার্ড
 ║ ⚠️ ৪ বার → সতর্কবার্তা
-║ 🚫 ৫ বার → স্থায়ী ব্যান
+║ 🚫 ৫ বার → স্থায়ী ব্যান
 ║ 👑 শুধু বট এডমিন safe
 ╚════════════════════╝`,
     event.threadID,
@@ -77,15 +87,25 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     data.start = Date.now();
   }
 
-  const text = body.toLowerCase();
+  const text = body.toLowerCase().trim();
 
   const threadData = global.data.threadData.get(threadID) || {};
   const prefix = threadData.PREFIX || global.config.PREFIX;
 
   const isCommand = text.startsWith(prefix);
-  const isBot = /\bbot\b/i.test(text);
 
-  if (!isCommand && !isBot) return;
+  // ✅ এখানে নতুন কিওয়ার্ড চেক (word boundary দিয়ে)
+  const hasSpamKeyword = SPAM_KEYWORDS.some(kw => {
+    const lowerKw = kw.toLowerCase();
+    // বাংলা/ইংরেজি উভয়ের জন্য রেজেক্স
+    const regex = new RegExp(
+      `(^|\\s)${lowerKw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|\\s)`,
+      "i"
+    );
+    return regex.test(text);
+  });
+
+  if (!isCommand && !hasSpamKeyword) return;
 
   data.count++;
   const count = data.count;
@@ -115,7 +135,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     let user = userData || {};
     user.data = user.data || {};
 
-    const reasonText = `তুমি গুপে SPAM করছো তাই তোমাকে পারমানেন্ট ব্যান করা হয়েছে  তুমি আর বট ব্যাবহার করতে পারবে না ⚠️❌
+    const reasonText = `তুমি গুপে SPAM করছো তাই তোমাকে পারমানেন্ট ব্যান করা হয়েছে  তুমি আর বট ব্যাবহার করতে পারবে না ⚠️❌
 যুদি বট ব্যাবহার করতে চাও তাহলে আমার বস
 乛 M𝆠፝֟R ཐི༏ཋྀ JU𝆠፝֟W𝆠፝֟ELꜛཐི༏ཋྀ࿐ এর ইনবক্সে নক করো বস'কে বলো সে তোমাকে  আনব্যান করে দিবে তার পর তুমি আবার ও বট ব্যাবহার করতে পারবে বস এর আইডি👤➡️ fb.com/mrjuwel520`;
 
@@ -138,7 +158,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 ╠════════════════════╣
 ║ 👤 নাম: ${name}
 ║ 🆔 ${senderID}
-║ ⏰ সময়: ${time}
+║ ⏰ সময়: ${time}
 ╠════════════════════╣
 ${reasonText}
 ╚════════════════════╝`,
